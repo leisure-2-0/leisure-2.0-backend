@@ -48,5 +48,29 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    description = '단위 테스트'
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    testLogging {
+        events "failed"
+        exceptionFormat = "full"
+        showStandardStreams = true
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = '통합 테스트'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter tasks.named('test')
+    testLogging {
+        events "failed"
+        exceptionFormat = "full"
+        showStandardStreams = true
+    }
 }
