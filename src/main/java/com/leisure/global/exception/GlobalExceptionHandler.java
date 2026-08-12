@@ -6,12 +6,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import java.util.List;
 
 /**
  * @Valid, Standard Exception, Business Exception 그 외 예상 못 한 예외를 잡아
@@ -106,13 +109,17 @@ public class GlobalExceptionHandler {
      * HTTP 표준 의미상으로는 422
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(
+    public ResponseEntity<ApiResponse<List<String>>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e
     ) {
-        String code = String.valueOf(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        List<String> messages = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .toList();
+
+        String code = String.valueOf(HttpStatus.UNPROCESSABLE_CONTENT.value());
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(ApiResponse.fail(code, "입력값 검증에 실패했습니다."));
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(ApiResponse.fail(code, "입력값 검증에 실패했습니다.", messages));
     }
 
     /**

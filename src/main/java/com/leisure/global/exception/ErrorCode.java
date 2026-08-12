@@ -20,7 +20,29 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 public enum ErrorCode {
+
+    EMAIL_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, HttpStatus.UNPROCESSABLE_CONTENT.value(), "이메일은 필수 입력값입니다."),
+
+    NICKNAME_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, HttpStatus.UNPROCESSABLE_CONTENT.value(), "닉네임은 필수 입력값입니다."),
+
+    EMAIL_DUPLICATE(HttpStatus.CONFLICT, HttpStatus.CONFLICT.value(), "이미 사용 중인 이메일입니다."),
+
+    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, HttpStatus.CONFLICT.value(), "이미 사용 중인 닉네임입니다."),
+
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다."),
+
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.value(), "이메일 또는 비밀번호가 일치하지 않습니다."),
+
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
+
+    USER_UPDATE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 수정 권한이 없습니다."),
+
+    USER_DELETE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 삭제 권한이 없습니다."),
+
+    USER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "수정할 정보가 없습니다."),
+
     ;
+
 
     private final HttpStatus status;
 
