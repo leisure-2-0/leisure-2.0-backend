@@ -25,6 +25,14 @@ public class MemberController {
                 .body(ApiResponse.success("회원가입이 완료되었습니다.", response));
     }
 
+    @DeleteMapping("/members")
+    public ResponseEntity<Void> withdraw(/* TODO: @LoginMember */ String publicId) {
+
+        service.withdraw(publicId);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/users/email/check")
     public ResponseEntity<ApiResponse<Void>> checkEmail(@RequestParam String email) {
 

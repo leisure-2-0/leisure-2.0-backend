@@ -33,13 +33,13 @@ public enum ErrorCode {
 
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.value(), "이메일 또는 비밀번호가 일치하지 않습니다."),
 
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
 
-    USER_UPDATE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 수정 권한이 없습니다."),
+    MEMBER_UPDATE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 수정 권한이 없습니다."),
 
-    USER_DELETE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 삭제 권한이 없습니다."),
+    MEMBER_DELETE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 삭제 권한이 없습니다."),
 
-    USER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "수정할 정보가 없습니다."),
+    MEMBER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "수정할 정보가 없습니다."),
 
     ;
 

@@ -123,5 +123,6 @@ jobs:
             - {유형}은 버그 / 보안 / 스타일 중 하나야.
             - 한 파일 이슈가 5개를 넘으면 심각도 높은 순 상위 5개만 적고, 상세 끝에 "그 외 N개 생략"으로 표기해.
           claude_args: |
-            --max-turns 15
+            --max-turns 30
             --model claude-sonnet-4-6
+          show_full_output: true

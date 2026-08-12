@@ -2,6 +2,7 @@ package com.leisure.member.service;
 
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
+import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.SignUpResponse;
@@ -19,6 +20,8 @@ public class MemberService {
     private final MemberRepository repository;
 
     private final PasswordEncoder encoder;
+
+    private final Provider provider;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -47,6 +50,30 @@ public class MemberService {
         return new SignUpResponse(member.getPublicId());
     }
 
+    public void withdraw(String publicId) {
+        Member member = provider.getMemberByPublicId(publicId);
+
+        if (member.getDeletedAt() != null) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        member.delete();
+    }
+
+    @Transactional(readOnly = true)
+    public void checkEmail(String email) {
+        if (repository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void checkNickname(String nickname) {
+        if (repository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
+        }
+    }
+
     private void validateMemberUniqueness(String email, String nickname) {
         if (repository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
@@ -60,18 +87,6 @@ public class MemberService {
     private void validatePasswordMatch(String password, String passwordCheck) {
         if (!password.equals(passwordCheck)) {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
-        }
-    }
-
-    public void checkEmail(String email) {
-        if (repository.existsByEmail(email)) {
-            throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
-        }
-    }
-
-    public void checkNickname(String nickname) {
-        if (repository.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }
 }
