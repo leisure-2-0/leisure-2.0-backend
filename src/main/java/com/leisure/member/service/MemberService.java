@@ -62,5 +62,17 @@ public class MemberService {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
     }
+
+    public void checkEmail(String email) {
+        if (repository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
+        }
+    }
+
+    public void checkNickname(String nickname) {
+        if (repository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
+        }
+    }
 }
 
