@@ -41,6 +41,12 @@ public enum ErrorCode {
 
     MEMBER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "수정할 정보가 없습니다."),
 
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
+
+    TOKEN_UNSUPPORTED(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "지원하지 않는 형식의 토큰입니다."),
+
+    TOKEN_INVALID(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 토큰입니다."),
+
     ;
 
 
