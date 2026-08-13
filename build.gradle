@@ -18,9 +18,29 @@ repositories {
     mavenCentral()
 }
 
+
+ext {
+    set('jjwtVersion', '0.12.6')
+    set('p6spyVersion','2.0.1')
+}
+
 dependencies {
     // Spring MVC
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Spring OAuth2
+    // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // Password Hashing
+    // implementation 'org.springframework.security:spring-security-crypto'
+
+    // JWT
+    implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+    runtimeOnly   "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+    runtimeOnly   "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -32,14 +52,14 @@ dependencies {
     // Database Driver
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // Password Hashing
-    implementation 'org.springframework.security:spring-security-crypto'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // JPA
+    // JPAs
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     // p6spy
-    implementation "com.github.gavlyukovskiy:p6spy-spring-boot-starter:2.0.1"
+    implementation "com.github.gavlyukovskiy:p6spy-spring-boot-starter:${p6spyVersion}"
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
