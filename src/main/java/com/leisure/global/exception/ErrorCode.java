@@ -54,11 +54,11 @@ public enum ErrorCode {
 
     private final int code;
 
-    private final String messgae;
+    private final String message;
 
-    ErrorCode(HttpStatus status, int code, String messgae) {
+    ErrorCode(HttpStatus status, int code, String message) {
         this.status = status;
         this.code = code;
-        this.messgae = messgae;
+        this.message = message;
     }
 }

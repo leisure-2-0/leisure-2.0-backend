@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(ApiResponse.fail(String.valueOf(errorCode.getCode()), errorCode.getMessgae()));
+                .body(ApiResponse.fail(String.valueOf(errorCode.getCode()), errorCode.getMessage()));
     }
 
     /**
