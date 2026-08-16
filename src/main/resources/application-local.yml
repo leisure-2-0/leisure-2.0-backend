@@ -36,4 +36,12 @@ spring:
 jwt:
   secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
   access-token-expiration: 3600000 # 1 hour
-  refresh-token-expiration: 1209600000 # # 14 days
+  refresh-token-expiration: 1209600000 # 14 days
+
+cookie:
+  refresh-token:
+    name: refreshToken
+    path: /
+    secure: false
+    same-site: Lax
+    max-age: 1209600 # 14 days

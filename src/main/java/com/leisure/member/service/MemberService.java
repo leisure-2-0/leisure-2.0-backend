@@ -6,8 +6,10 @@ import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.SignUpResponse;
+import com.leisure.member.event.MemberWithdrawnEvent;
 import com.leisure.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class MemberService {
     private final PasswordEncoder encoder;
 
     private final Provider provider;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -50,6 +54,7 @@ public class MemberService {
         return new SignUpResponse(member.getPublicId());
     }
 
+    @Transactional
     public void withdraw(String publicId) {
         Member member = provider.getMemberByPublicId(publicId);
 
@@ -58,6 +63,7 @@ public class MemberService {
         }
 
         member.delete();
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));
     }
 
     @Transactional(readOnly = true)

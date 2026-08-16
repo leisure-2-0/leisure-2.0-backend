@@ -1,12 +1,17 @@
 package com.leisure.member.controller;
 
+import com.leisure.global.auth.CookieProvider;
+import com.leisure.global.auth.CurrentMember;
 import com.leisure.global.response.ApiResponse;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.service.MemberService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService service;
+
+    private final CookieProvider provider;
 
     @PostMapping("/members")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@Valid @RequestBody SignUpRequest request) {
@@ -26,10 +33,12 @@ public class MemberController {
     }
 
     @DeleteMapping("/members")
-    public ResponseEntity<Void> withdraw(/* TODO: @LoginMember */ String publicId) {
+    public ResponseEntity<Void> withdraw(@CurrentMember String publicId, HttpServletResponse response) {
 
         service.withdraw(publicId);
 
+        ResponseCookie cookie = provider.createClearRefreshTokenCookie();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
     }
 
