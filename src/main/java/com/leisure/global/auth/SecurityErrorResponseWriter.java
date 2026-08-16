@@ -21,7 +21,7 @@ public class SecurityErrorResponseWriter {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse<Void> body = ApiResponse.fail(String.valueOf(code), errorCode.getMessage());
+        ApiResponse<Void> body = ApiResponse.fail(errorCode.name(), errorCode.getMessage());
 
         String json = objectMapper.writeValueAsString(body);
 

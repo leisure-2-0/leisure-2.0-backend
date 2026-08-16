@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
      */
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private ResponseEntity<ApiResponse<Void>> toResponse(ErrorCode errorCode) {
+
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.name(), errorCode.getMessage()));
+    }
+
     /**
      * BusinessException
      * <p>
@@ -38,14 +44,8 @@ public class GlobalExceptionHandler {
      * ErrorCode 안에 들어있는 속성들을 가져와 프론트에게 반환
      */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessException(
-            BusinessException e
-    ) {
-
-        ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity
-                .status(errorCode.getStatus())
-                .body(ApiResponse.fail(String.valueOf(errorCode.getCode()), errorCode.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
+        return toResponse(e.getErrorCode());
     }
 
     /**
@@ -56,13 +56,8 @@ public class GlobalExceptionHandler {
      * 클라이언트 측 형식 오류이므로 400을 반환
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMessageNotReadableException(
-            HttpMessageNotReadableException e
-    ) {
-        String code = String.valueOf(HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(code, "잘못된 요청입니다."));
+    public ResponseEntity<ApiResponse<Void>> handleMessageNotReadableException(HttpMessageNotReadableException e) {
+        return toResponse(ErrorCode.INVALID_REQUEST_BODY);
     }
 
     /**
@@ -73,13 +68,21 @@ public class GlobalExceptionHandler {
      * 인자를 채울 수 없는 클라이언트 측 누락이므로 400을 반환
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingServletRequestParameterException(
-            MissingServletRequestParameterException e
-    ) {
-        String code = String.valueOf(HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(code, "필수 요청 파라미터가 누락되었습니다."));
+    public ResponseEntity<ApiResponse<Void>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        return toResponse(ErrorCode.MISSING_REQUEST_PARAMETER);
+    }
+
+    /**
+     * MaxUploadSizeExceededException
+     *
+     * application.yml의 설정한 spring.servlet.multipart 설정값을 초과한 파일이 업로드되었을 때 발생
+     * 단일 파일이 2MB를 넘는 경우, multipart 요청 전체 크기가 max-request-size를 넘는 경우 발생
+     * 클라이언트 보낸 페이로드 서버 허용치 초과한 것이므 413을 반환
+     *
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        return toResponse(ErrorCode.PAYLOAD_TOO_LARGE);
     }
 
     /**
@@ -90,13 +93,8 @@ public class GlobalExceptionHandler {
      * 서버가 지원하지 않는 요청 형식이므로 415를 반환
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleHttpMediaTypeNotSupportedException(
-            HttpMediaTypeNotSupportedException e
-    ) {
-        String code = String.valueOf(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value());
-        return ResponseEntity
-                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .body(ApiResponse.fail(code, "지원하지 않는 요청 형식입니다."));
+    public ResponseEntity<ApiResponse<Void>> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+        return toResponse(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
     }
 
     /**
@@ -109,36 +107,17 @@ public class GlobalExceptionHandler {
      * HTTP 표준 의미상으로는 422
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<List<String>>> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException e
-    ) {
+    public ResponseEntity<ApiResponse<List<String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+
         List<String> messages = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .toList();
 
-        String code = String.valueOf(HttpStatus.UNPROCESSABLE_CONTENT.value());
-        return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_CONTENT)
-                .body(ApiResponse.fail(code, "입력값 검증에 실패했습니다.", messages));
-    }
-
-    /**
-     * MaxUploadSizeExceededException
-     *
-     * application.yml의 설정한 spring.servlet.multipart 설정값을 초과한 파일이 업로드되었을 때 발생
-     * 단일 파일이 2MB를 넘는 경우, multipart 요청 전체 크기가 max-request-size를 넘는 경우 발생
-     * 클라이언트 보낸 페이로드 서버 허용치 초과한 것이므 413을 반환
-     *
-     */
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceededException(
-            MaxUploadSizeExceededException e) {
-
-        String code = String.valueOf(HttpStatus.PAYLOAD_TOO_LARGE.value());
+        ErrorCode errorCode = ErrorCode.VALIDATION_FAILED;
 
         return ResponseEntity
-                .status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(ApiResponse.fail(code, "파일 크기가 허용치를 초과했습니다."));
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.name(), "입력값 검증에 실패했습니다.", messages));
     }
 
 
@@ -151,13 +130,7 @@ public class GlobalExceptionHandler {
      * 서버 측 책임이므로 500을 반환
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(
-            Exception e
-    ) {
-        log.error(e + "");
-        String code = String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(code, "서버 내부에 오류가 발생했습니다."));
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        return toResponse(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 }
