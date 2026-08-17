@@ -58,9 +58,9 @@ public class MemberService {
     public void withdraw(String publicId) {
         Member member = provider.getMemberByPublicId(publicId);
 
-        if (member.getDeletedAt() != null) {
-            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
-        }
+//        if (member.getDeletedAt() != null) {
+//            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+//        }
 
         member.delete();
         eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));

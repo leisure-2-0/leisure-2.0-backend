@@ -112,4 +112,19 @@ public class JwtTokenProvider {
         }
         return version;
     }
+
+    public long getRemainingAccessTokenTtl(String token) {
+        Date expiresAt = extractClaims(token).getExpiration();
+        long remaining = expiresAt.getTime() - System.currentTimeMillis();
+        // 이미 만료됐거나 만료 직전이면 음수가 될 수 있어 0으로 클램핑 (음수 TTL 방지)
+        return Math.max(0, remaining);
+    }
+
+    public long getRefreshTokenTtl() {
+        return properties.refreshTokenExpiration();
+    }
+
+    public long getAccessTokenTtl(String token) {
+        return getRemainingAccessTokenTtl(token);
+    }
 }
