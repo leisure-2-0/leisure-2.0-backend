@@ -10,7 +10,7 @@ public interface TokenStore {
         return false;
     }
 
-    default long getInvalidationVersion(String publicId) {
+    default long getCurrentInvalidationVersion(String publicId) {
         return 0L;
     }
 

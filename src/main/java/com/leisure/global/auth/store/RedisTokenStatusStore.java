@@ -11,7 +11,7 @@ public class RedisTokenStatusStore implements TokenStore {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public long getInvalidationVersion(String publicId) {
+    public long getCurrentInvalidationVersion(String publicId) {
 
         String key = buildTokenVersionKey(publicId);
         String value = redisTemplate.opsForValue().get(key);

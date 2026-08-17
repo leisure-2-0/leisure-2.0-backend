@@ -15,8 +15,8 @@ public class CookieProvider {
 
     private final CookieProperties properties;
 
-    public ResponseCookie createRefreshTokenCookie(String token) {
-        return ResponseCookie.from(properties.name(), token)
+    public ResponseCookie createRefreshTokenCookie(String refreshToken) {
+        return ResponseCookie.from(properties.name(), refreshToken)
                 .path(properties.path())
                 .httpOnly(true)
                 .secure(properties.secure())

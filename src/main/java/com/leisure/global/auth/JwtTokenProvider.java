@@ -50,17 +50,15 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public TokenStatus verifyRefreshToken(String token) {
+    public void verifyRefreshToken(String refreshToken) {
 
         try {
-            extractClaims(token);
-            return TokenStatus.VALID;
+            extractClaims(refreshToken);
         } catch (BusinessException e) {
-            return switch (e.getErrorCode()) {
-                case TOKEN_EXPIRED -> TokenStatus.EXPIRED;
-                case TOKEN_UNSUPPORTED -> TokenStatus.UNSUPPORTED;
-                default -> TokenStatus.INVALID;
-            };
+            if (e.getErrorCode() == ErrorCode.TOKEN_EXPIRED) {
+                throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+            }
+            throw e;
         }
     }
 
@@ -104,7 +102,7 @@ public class JwtTokenProvider {
         return email;
     }
 
-    public long getTokenInvalidationVersion(String token) {
+    public long extractInvalidationVersion(String token) {
         Long version = extractClaims(token).get("tokenInvalidationVersion", Long.class);
 
         if (version == null) {
@@ -113,8 +111,8 @@ public class JwtTokenProvider {
         return version;
     }
 
-    public long getRemainingAccessTokenTtl(String token) {
-        Date expiresAt = extractClaims(token).getExpiration();
+    public long getRemainingAccessTokenTtl(String accessToken) {
+        Date expiresAt = extractClaims(accessToken).getExpiration();
         long remaining = expiresAt.getTime() - System.currentTimeMillis();
         // 이미 만료됐거나 만료 직전이면 음수가 될 수 있어 0으로 클램핑 (음수 TTL 방지)
         return Math.max(0, remaining);
@@ -122,9 +120,5 @@ public class JwtTokenProvider {
 
     public long getRefreshTokenTtl() {
         return properties.refreshTokenExpiration();
-    }
-
-    public long getAccessTokenTtl(String token) {
-        return getRemainingAccessTokenTtl(token);
     }
 }

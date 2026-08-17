@@ -14,14 +14,14 @@ public class RedisBlacklistTokenStore implements TokenStore {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public void save(String token, long ttl) {
+    public void save(String accessToken, long ttl) {
 
         if (ttl <= 0) {
             return;
         }
 
         redisTemplate.opsForValue().set(
-                buildBlacklistKey(token),
+                buildBlacklistKey(accessToken),
                 "true",
                 ttl,
                 TimeUnit.MILLISECONDS
@@ -30,9 +30,9 @@ public class RedisBlacklistTokenStore implements TokenStore {
     }
 
     @Override
-    public boolean exists(String token) {
+    public boolean exists(String accessToken) {
 
-        Boolean result = redisTemplate.hasKey(buildBlacklistKey(token));
+        Boolean result = redisTemplate.hasKey(buildBlacklistKey(accessToken));
 
         return result != null && result;
     }

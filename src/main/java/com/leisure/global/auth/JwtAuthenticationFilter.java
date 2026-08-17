@@ -54,8 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String publicId = provider.getPublicId(pureToken);
             String email = provider.getEmail(pureToken);
 
-            long claimVersion = provider.getTokenInvalidationVersion(pureToken);
-            long storedVersion = tokenStatusStore.getInvalidationVersion(publicId);
+            long claimVersion = provider.extractInvalidationVersion(pureToken);
+            long storedVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
             if (claimVersion != storedVersion) {
                 writer.write(response, ErrorCode.TOKEN_INVALID);
