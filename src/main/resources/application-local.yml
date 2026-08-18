@@ -16,6 +16,12 @@ spring:
     password: root                        # DB 계정 비밀번호
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 용 JDBC 드라이버
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
   jpa:
     hibernate:
       # DDL(테이블 생성/수정) 자동화 전략
@@ -26,3 +32,16 @@ spring:
       #   - create-drop : create + 앱 종료 시 테이블 삭제
       ddl-auto: create
     show-sql: true       # 실행되는 SQL 쿼리를 콘솔에 출력
+
+jwt:
+  secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
+  access-token-expiration: 3600000 # 1 hour
+  refresh-token-expiration: 1209600000 # 14 days
+
+cookie:
+  refresh-token:
+    name: refreshToken
+    path: /
+    secure: false
+    same-site: Lax
+    max-age: 1209600 # 14 days

@@ -21,38 +21,67 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    EMAIL_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, HttpStatus.UNPROCESSABLE_CONTENT.value(), "이메일은 필수 입력값입니다."),
+    // ===== 회원 / 도메인 =====
+    EMAIL_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, "이메일은 필수 입력값입니다."),
 
-    NICKNAME_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, HttpStatus.UNPROCESSABLE_CONTENT.value(), "닉네임은 필수 입력값입니다."),
+    NICKNAME_REQUIRED(HttpStatus.UNPROCESSABLE_CONTENT, "닉네임은 필수 입력값입니다."),
 
-    EMAIL_DUPLICATE(HttpStatus.CONFLICT, HttpStatus.CONFLICT.value(), "이미 사용 중인 이메일입니다."),
+    EMAIL_DUPLICATE(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
 
-    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, HttpStatus.CONFLICT.value(), "이미 사용 중인 닉네임입니다."),
+    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
 
-    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
 
-    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.value(), "이메일 또는 비밀번호가 일치하지 않습니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
 
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
+    MEMBER_UPDATE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, "회원 수정 권한이 없습니다."),
 
-    MEMBER_UPDATE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 수정 권한이 없습니다."),
+    MEMBER_DELETE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, "회원 삭제 권한이 없습니다."),
 
-    MEMBER_DELETE_ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.value(), "회원 삭제 권한이 없습니다."),
+    MEMBER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, "수정할 정보가 없습니다."),
 
-    MEMBER_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value(), "수정할 정보가 없습니다."),
+    // ===== 인증 / 토큰 =====
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
+
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+
+    TOKEN_UNSUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 형식의 토큰입니다."),
+
+    TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "refresh token을 찾을 수 없습니다. 다시 로그인 해주세요."),
+
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 refresh token입니다. 다시 로그인 해주세요."),
+
+    REFRESH_TOKEN_REUSE_DETECTED(HttpStatus.UNAUTHORIZED, "이미 사용된 토큰입니다. 다시 로그인 해주세요."),
+
+    TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "로그아웃된 토큰입니다."),
+
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+
+    // ===== 공통 / 시스템 표준 예외 매핑 =====
+    INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
+
+    MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
+
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 요청 형식입니다."),
+
+    VALIDATION_FAILED(HttpStatus.UNPROCESSABLE_CONTENT, "입력값 검증에 실패했습니다."),
+
+    PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "파일 크기가 허용치를 초과했습니다."),
+
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부에 오류가 발생했습니다."),
 
     ;
 
-
     private final HttpStatus status;
 
-    private final int code;
+    private final String message;
 
-    private final String messgae;
-
-    ErrorCode(HttpStatus status, int code, String messgae) {
+    ErrorCode(HttpStatus status, String message) {
         this.status = status;
-        this.code = code;
-        this.messgae = messgae;
+        this.message = message;
     }
 }
