@@ -7,6 +7,7 @@ import com.leisure.global.auth.CurrentMember;
 import com.leisure.global.response.ApiResponse;
 import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
+import com.leisure.member.dto.response.MemberProfileResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.service.MemberService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +44,17 @@ public class MemberController {
         ResponseCookie cookie = provider.createClearRefreshTokenCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/members/me")
+    public ResponseEntity<ApiResponse<MemberProfileResponse>> getMyProfile(@CurrentMember String publicId) {
+
+        MemberProfileResponse response = service.getMyProfile(publicId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("회원 정보 조회에 성공했습니다.", response));
+
     }
 
     @PatchMapping("/members/me/password")

@@ -10,6 +10,7 @@ import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
 import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
+import com.leisure.member.dto.response.MemberProfileResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
 import com.leisure.member.repository.MemberRepository;
@@ -76,6 +77,15 @@ public class MemberService {
         member.delete();
         eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));
     }
+
+
+    @Transactional(readOnly = true)
+    public MemberProfileResponse getMyProfile(String publicId) {
+        Member member = provider.getMemberByPublicId(publicId);
+
+        return new MemberProfileResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
+    }
+
 
     @Transactional
     public ReissueResult changePassword(String publicId, PasswordChangeRequest request) {
