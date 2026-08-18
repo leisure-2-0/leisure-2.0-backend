@@ -55,9 +55,9 @@ public class RedisRefreshTokenStore {
     }
 
 
-    public void save(String publicId, String token, long ttl) {
+    public void save(String publicId, String refreshToken, long ttl) {
         String key = buildRefreshTokenKey(publicId);
-        redisTemplate.opsForValue().set(key, TokenHasher.hash(token), ttl, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(key, TokenHasher.hash(refreshToken), ttl, TimeUnit.MILLISECONDS);
     }
 
 

@@ -42,7 +42,7 @@ public class MemberController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/email/check")
+    @GetMapping("/members/email/check")
     public ResponseEntity<ApiResponse<Void>> checkEmail(@RequestParam String email) {
 
         service.checkEmail(email);
@@ -52,7 +52,7 @@ public class MemberController {
                 .body(ApiResponse.success("사용 가능한 이메일입니다.", null));
     }
 
-    @GetMapping("/users/nickname/check")
+    @GetMapping("/members/nickname/check")
     public ResponseEntity<ApiResponse<Void>> checkNickname(@RequestParam String nickname) {
 
         service.checkNickname(nickname);
