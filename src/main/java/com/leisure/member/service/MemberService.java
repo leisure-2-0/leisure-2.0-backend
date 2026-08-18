@@ -1,9 +1,14 @@
 package com.leisure.member.service;
 
+import com.leisure.auth.dto.result.ReissueResult;
+import com.leisure.global.auth.JwtTokenProvider;
+import com.leisure.global.auth.store.RedisRefreshTokenStore;
+import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
+import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
@@ -26,6 +31,12 @@ public class MemberService {
     private final Provider provider;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final RedisTokenStatusStore tokenStatusStore;
+
+    private final RedisRefreshTokenStore refreshTokenStore;
+
+    private final JwtTokenProvider tokenProvider;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -64,6 +75,30 @@ public class MemberService {
 
         member.delete();
         eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));
+    }
+
+    @Transactional
+    public ReissueResult changePassword(String publicId, PasswordChangeRequest request) {
+
+        validatePasswordMatch(request.newPassword(), request.newPasswordConfirm());
+
+        Member member = provider.getMemberByPublicId(publicId);
+
+        if (!member.matchesPassword(request.currentPassword(), encoder)) {
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        member.changePassword(encoder.encode(request.newPassword()));
+
+        tokenStatusStore.increaseInvalidationVersion(publicId);
+        long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
+
+        String newAccessToken = tokenProvider.issueAccessToken(publicId, member.getEmail(), invalidationVersion);
+        String newRefreshToken = tokenProvider.issueRefreshToken(publicId, member.getEmail(), invalidationVersion);
+
+        refreshTokenStore.save(publicId, newRefreshToken, tokenProvider.getRefreshTokenTtl());
+
+        return new ReissueResult(newAccessToken, newRefreshToken);
     }
 
     @Transactional(readOnly = true)

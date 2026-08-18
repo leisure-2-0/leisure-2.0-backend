@@ -54,6 +54,10 @@ public class Member extends BaseSoftDeleteEntity {
         }
     }
 
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
     public boolean matchesPassword(String rawPassword, PasswordEncoder encoder) {
         return encoder.matches(rawPassword, this.password);
     }

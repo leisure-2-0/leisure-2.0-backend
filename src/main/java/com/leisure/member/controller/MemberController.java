@@ -1,8 +1,11 @@
 package com.leisure.member.controller;
 
+import com.leisure.auth.dto.response.ReissueResponse;
+import com.leisure.auth.dto.result.ReissueResult;
 import com.leisure.global.auth.CookieProvider;
 import com.leisure.global.auth.CurrentMember;
 import com.leisure.global.response.ApiResponse;
+import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.service.MemberService;
@@ -40,6 +43,24 @@ public class MemberController {
         ResponseCookie cookie = provider.createClearRefreshTokenCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/members/me/password")
+    public ResponseEntity<ApiResponse<ReissueResponse>> changePassword(
+            @CurrentMember String publicId,
+            @Valid @RequestBody PasswordChangeRequest request,
+            HttpServletResponse response) {
+
+        ReissueResult result = service.changePassword(publicId, request);
+
+        ResponseCookie refreshInCookie = provider.createRefreshTokenCookie(result.refreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshInCookie.toString());
+
+        ReissueResponse reissueResponse = new ReissueResponse(result.accessToken());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("비밀번호 변경되었습니다.", reissueResponse));
     }
 
     @GetMapping("/members/email/check")
