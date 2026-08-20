@@ -2,17 +2,15 @@ package com.leisure.post.controller;
 
 import com.leisure.global.auth.CurrentMember;
 import com.leisure.global.response.ApiResponse;
+import com.leisure.post.dto.request.PostEditRequest;
 import com.leisure.post.dto.request.PostPublishRequest;
 import com.leisure.post.dto.request.PostSaveRequest;
-import com.leisure.post.dto.response.PostPublishResponse;
-import com.leisure.post.dto.response.PostSaveResponse;
-import com.leisure.post.dto.response.PostStartResponse;
+import com.leisure.post.dto.response.*;
 import com.leisure.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,5 +47,43 @@ public class PostController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("게시글이 게시되었습니다", response));
+    }
+
+    // TODO: 게시글 목록/피드 조회
+    // TODO: 특정 게시글 조회
+//    @GetMapping("/posts")
+//    public ResponseEntity<ApiResponse<PostFeedResponse>> getPosts(
+//            @CurrentMember String publicId,
+//            @RequestParam(required = false) Long cursor,
+//            @RequestParam(defaultValue = "15") Integer limit,
+//            @RequestParam(required = false) PostCategory category) {
+//
+//        PostFeedResponse response = service.getPosts(cursor, limit, category);
+//
+//        return ResponseEntity
+//                .status(HttpStatus.OK)
+//                .body(ApiResponse.success( "게시글 목록 조회에 성공했습니다.", response));
+//
+//    }
+
+
+    @PatchMapping("/posts/{postId}/content")
+    public ResponseEntity<ApiResponse<PostEditResponse>> editPost(@CurrentMember String publicId, @PathVariable Long postId, @Valid @RequestBody PostEditRequest request) {
+
+        PostEditResponse response = service.editPost(publicId, postId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("게시글이 수정되었습니다.", response));
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(@CurrentMember String publicId, @PathVariable Long postId) {
+
+        PostDeleteResponse response = service.deletePost(publicId, postId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("게시글이 삭제되었습니다.", response));
     }
 }

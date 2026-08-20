@@ -112,24 +112,24 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public void checkEmail(String email) {
-        if (repository.existsByEmail(email)) {
+        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
     }
 
     @Transactional(readOnly = true)
     public void checkNickname(String nickname) {
-        if (repository.existsByNickname(nickname)) {
+        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }
 
     private void validateMemberUniqueness(String email, String nickname) {
-        if (repository.existsByEmail(email)) {
+        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
 
-        if (repository.existsByNickname(nickname)) {
+        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }

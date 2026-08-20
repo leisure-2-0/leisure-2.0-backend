@@ -15,7 +15,7 @@ public class MemberReader {
     private final MemberRepository repository;
 
     public Member getMemberByPublicId(String publicId) {
-        return repository.findByPublicId(publicId)
+        return repository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

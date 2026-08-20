@@ -66,7 +66,7 @@ public class Post extends BaseSoftDeleteEntity {
         }
 
         if (title != null) {
-            this.title = title;
+            this.title = title.trim();
         }
         if (content != null) {
             this.content = content;
@@ -126,5 +126,25 @@ public class Post extends BaseSoftDeleteEntity {
 
     private boolean isEditable() {
         return status == PostStatus.WRITING || status == PostStatus.DRAFT || status == PostStatus.REJECTED;
+    }
+
+    public void editPublished(String title, String content, PostCategory category) {
+        if (this.status != PostStatus.PUBLISHED) {
+            throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
+        }
+
+        if (title != null) {
+            String trimmedTitle = title.trim();
+            if (trimmedTitle.isEmpty()) {
+                throw new BusinessException(ErrorCode.POST_TITLE_REQUIRED);
+            }
+            this.title = trimmedTitle;
+        }
+        if (content != null) {
+            this.content = content;
+        }
+        if (category != null) {
+            this.category = category;
+        }
     }
 }

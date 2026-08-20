@@ -4,8 +4,11 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
 import com.leisure.post.domain.Post;
+import com.leisure.post.dto.response.PostDeleteResponse;
+import com.leisure.post.dto.request.PostEditRequest;
 import com.leisure.post.dto.request.PostPublishRequest;
 import com.leisure.post.dto.request.PostSaveRequest;
+import com.leisure.post.dto.response.PostEditResponse;
 import com.leisure.post.dto.response.PostPublishResponse;
 import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
@@ -58,11 +61,35 @@ public class PostService {
         return new PostPublishResponse(post.getPostId(), post.getStatus(), post.getPublishedAt());
     }
 
+    // TODO: 게시글 목록/피드 조회
+    // TODO: 특정 게시글 조회
+
+
+    @Transactional
+    public PostEditResponse editPost(String publicId, Long postId, PostEditRequest request) {
+
+        Post post = getOwnedPost(publicId, postId);
+
+        post.editPublished(request.title(), request.content(), request.category());
+
+        return new PostEditResponse(post.getPostId());
+    }
+
+    @Transactional
+    public PostDeleteResponse deletePost(String publicId, Long postId) {
+
+        Post post = getOwnedPost(publicId, postId);
+
+        post.delete();
+
+        return new PostDeleteResponse(post.getPostId());
+    }
+
 
     private Post getOwnedPost(String publicId, Long postId) {
         Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
 
-        Post post = repository.findById(postId)
+        Post post = repository.findByPostIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isWrittenBy(memberId)) {

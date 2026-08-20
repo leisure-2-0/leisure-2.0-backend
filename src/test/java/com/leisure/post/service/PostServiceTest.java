@@ -7,8 +7,10 @@ import com.leisure.member.service.MemberReader;
 import com.leisure.post.domain.Post;
 import com.leisure.post.domain.PostCategory;
 import com.leisure.post.domain.PostStatus;
+import com.leisure.post.dto.request.PostEditRequest;
 import com.leisure.post.dto.request.PostPublishRequest;
 import com.leisure.post.dto.request.PostSaveRequest;
+import com.leisure.post.dto.response.PostEditResponse;
 import com.leisure.post.dto.response.PostPublishResponse;
 import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
@@ -183,6 +185,73 @@ class PostServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.POST_TITLE_REQUIRED);
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 수정(editPost)")
+    class EditPost {
+
+        @Test
+        @DisplayName("게시된 본인 글이면 내용을 수정하고 postId를 반환한다")
+        void success() {
+            // given
+            Post post = publishedPost(MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL);
+
+            // when
+            PostEditResponse response = postService.editPost(PUBLIC_ID, POST_ID, request);
+
+            // then
+            assertThat(response.postId()).isEqualTo(POST_ID);
+            assertThat(post.getTitle()).isEqualTo("수정 제목");
+            assertThat(post.getContent()).isEqualTo("수정 본문");
+            assertThat(post.getCategory()).isEqualTo(PostCategory.HOTEL);
+            assertThat(post.getStatus()).isEqualTo(PostStatus.PUBLISHED);
+        }
+
+        @Test
+        @DisplayName("게시되지 않은 글이면 POST_NOT_EDITABLE 예외를 던진다")
+        void notPublished() {
+            Post post = writingPost(MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null);
+
+            assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.POST_NOT_EDITABLE);
+        }
+
+        @Test
+        @DisplayName("제목이 공백이면 POST_TITLE_REQUIRED 예외를 던진다")
+        void blankTitle() {
+            Post post = publishedPost(MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            PostEditRequest request = new PostEditRequest("   ", null, null);
+
+            assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.POST_TITLE_REQUIRED);
+        }
+
+        @Test
+        @DisplayName("작성자가 아니면 POST_FORBIDDEN 예외를 던진다")
+        void forbidden() {
+            Post post = publishedPost(OTHER_MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null);
+
+            assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.POST_FORBIDDEN);
         }
     }
 }
