@@ -6,7 +6,6 @@ import com.leisure.global.auth.store.RedisRefreshTokenStore;
 import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
-import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
 import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
@@ -29,7 +28,7 @@ public class MemberService {
 
     private final PasswordEncoder encoder;
 
-    private final Provider provider;
+    private final MemberReader reader;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -68,7 +67,7 @@ public class MemberService {
 
     @Transactional
     public void withdraw(String publicId) {
-        Member member = provider.getMemberByPublicId(publicId);
+        Member member = reader.getMemberByPublicId(publicId);
 
 //        if (member.getDeletedAt() != null) {
 //            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
@@ -81,7 +80,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public MemberProfileResponse getMyProfile(String publicId) {
-        Member member = provider.getMemberByPublicId(publicId);
+        Member member = reader.getMemberByPublicId(publicId);
 
         return new MemberProfileResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
     }
@@ -92,7 +91,7 @@ public class MemberService {
 
         validatePasswordMatch(request.newPassword(), request.newPasswordConfirm());
 
-        Member member = provider.getMemberByPublicId(publicId);
+        Member member = reader.getMemberByPublicId(publicId);
 
         if (!member.matchesPassword(request.currentPassword(), encoder)) {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);

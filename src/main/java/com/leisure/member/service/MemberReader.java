@@ -1,4 +1,4 @@
-package com.leisure.global.provider;
+package com.leisure.member.service;
 
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
@@ -6,12 +6,11 @@ import com.leisure.member.domain.Member;
 import com.leisure.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class Provider {
+public class MemberReader {
 
     private final MemberRepository repository;
 
