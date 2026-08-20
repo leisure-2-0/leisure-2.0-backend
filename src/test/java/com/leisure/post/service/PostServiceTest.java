@@ -98,7 +98,7 @@ class PostServiceTest {
             // given
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostSaveRequest request = new PostSaveRequest("제목", "본문", PostCategory.HOTEL);
 
             // when
@@ -114,7 +114,7 @@ class PostServiceTest {
         @DisplayName("존재하지 않는 글이면 POST_NOT_FOUND 예외를 던진다")
         void notFound() {
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.empty());
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.empty());
             PostSaveRequest request = new PostSaveRequest("제목", null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
@@ -128,7 +128,7 @@ class PostServiceTest {
         void forbidden() {
             Post post = writingPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostSaveRequest request = new PostSaveRequest("제목", null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
@@ -142,7 +142,7 @@ class PostServiceTest {
         void notEditable() {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostSaveRequest request = new PostSaveRequest("바꾼제목", null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
@@ -162,7 +162,7 @@ class PostServiceTest {
             // given
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostPublishRequest request = new PostPublishRequest("제목", "본문", PostCategory.RESTAURANT);
 
             // when
@@ -178,7 +178,7 @@ class PostServiceTest {
         void titleRequired() {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostPublishRequest request = new PostPublishRequest(null, "본문", PostCategory.RESTAURANT);
 
             assertThatThrownBy(() -> postService.publish(PUBLIC_ID, POST_ID, request))
@@ -198,7 +198,7 @@ class PostServiceTest {
             // given
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL);
 
             // when
@@ -217,7 +217,7 @@ class PostServiceTest {
         void notPublished() {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostEditRequest request = new PostEditRequest("수정 제목", null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
@@ -231,7 +231,7 @@ class PostServiceTest {
         void blankTitle() {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostEditRequest request = new PostEditRequest("   ", null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
@@ -245,7 +245,7 @@ class PostServiceTest {
         void forbidden() {
             Post post = publishedPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
-            given(repository.findById(POST_ID)).willReturn(Optional.of(post));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
             PostEditRequest request = new PostEditRequest("수정 제목", null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
