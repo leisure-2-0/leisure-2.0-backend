@@ -80,7 +80,7 @@ class AuthServiceTest {
     void login_success() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmail(EMAIL)).willReturn(Optional.of(member));
+        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
         given(encoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(true);
         given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(0L);
         given(provider.issueAccessToken(PUBLIC_ID, EMAIL, 0L)).willReturn("access-token");
@@ -101,7 +101,7 @@ class AuthServiceTest {
     void login_emailNotFound() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmail(EMAIL)).willReturn(Optional.empty());
+        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> authService.login(request))
@@ -118,7 +118,7 @@ class AuthServiceTest {
     void login_passwordMismatch() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmail(EMAIL)).willReturn(Optional.of(member));
+        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
         given(encoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(false);
 
         // when & then

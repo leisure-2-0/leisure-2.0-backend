@@ -51,8 +51,8 @@ class MemberServiceTest {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
 
-            given(repository.existsByEmail(request.email())).willReturn(false);
-            given(repository.existsByNickname(request.nickname())).willReturn(false);
+            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
             given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
             // save 시점에 @PrePersist가 하는 publicId 발급을 흉내
             given(repository.save(any(Member.class))).willAnswer(invocation -> {
@@ -75,8 +75,8 @@ class MemberServiceTest {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
 
-            given(repository.existsByEmail(anyString())).willReturn(false);
-            given(repository.existsByNickname(anyString())).willReturn(false);
+            given(repository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
+            given(repository.existsByNicknameAndDeletedAtIsNull(anyString())).willReturn(false);
             given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
             given(repository.save(any(Member.class))).willAnswer(invocation -> {
                 Member saved = invocation.getArgument(0);
@@ -101,7 +101,7 @@ class MemberServiceTest {
         void signUp_duplicateEmail() {
             // given
             SignUpRequest request = request("dup@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
-            given(repository.existsByEmail(request.email())).willReturn(true);
+            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(true);
 
             // when & then
             assertThatThrownBy(() -> memberService.signUp(request))
@@ -117,8 +117,8 @@ class MemberServiceTest {
         void signUp_duplicateNickname() {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "dupNick");
-            given(repository.existsByEmail(request.email())).willReturn(false);
-            given(repository.existsByNickname(request.nickname())).willReturn(true);
+            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(true);
 
             // when & then
             assertThatThrownBy(() -> memberService.signUp(request))
@@ -141,7 +141,7 @@ class MemberServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.PASSWORD_MISMATCH);
 
-            verify(repository, never()).existsByEmail(anyString());
+            verify(repository, never()).existsByEmailAndDeletedAtIsNull(anyString());
             verify(encoder, never()).encode(anyString());
             verify(repository, never()).save(any(Member.class));
         }
@@ -151,8 +151,8 @@ class MemberServiceTest {
         void signUp_dataIntegrityViolation() {
             // given (동시성으로 사전 검사를 통과한 뒤 DB 제약에서 걸리는 경우)
             SignUpRequest request = request("race@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
-            given(repository.existsByEmail(request.email())).willReturn(false);
-            given(repository.existsByNickname(request.nickname())).willReturn(false);
+            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
             given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
             given(repository.save(any(Member.class)))
                     .willThrow(new DataIntegrityViolationException("unique constraint"));

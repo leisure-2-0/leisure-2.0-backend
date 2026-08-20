@@ -61,6 +61,19 @@ public enum ErrorCode {
 
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
+    // ===== 게시글 / 도메인 =====
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
+
+    POST_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 게시글에 대한 권한이 없습니다."),
+
+    POST_NOT_SUBMITTABLE(HttpStatus.BAD_REQUEST, "현재 상태에서는 게시글을 게시할 수 없습니다."),
+
+    POST_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "제목을 입력해야 게시할 수 있습니다."),
+
+    POST_NOT_PENDING(HttpStatus.CONFLICT, "승인 대기 상태의 게시글만 처리할 수 있습니다."),
+
+    POST_NOT_EDITABLE(HttpStatus.CONFLICT, "현재 상태에서는 게시글을 수정할 수 없습니다."),
+
     // ===== 공통 / 시스템 표준 예외 매핑 =====
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 

@@ -1,10 +1,15 @@
 package com.leisure.member.service;
 
+import com.leisure.auth.dto.result.ReissueResult;
+import com.leisure.global.auth.JwtTokenProvider;
+import com.leisure.global.auth.store.RedisRefreshTokenStore;
+import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
-import com.leisure.global.provider.Provider;
 import com.leisure.member.domain.Member;
+import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
+import com.leisure.member.dto.response.MemberProfileResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
 import com.leisure.member.repository.MemberRepository;
@@ -23,9 +28,15 @@ public class MemberService {
 
     private final PasswordEncoder encoder;
 
-    private final Provider provider;
+    private final MemberReader reader;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final RedisTokenStatusStore tokenStatusStore;
+
+    private final RedisRefreshTokenStore refreshTokenStore;
+
+    private final JwtTokenProvider tokenProvider;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -56,7 +67,7 @@ public class MemberService {
 
     @Transactional
     public void withdraw(String publicId) {
-        Member member = provider.getMemberByPublicId(publicId);
+        Member member = reader.getMemberByPublicId(publicId);
 
 //        if (member.getDeletedAt() != null) {
 //            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
@@ -66,26 +77,59 @@ public class MemberService {
         eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));
     }
 
+
+    @Transactional(readOnly = true)
+    public MemberProfileResponse getMyProfile(String publicId) {
+        Member member = reader.getMemberByPublicId(publicId);
+
+        return new MemberProfileResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
+    }
+
+
+    @Transactional
+    public ReissueResult changePassword(String publicId, PasswordChangeRequest request) {
+
+        validatePasswordMatch(request.newPassword(), request.newPasswordConfirm());
+
+        Member member = reader.getMemberByPublicId(publicId);
+
+        if (!member.matchesPassword(request.currentPassword(), encoder)) {
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        member.changePassword(encoder.encode(request.newPassword()));
+
+        tokenStatusStore.increaseInvalidationVersion(publicId);
+        long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
+
+        String newAccessToken = tokenProvider.issueAccessToken(publicId, member.getEmail(), invalidationVersion);
+        String newRefreshToken = tokenProvider.issueRefreshToken(publicId, member.getEmail(), invalidationVersion);
+
+        refreshTokenStore.save(publicId, newRefreshToken, tokenProvider.getRefreshTokenTtl());
+
+        return new ReissueResult(newAccessToken, newRefreshToken);
+    }
+
     @Transactional(readOnly = true)
     public void checkEmail(String email) {
-        if (repository.existsByEmail(email)) {
+        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
     }
 
     @Transactional(readOnly = true)
     public void checkNickname(String nickname) {
-        if (repository.existsByNickname(nickname)) {
+        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }
 
     private void validateMemberUniqueness(String email, String nickname) {
-        if (repository.existsByEmail(email)) {
+        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
 
-        if (repository.existsByNickname(nickname)) {
+        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }

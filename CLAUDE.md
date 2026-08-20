@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 개요
 
-`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원)와 `com.leisure.auth`(로그인/인증)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
+`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
 
 ## 명령어
 
@@ -60,9 +60,20 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 - **요청에서 토큰 추출** — `global/auth/resolver`. `AccessTokenResolver`는 `Authorization: Bearer` 헤더에서 access 토큰을, `RefreshTokenResolver`는 쿠키(`CookieProperties.name()`)에서 refresh 토큰을 꺼낸다. 둘 다 없으면 `null`을 반환하며(형제 클래스 간 계약 통일), null 방어는 이를 받는 서비스 진입부에서 한다.
 - **컨트롤러에서 인증 회원 얻기** — 커스텀 애너테이션 `@CurrentMember`(파라미터에 부착)로 현재 회원의 `publicId`를 주입받는다. `CurrentMemberArgumentResolver`가 처리하며, `WebConfiguration`에 등록돼 있다.
 - **Redis 토큰 저장소** — `global/auth/store`. `TokenStore` 인터페이스 아래 `RedisBlacklistTokenStore`(로그아웃 등으로 폐기된 access 토큰), `RedisRefreshTokenStore`(refresh 토큰), `RedisTokenStatusStore`(회원별 무효화 버전으로 access 토큰 즉시 무효화)가 있다. 토큰 원본을 그대로 키로 쓰지 않고 `TokenHasher.hash()`(SHA-256)로 해싱한 값을 키로 쓰며, 각 항목엔 남은 만료 시간만큼 TTL을 건다. Redis 연결/`StringRedisTemplate`은 `RedisConfiguration`에서 설정한다.
+- **비밀번호 변경** — `PATCH /members/me/password`(`MemberService.changePassword`). 현재 비밀번호 확인 + 새 비밀번호 일치 검증 후 비밀번호를 교체하고, `increaseInvalidationVersion`으로 **해당 회원의 기존 세션을 전부 무효화**한다. 그다음 새 무효화 버전으로 access/refresh 토큰을 재발급해 **현재 세션만 다시 살린다**(refresh는 쿠키, access는 `ReissueResponse`로 반환 — 로그인/재발급과 동일 패턴). 즉 비밀번호를 바꾸면 다른 기기·세션은 로그아웃되고 요청을 보낸 세션만 유지된다.
 - **회원 탈퇴 시 토큰 정리** — 서비스가 `MemberWithdrawnEvent`를 발행하면, `MemberWithdrawnEventListener`가 `@TransactionalEventListener(AFTER_COMMIT)`로 받아 무효화 버전을 올리고 refresh 토큰을 제거한다. 트랜잭션 커밋 이후에만 도는 점에 유의.
 
 `global/config`에는 `SecurityConfiguration`(Spring Security 필터체인 + `PasswordEncoder`), `CorsConfiguration`, `WebConfiguration`(리졸버 등록), `RedisConfiguration`이 있다.
+
+## 게시글 (post)
+
+`com.leisure.post`. 작성은 **즉시 생성 모델**이다 — `POST /posts`가 빈 글을 `WRITING` 상태로 생성하고 `post_id`를 즉시 발급(`Post.startWriting(memberId)`)한다. 이후 `PATCH /posts/{postId}`(저장, `saveDraft`)와 `PATCH /posts/{postId}/publish`(게시, `publish`)가 그 글을 갱신한다. 작성자는 `@CurrentMember`의 `publicId`로 주입되며 body에 넣지 않는다.
+
+- **상태(`PostStatus`)** — `WRITING`/`DRAFT`/`PENDING`/`PUBLISHED`/`REJECTED`. 상태 변경은 반드시 도메인 전이 메서드로만 한다(setter 금지): `markAsDraft`(WRITING→DRAFT), `submitForApproval`(→PENDING), `approve`(PENDING→PUBLISHED), `reject`(PENDING→REJECTED), `publish`(WRITING/DRAFT→PUBLISHED). 내용 반영은 `applyContent(title, content, category)` — **null=유지, ""=비우기**의 부분 갱신이고, 편집 불가 상태(PENDING/PUBLISHED)면 `POST_NOT_EDITABLE`을 던진다(`isEditable`=WRITING/DRAFT/REJECTED).
+- **저장(`saveDraft`)** — 무검증(permissive). 제목/본문/카테고리가 전부 비어도 성공하며 WRITING이면 DRAFT로 승격. `PostSaveRequest`는 `@Size(max=50)`만 두고 필수검증은 하지 않는다.
+- **게시(`publish`)** — 제목 필수(`POST_TITLE_REQUIRED`). 게시 요청이 그 순간의 내용을 body로 실어보내 `applyContent` 후 상태 전이하므로, 저장을 한 번도 안 거쳐도 `WRITING`에서 바로 게시된다.
+- **AI 심사는 MVP 이후로 보류** — 현재 `publish`는 `submitForApproval`이 아니라 `publish()`로 **바로 PUBLISHED**로 간다. `submitForApproval`/`approve`/`reject`와 `PENDING`/`REJECTED` 상태는 AI 연동 대비용 **죽은 코드**로 남겨둔 것이니 임의로 지우지 말 것. AI를 붙일 때 `publish()`를 `submitForApproval` + 이벤트/리스너 흐름으로 되돌린다.
+- **소유권** — 서비스의 `getOwnedPost(publicId, postId)`가 글 조회(없으면 `POST_NOT_FOUND`) + 작성자 검증(`Post.isWrittenBy`, 불일치 시 `POST_FORBIDDEN`)을 묶는다. 작성자 참조는 id-only(`memberId`)다.
 
 ## Git & CI 워크플로우
 
