@@ -87,6 +87,16 @@ public enum ErrorCode {
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부에 오류가 발생했습니다."),
 
+    // ===== 쪼아요~ 좋아요~ =====
+    POST_LIKE_ALREADY_LIKED(HttpStatus.CONFLICT, "이미 좋아요를 누른 게시글입니다."),
+
+    POST_LIKE_NOT_LIKED_YET(HttpStatus.NOT_FOUND, "좋아요를 누르지 않은 게시글입니다."),
+
+    // ===== 북마크 =====
+    POST_BOOKMARK_ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 북마크한 게시글입니다."),
+
+    POST_BOOKMARK_NOT_BOOKMARKED_YET(HttpStatus.NOT_FOUND, "북마크하지 않은 게시글입니다."),
+
     ;
 
     private final HttpStatus status;
