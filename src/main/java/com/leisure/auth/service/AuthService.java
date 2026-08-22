@@ -37,7 +37,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public LoginResult login(LoginRequest request) {
 
-        Member member = repository.findByEmail(request.email())
+        Member member = repository.findByEmailAndDeletedAtIsNull(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
 
         if (!member.matchesPassword(request.password(), encoder)) {
