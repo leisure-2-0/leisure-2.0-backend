@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, Long>, PostCustom {
 
     Optional<Post> findByPostIdAndDeletedAtIsNull(Long postId);
 
@@ -30,6 +30,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
             """)
     int findBookmarkCountByPostId(Long postId);
+
+    @Query("""
+            select count(p.memberId)
+            from Post p
+            where p.memberId = :memberId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            """)
+    long countMyPosts(Long memberId);
 
     @Modifying(clearAutomatically = true)
     @Query("update Post p set p.likeCount = p.likeCount + 1 where p.postId = :postId")
