@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
+public interface PostLikeRepository extends JpaRepository<PostLike, Long>, PostLikeCustom {
 
 
     boolean existsByMemberIdAndPostId(Long memberId, Long postId);
@@ -19,4 +19,18 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     @Modifying
     @Query("delete from PostLike pl where pl.memberId = :memberId and pl.postId = :postId")
     int deleteByMemberIdAndPostId(Long memberId, Long postId);
+
+    @Query("""
+         select count(pl.postId)
+         from PostLike pl
+         join Post p
+         on pl.postId = p.postId
+         join Member m
+         on p.memberId = m.memberId
+         where pl.memberId = :memberId
+         and p.deletedAt is null
+         and m.deletedAt is null
+         and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+    """)
+    long countLikedPosts(Long memberId);
 }
