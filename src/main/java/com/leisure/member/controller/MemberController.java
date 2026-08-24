@@ -55,7 +55,7 @@ public class MemberController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("회원 정보 조회에 성공했습니다.", response));
+                .body(ApiResponse.success(response.nickname() + "님의 회원 정보 조회에 성공했습니다.", response));
 
     }
 
@@ -84,7 +84,7 @@ public class MemberController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("비밀번호 변경되었습니다.", reissueResponse));
+                .body(ApiResponse.success("비밀번호가 변경되었습니다.", reissueResponse));
     }
 
     @GetMapping("/members/email/check")

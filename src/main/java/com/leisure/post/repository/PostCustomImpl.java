@@ -1,10 +1,7 @@
 package com.leisure.post.repository;
 
-import com.leisure.post.domain.MyPostSort;
-import com.leisure.post.domain.PostCategory;
-import com.leisure.post.domain.PostCursor;
-import com.leisure.post.domain.PostSort;
-import com.leisure.post.domain.PostStatus;
+import com.leisure.post.domain.*;
+import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostResponse;
 import com.leisure.post.dto.response.PostResponse;
 import com.leisure.post.dto.result.PostDetailResult;
@@ -29,11 +26,11 @@ import static com.leisure.postLike.domain.QPostLike.postLike;
 @RequiredArgsConstructor
 public class PostCustomImpl implements PostCustom {
 
-    private final JPAQueryFactory factory;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<MyPostResponse> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
-        return factory.select(
+        return queryFactory.select(
                         Projections.constructor(
                                 MyPostResponse.class,
                                 post.postId,
@@ -82,7 +79,7 @@ public class PostCustomImpl implements PostCustom {
 
     @Override
     public List<PostResponse> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
-        return factory.select(
+        return queryFactory.select(
                         Projections.constructor(
                                 PostResponse.class,
                                 post.postId,
@@ -127,6 +124,52 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    @Override
+    public List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                MainFeedPostResponse.class,
+                                post.postId,
+                                post.title,
+                                post.category,
+                                post.viewCount,
+                                post.likeCount,
+                                post.bookmarkCount,
+                                postLike.postLikeId.isNotNull(),
+                                postBookmark.postBookmarkId.isNotNull(),
+                                post.publishedAt,
+                                Projections.constructor(
+                                        MainFeedPostResponse.AuthorResponse.class,
+                                        member.memberId,
+                                        member.nickname,
+                                        member.profileImageUrl
+                                )
+                        )
+                )
+                .from(post)
+                .join(member)
+                .on(post.memberId.eq(member.memberId))
+                .leftJoin(postLike)
+                .on(
+                        post.postId.eq(postLike.postId),
+                        memberIdEq(postLike.memberId, memberId)
+                )
+                .leftJoin(postBookmark)
+                .on(
+                        post.postId.eq(postBookmark.postId),
+                        memberIdEq(postBookmark.memberId, memberId)
+                )
+                .where(
+                        post.deletedAt.isNull(),
+                        member.deletedAt.isNull(),
+                        post.status.eq(PostStatus.PUBLISHED),
+                        categoryEq(category)
+                )
+                .orderBy(orderBy(sort))
+                .limit(limit)
+                .fetch();
+    }
+
     private OrderSpecifier<?>[] orderBy(PostSort sort) {
         if (sort == PostSort.POPULAR) {
             return new OrderSpecifier[] {
@@ -167,7 +210,7 @@ public class PostCustomImpl implements PostCustom {
 
     private BooleanExpression memberIdEq(NumberPath<Long> memberIdPath, Long memberId) {
         if (memberId == null) {
-            return memberIdPath.isNull();
+            return Expressions.FALSE;
         }
 
         return memberIdPath.eq(memberId);
@@ -175,7 +218,7 @@ public class PostCustomImpl implements PostCustom {
 
     @Override
     public Optional<PostDetailResult> findPostDetail(Long memberId, Long postId) {
-        PostDetailResult response = factory.select(
+        PostDetailResult response = queryFactory.select(
                         Projections.constructor(
                                 PostDetailResult.class,
                                 post.postId,
