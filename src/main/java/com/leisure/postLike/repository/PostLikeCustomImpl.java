@@ -20,11 +20,11 @@ import static com.leisure.postLike.domain.QPostLike.postLike;
 @RequiredArgsConstructor
 public class PostLikeCustomImpl implements PostLikeCustom {
 
-    private final JPAQueryFactory factory;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<LikedPostResponse> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size) {
-        return factory
+        return queryFactory
                 .select(
                         Projections.constructor(
                                 LikedPostResponse.class,
@@ -37,6 +37,7 @@ public class PostLikeCustomImpl implements PostLikeCustom {
                                 post.memberId.eq(memberId),
                                 postLike.memberId.eq(memberId),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
                                 post.publishedAt,
                                 postLike.createdAt,
                                 Projections.constructor(

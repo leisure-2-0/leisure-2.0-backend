@@ -26,7 +26,7 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("게시글 작성을 시작했습니다.", response));
+                .body(ApiResponse.success(response.postId() + "번 게시글 작성을 시작했습니다.", response));
     }
 
     @PatchMapping("/posts/{postId}")
@@ -36,7 +36,7 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글이 임시 저장되었습니다.", response));
+                .body(ApiResponse.success(response.postId() + "게시글이 임시 저장되었습니다.", response));
     }
 
     @PatchMapping("/posts/{postId}/publish")
@@ -46,7 +46,7 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글이 게시되었습니다", response));
+                .body(ApiResponse.success(response.postId() + "게시글이 게시되었습니다", response));
     }
 
     @PatchMapping("/posts/{postId}/content")
@@ -56,7 +56,7 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글이 수정되었습니다.", response));
+                .body(ApiResponse.success(response.postId() + "게시글이 수정되었습니다.", response));
     }
 
     @DeleteMapping("/posts/{postId}")
@@ -66,6 +66,6 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글이 삭제되었습니다.", response));
+                .body(ApiResponse.success(response.postId() + "게시글이 삭제되었습니다.", response));
     }
 }

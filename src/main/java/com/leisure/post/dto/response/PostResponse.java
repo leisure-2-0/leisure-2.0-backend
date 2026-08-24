@@ -21,6 +21,8 @@ public record PostResponse(
 
         boolean isBookmarked,
 
+        String region,
+
         LocalDateTime publishedAt,
 
         AuthorResponse author

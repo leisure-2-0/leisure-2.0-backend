@@ -177,6 +177,18 @@ public class PostQueryService {
         return new PostCursor(post.postId(), post.publishedAt(), null);
     }
 
+    @Transactional(readOnly = true)
+    public List<MainFeedPostResponse> getMainFeedPosts(String publicId, PostCategory category, PostSort sort) {
+
+        Long memberId = null;
+
+        if (publicId != null) {
+            memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        }
+
+        return repository.findMainFeedPosts(memberId, category, sort, 18);
+    }
+
 
     @Transactional
     public PostDetailResult getPostDetail(String publicId, Long postId) {

@@ -129,9 +129,9 @@ jobs:
               2. 버그(NPE·경계값·트랜잭션 경계)와 보안 이슈만 찾아. 스타일은 생략.
               3. `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "..."` 로 요약 댓글 하나만 남겨.
 
-              ## 요약 댓글 형식
+              요약 댓글 형식
 
-              ### 🤖 코드 리뷰 (claude-sonnet-4-6)
+              코드 리뷰 (claude-sonnet-4-6)
 
               **검토 파일:** {N}개 | **이슈:** {합계}개
 
@@ -143,7 +143,7 @@ jobs:
 
               이슈가 없으면 "✅ 발견된 이슈 없음" 한 줄만.
 
-              #### 상세
+              상세
 
               | 파일 | 라인 | 심각도 | 내용 |
               |------|------|--------|------|
@@ -152,4 +152,5 @@ jobs:
           claude_args: |
             --max-turns 30
             --model claude-sonnet-4-6
+            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
           show_full_output: true

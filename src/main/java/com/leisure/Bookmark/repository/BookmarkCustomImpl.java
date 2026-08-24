@@ -20,11 +20,11 @@ import static com.leisure.postLike.domain.QPostLike.postLike;
 @RequiredArgsConstructor
 public class BookmarkCustomImpl implements BookmarkCustom {
 
-    private final JPAQueryFactory factory;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<BookmarkedPostResponse> findBookmarkedPosts(Long memberId, BookmarkedPostSort sort, long offset, int size) {
-        return factory
+        return queryFactory
                 .select(
                         Projections.constructor(
                                 BookmarkedPostResponse.class,
@@ -37,6 +37,7 @@ public class BookmarkCustomImpl implements BookmarkCustom {
                                 post.memberId.eq(memberId),
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.memberId.eq(memberId),
+                                post.location.region,
                                 post.publishedAt,
                                 postBookmark.createdAt,
                                 Projections.constructor(

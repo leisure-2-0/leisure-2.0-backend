@@ -23,6 +23,8 @@ public record LikedPostResponse(
 
         boolean isBookmarked,
 
+        String region,
+
         LocalDateTime publishedAt,
 
         LocalDateTime likedAt,

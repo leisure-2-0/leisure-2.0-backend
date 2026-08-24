@@ -47,7 +47,8 @@ public class Post extends BaseSoftDeleteEntity {
     @Column(name = "bookmark_count", nullable = false)
     private int bookmarkCount;
 
-    private String region;
+    @Embedded
+    private PostLocation location;
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
@@ -61,7 +62,7 @@ public class Post extends BaseSoftDeleteEntity {
         return new Post(memberId);
     }
 
-    public void applyContent(String title, String content, PostCategory category) {
+    public void applyContent(String title, String content, PostCategory category, PostLocation location) {
 
         if (!isEditable()) {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
@@ -75,6 +76,10 @@ public class Post extends BaseSoftDeleteEntity {
         }
         if (category != null) {
             this.category = category;
+        }
+
+        if (location != null) {
+            this.location = location;
         }
     }
 
@@ -130,7 +135,7 @@ public class Post extends BaseSoftDeleteEntity {
         return status == PostStatus.WRITING || status == PostStatus.DRAFT || status == PostStatus.REJECTED;
     }
 
-    public void editPublished(String title, String content, PostCategory category) {
+    public void editPublished(String title, String content, PostCategory category, PostLocation location) {
         if (this.status != PostStatus.PUBLISHED) {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
         }
@@ -142,11 +147,17 @@ public class Post extends BaseSoftDeleteEntity {
             }
             this.title = trimmedTitle;
         }
+
         if (content != null) {
             this.content = content;
         }
+
         if (category != null) {
             this.category = category;
+        }
+
+        if (location != null) {
+            this.location = location;
         }
     }
 }

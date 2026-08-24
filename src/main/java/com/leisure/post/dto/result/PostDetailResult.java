@@ -1,6 +1,7 @@
 package com.leisure.post.dto.result;
 
 import com.leisure.post.domain.PostCategory;
+import com.leisure.post.dto.request.LocationRequest;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +28,9 @@ public record PostDetailResult(
 
         LocalDateTime publishedAt,
 
-        AuthorResult author
+        AuthorResult author,
+
+        LocationResult location
 ) {
 
     public record AuthorResult(
@@ -36,6 +39,17 @@ public record PostDetailResult(
             String nickname,
 
             String profileImageUrl
-    ) {
-    }
+    ) {}
+
+    public record LocationResult(
+            String region,
+
+            String placeName,
+
+            String address,
+
+            Double latitude,
+
+            Double longitude
+    ) {}
 }

@@ -5,8 +5,8 @@ import com.leisure.global.response.ApiResponse;
 import com.leisure.post.domain.MyPostSort;
 import com.leisure.post.domain.PostCategory;
 import com.leisure.post.domain.PostSort;
+import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostListResponse;
-import com.leisure.post.dto.response.PostDetailResponse;
 import com.leisure.post.dto.result.PostDetailResult;
 import com.leisure.post.dto.response.PostListResponse;
 import com.leisure.post.service.PostQueryService;
@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,33 +53,28 @@ public class PostQueryController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success( "게시글 목록 조회에 성공했습니다.", response));
+                .body(ApiResponse.success( "둘러보기 게시글 목록 조회에 성공했습니다.", response));
 
     }
 
-    @GetMapping("/posts/{postId}")
-    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@CurrentMember(required = false) String publicId, @PathVariable Long postId) {
+    @GetMapping("/posts/main")
+    public ResponseEntity<ApiResponse<List<MainFeedPostResponse>>> getMainFeedPosts(
+            @CurrentMember(required = false) String publicId,
+            @RequestParam(required = false) PostCategory category,
+            @RequestParam(defaultValue = "LATEST") PostSort sort) {
 
-        PostDetailResult result = service.getPostDetail(publicId, postId);
+        List<MainFeedPostResponse> response = service.getMainFeedPosts(publicId, category, sort);
 
-        PostDetailResponse response = new PostDetailResponse(
-                result.postId(),
-                result.title(),
-                result.content(),
-                result.category(),
-                result.viewCount(),
-                result.likeCount(),
-                result.bookmarkCount(),
-                result.isMine(),
-                result.isLiked(),
-                result.isBookmarked(),
-                result.publishedAt(),
-                new PostDetailResponse.AuthorResponse(
-                        result.author().memberId(),
-                        result.author().nickname(),
-                        result.author().profileImageUrl()
-                )
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("메인 게시글 목록 조회에 성공했습니다.", response));
+
+    }
+
+    @GetMapping("/posts/{postId:\\d+}")
+    public ResponseEntity<ApiResponse<PostDetailResult>> getPostDetail(@CurrentMember(required = false) String publicId, @PathVariable Long postId) {
+
+        PostDetailResult response = service.getPostDetail(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
