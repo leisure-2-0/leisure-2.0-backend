@@ -178,7 +178,7 @@ public class PostQueryService {
     }
 
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PostDetailResult getPostDetail(String publicId, Long postId) {
 
         Long memberId = null;
@@ -187,9 +187,12 @@ public class PostQueryService {
             memberId = reader.getMemberByPublicId(publicId).getMemberId();
         }
 
-        // TODO: Redis 조회수 INCR
-
-        return repository.findPostDetail(memberId, postId)
+        PostDetailResult result = repository.findPostDetail(memberId, postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        // TODO: 부하 테스트 후 Redis 조회수 INCR
+        repository.increaseViewCount(result.postId());
+
+        return result;
     }
 }
