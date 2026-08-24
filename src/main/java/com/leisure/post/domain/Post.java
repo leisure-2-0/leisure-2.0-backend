@@ -47,6 +47,8 @@ public class Post extends BaseSoftDeleteEntity {
     @Column(name = "bookmark_count", nullable = false)
     private int bookmarkCount;
 
+    private String region;
+
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 

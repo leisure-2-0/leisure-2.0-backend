@@ -14,13 +14,7 @@ public final class ValidationMessageConstants {
 
     public static final String NICKNAME_REQUIRED = "닉네임을 입력해 주세요.";
 
-    public static final String NICKNAME_UPDATE_REQUIRED = "수정할 닉네임을 입력해 주세요.";
-
     public static final String NICKNAME_MAX_LENGTH = "닉네임은 최대 50자까지 입력할 수 있습니다.";
 
     public static final String NICKNAME_NO_SPACE = "닉네임에 공백을 포함할 수 없습니다.";
-
-    public static final String POST_TITLE_REQUIRED = "제목을 입력해 주세요.";
-
-    public static final String POST_CONTENT_REQUIRED = "내용을 입력해 주세요.";
 }

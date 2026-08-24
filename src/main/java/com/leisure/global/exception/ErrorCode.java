@@ -79,6 +79,8 @@ public enum ErrorCode {
 
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 
+    INVALID_CURSOR(HttpStatus.BAD_REQUEST, "유효하지 않은 커서입니다."),
+
     PAGE_INVALID(HttpStatus.BAD_REQUEST, "페이지 번호는 0 이상이어야 합니다."),
 
     PAGE_SIZE_INVALID(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상 30 이하이어야 합니다."),

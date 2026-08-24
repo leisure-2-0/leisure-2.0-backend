@@ -10,6 +10,7 @@ import com.leisure.post.domain.PostStatus;
 import com.leisure.post.dto.request.PostEditRequest;
 import com.leisure.post.dto.request.PostPublishRequest;
 import com.leisure.post.dto.request.PostSaveRequest;
+import com.leisure.post.dto.response.PostDeleteResponse;
 import com.leisure.post.dto.response.PostEditResponse;
 import com.leisure.post.dto.response.PostPublishResponse;
 import com.leisure.post.dto.response.PostSaveResponse;
@@ -249,6 +250,52 @@ class PostServiceTest {
             PostEditRequest request = new PostEditRequest("수정 제목", null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.POST_FORBIDDEN);
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 삭제(deletePost)")
+    class DeletePost {
+
+        @Test
+        @DisplayName("본인 글이면 소프트 삭제하고 postId를 반환한다")
+        void success() {
+            // given
+            Post post = publishedPost(MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
+
+            // when
+            PostDeleteResponse response = postService.deletePost(PUBLIC_ID, POST_ID);
+
+            // then
+            assertThat(response.postId()).isEqualTo(POST_ID);
+            assertThat(post.getDeletedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 글이면 POST_NOT_FOUND 예외를 던진다")
+        void notFound() {
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> postService.deletePost(PUBLIC_ID, POST_ID))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.POST_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("작성자가 아니면 POST_FORBIDDEN 예외를 던진다")
+        void forbidden() {
+            Post post = publishedPost(OTHER_MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
+
+            assertThatThrownBy(() -> postService.deletePost(PUBLIC_ID, POST_ID))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.POST_FORBIDDEN);
