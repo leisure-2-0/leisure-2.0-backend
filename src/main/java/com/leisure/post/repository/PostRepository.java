@@ -40,6 +40,18 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustom {
             """)
     long countMyPosts(Long memberId);
 
+    // TODO: 부하 테스트 후 Redis 조회수 INCR
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            update Post p
+            set p.viewCount = p.viewCount + 1
+            where p.postId = :postId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+           """)
+    void increaseViewCount(Long postId);
+
+
     // flushAutomatically = true로 @Modifying 레벨에서 flush를 위임할 수도 있지만,
     // 현재는 save 직후 명시적으로 flush해서 unique constraint 예외를 즉시 처리한다.
     @Modifying(clearAutomatically = true)
