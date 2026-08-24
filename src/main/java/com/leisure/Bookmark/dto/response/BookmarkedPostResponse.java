@@ -23,6 +23,8 @@ public record BookmarkedPostResponse(
 
         boolean isBookmarked,
 
+        String region,
+
         LocalDateTime publishedAt,
 
         LocalDateTime bookmarkedAt,

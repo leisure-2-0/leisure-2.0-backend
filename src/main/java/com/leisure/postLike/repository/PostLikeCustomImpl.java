@@ -37,6 +37,7 @@ public class PostLikeCustomImpl implements PostLikeCustom {
                                 post.memberId.eq(memberId),
                                 postLike.memberId.eq(memberId),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
                                 post.publishedAt,
                                 postLike.createdAt,
                                 Projections.constructor(

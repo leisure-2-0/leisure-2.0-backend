@@ -1,6 +1,7 @@
 package com.leisure.post.dto.request;
 
 import com.leisure.post.domain.PostCategory;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
 public record PostEditRequest(
@@ -9,5 +10,8 @@ public record PostEditRequest(
 
         String content,
 
-        PostCategory category
+        PostCategory category,
+
+        @Valid
+        LocationRequest location
 ) {}

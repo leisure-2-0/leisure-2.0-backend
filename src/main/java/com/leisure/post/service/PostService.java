@@ -4,6 +4,8 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
 import com.leisure.post.domain.Post;
+import com.leisure.post.domain.PostLocation;
+import com.leisure.post.dto.request.LocationRequest;
 import com.leisure.post.dto.response.PostDeleteResponse;
 import com.leisure.post.dto.request.PostEditRequest;
 import com.leisure.post.dto.request.PostPublishRequest;
@@ -42,7 +44,9 @@ public class PostService {
     public PostSaveResponse saveDraft(String publicId, Long postId, PostSaveRequest request) {
         Post post = getOwnedPost(publicId, postId);
 
-        post.applyContent(request.title(), request.content(), request.category());
+        PostLocation location = toLocation(request.location());
+
+        post.applyContent(request.title(), request.content(), request.category(), location);
 
         post.markAsDraft();
 
@@ -54,7 +58,9 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        post.applyContent(request.title(), request.content(), request.category());
+        PostLocation location = toLocation(request.location());
+
+        post.applyContent(request.title(), request.content(), request.category(), location);
 
         post.publish();
 
@@ -67,7 +73,9 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        post.editPublished(request.title(), request.content(), request.category());
+        PostLocation location = toLocation(request.location());
+
+        post.editPublished(request.title(), request.content(), request.category(), location);
 
         return new PostEditResponse(post.getPostId());
     }
@@ -94,5 +102,9 @@ public class PostService {
         }
 
         return post;
+    }
+
+    private PostLocation toLocation(LocationRequest request) {
+        return request == null ? null : request.toPostLocation();
     }
 }

@@ -64,7 +64,7 @@ class PostServiceTest {
 
     private Post publishedPost(Long memberId) {
         Post post = writingPost(memberId);
-        post.applyContent("제목", "본문", PostCategory.RESTAURANT);
+        post.applyContent("제목", "본문", PostCategory.RESTAURANT, null);
         post.publish();
         return post;
     }
@@ -100,7 +100,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("제목", "본문", PostCategory.HOTEL);
+            PostSaveRequest request = new PostSaveRequest("제목", "본문", PostCategory.HOTEL, null);
 
             // when
             PostSaveResponse response = postService.saveDraft(PUBLIC_ID, POST_ID, request);
@@ -116,7 +116,7 @@ class PostServiceTest {
         void notFound() {
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.empty());
-            PostSaveRequest request = new PostSaveRequest("제목", null, null);
+            PostSaveRequest request = new PostSaveRequest("제목", null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -130,7 +130,7 @@ class PostServiceTest {
             Post post = writingPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("제목", null, null);
+            PostSaveRequest request = new PostSaveRequest("제목", null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -144,7 +144,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("바꾼제목", null, null);
+            PostSaveRequest request = new PostSaveRequest("바꾼제목", null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -164,7 +164,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostPublishRequest request = new PostPublishRequest("제목", "본문", PostCategory.RESTAURANT);
+            PostPublishRequest request = new PostPublishRequest("제목", "본문", PostCategory.RESTAURANT, null);
 
             // when
             PostPublishResponse response = postService.publish(PUBLIC_ID, POST_ID, request);
@@ -180,7 +180,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostPublishRequest request = new PostPublishRequest(null, "본문", PostCategory.RESTAURANT);
+            PostPublishRequest request = new PostPublishRequest(null, "본문", PostCategory.RESTAURANT, null);
 
             assertThatThrownBy(() -> postService.publish(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -200,7 +200,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL);
+            PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL, null);
 
             // when
             PostEditResponse response = postService.editPost(PUBLIC_ID, POST_ID, request);
@@ -219,7 +219,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", null, null);
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -233,7 +233,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("   ", null, null);
+            PostEditRequest request = new PostEditRequest("   ", null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -247,7 +247,7 @@ class PostServiceTest {
             Post post = publishedPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", null, null);
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)

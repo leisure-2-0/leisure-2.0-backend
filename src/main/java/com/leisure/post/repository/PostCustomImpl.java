@@ -42,6 +42,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.memberId.eq(memberId),
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
                                 post.publishedAt,
                                 post.createdAt,
                                 post.updatedAt,
@@ -90,6 +91,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.bookmarkCount,
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
                                         PostResponse.AuthorResponse.class,
@@ -137,6 +139,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.bookmarkCount,
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
                                         MainFeedPostResponse.AuthorResponse.class,
@@ -172,13 +175,13 @@ public class PostCustomImpl implements PostCustom {
 
     private OrderSpecifier<?>[] orderBy(PostSort sort) {
         if (sort == PostSort.POPULAR) {
-            return new OrderSpecifier[] {
+            return new OrderSpecifier[]{
                     post.likeCount.desc(),
                     post.postId.desc()
             };
         }
 
-        return new OrderSpecifier[] {
+        return new OrderSpecifier[]{
                 post.publishedAt.desc(),
                 post.postId.desc()
         };
@@ -237,6 +240,14 @@ public class PostCustomImpl implements PostCustom {
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
+                                ),
+                                Projections.constructor(
+                                        PostDetailResult.LocationResult.class,
+                                        post.location.region,
+                                        post.location.placeName,
+                                        post.location.address,
+                                        post.location.latitude,
+                                        post.location.longitude
                                 )
                         )
                 )
@@ -266,13 +277,13 @@ public class PostCustomImpl implements PostCustom {
 
     private OrderSpecifier<?>[] orderBy(MyPostSort sort) {
         if (sort == MyPostSort.POPULAR) {
-            return new OrderSpecifier[] {
-                post.likeCount.desc(),
-                post.postId.desc()
+            return new OrderSpecifier[]{
+                    post.likeCount.desc(),
+                    post.postId.desc()
             };
         }
 
-        return new OrderSpecifier[] {
+        return new OrderSpecifier[]{
                 post.publishedAt.desc(),
                 post.postId.desc()
         };

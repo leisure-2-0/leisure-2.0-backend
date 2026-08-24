@@ -56,7 +56,7 @@ class BookmarkServiceTest {
     private Post publishedPost() {
         Post post = Post.startWriting(MEMBER_ID);
         ReflectionTestUtils.setField(post, "postId", POST_ID);
-        post.applyContent("제목", "본문", PostCategory.RESTAURANT);
+        post.applyContent("제목", "본문", PostCategory.RESTAURANT, null);
         post.publish();
         return post;
     }

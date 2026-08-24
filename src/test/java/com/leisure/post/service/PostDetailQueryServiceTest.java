@@ -56,7 +56,8 @@ class PostDetailQueryServiceTest {
         return new PostDetailResult(
                 POST_ID, "제목", "본문", PostCategory.RESTAURANT,
                 5, 3, 2, true, true, false, null,
-                new PostDetailResult.AuthorResult(MEMBER_ID, "nick", null)
+                new PostDetailResult.AuthorResult(MEMBER_ID, "nick", null),
+                new PostDetailResult.LocationResult("강릉", "장소명", "주소", 37.5, 127.0)
         );
     }
 
