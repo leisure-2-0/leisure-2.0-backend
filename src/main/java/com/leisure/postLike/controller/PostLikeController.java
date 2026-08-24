@@ -27,7 +27,7 @@ public class PostLikeController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("게시글 좋아요를 눌렀습니다.", response));
+                .body(ApiResponse.success(response.postId() + "번 게시글 좋아요를 눌렀습니다.", response));
     }
 
     @DeleteMapping("/posts/{postId}/likes")
@@ -39,6 +39,6 @@ public class PostLikeController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글 좋아요를 취소했습니다.", response));
+                .body(ApiResponse.success(response.postId() + "번 게시글 좋아요를 취소했습니다.", response));
     }
 }
