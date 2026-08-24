@@ -6,8 +6,10 @@ import com.leisure.global.auth.CookieProvider;
 import com.leisure.global.auth.CurrentMember;
 import com.leisure.global.response.ApiResponse;
 import com.leisure.member.dto.request.PasswordChangeRequest;
+import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.MemberProfileResponse;
+import com.leisure.member.dto.response.ProfileChangeResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.service.MemberService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +57,16 @@ public class MemberController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("회원 정보 조회에 성공했습니다.", response));
 
+    }
+
+    @PatchMapping("/members/me")
+    public ResponseEntity<ApiResponse<ProfileChangeResponse>> changeProfile(@CurrentMember String publicId, @Valid @RequestBody ProfileChangeRequest request) {
+
+        ProfileChangeResponse response = service.changeProfile(publicId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response.nickname() + "님의 프로필이 수정되었습니다.", response));
     }
 
     @PatchMapping("/members/me/password")

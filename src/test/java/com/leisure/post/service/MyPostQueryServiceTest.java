@@ -68,14 +68,14 @@ class MyPostQueryServiceTest {
     @DisplayName("page/size가 null이면 기본값(page=0, size=10)을 적용한다")
     void getMyPosts_defaults() {
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 10)).willReturn(List.of());
+        given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15)).willReturn(List.of());
         given(repository.countMyPosts(MEMBER_ID)).willReturn(0L);
 
         MyPostListResponse response = postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, null, null);
 
         assertThat(response.page()).isEqualTo(0);
-        assertThat(response.size()).isEqualTo(10);
-        verify(repository).findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 10);
+        assertThat(response.size()).isEqualTo(15);
+        verify(repository).findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15);
     }
 
     @Test

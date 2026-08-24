@@ -8,8 +8,10 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
 import com.leisure.member.dto.request.PasswordChangeRequest;
+import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.MemberProfileResponse;
+import com.leisure.member.dto.response.ProfileChangeResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
 import com.leisure.member.repository.MemberRepository;
@@ -19,6 +21,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +87,28 @@ public class MemberService {
         Member member = reader.getMemberByPublicId(publicId);
 
         return new MemberProfileResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
+    }
+
+    @Transactional
+    public ProfileChangeResponse changeProfile(String publicId, ProfileChangeRequest request) {
+
+        Member member = reader.getMemberByPublicId(publicId);
+
+        String nickname = request.nickname();
+        String profileImageUrl = request.profileImageUrl();
+
+        if (nickname != null && !Objects.equals(member.getNickname(), nickname)) {
+            if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
+                throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
+            }
+            member.changeNickname(nickname);
+        }
+
+        if (profileImageUrl != null) {
+            member.changeProfileImageUrl(profileImageUrl);
+        }
+
+        return new ProfileChangeResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
     }
 
 

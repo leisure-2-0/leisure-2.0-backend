@@ -45,3 +45,8 @@ cookie:
     secure: false
     same-site: Lax
     max-age: 1209600 # 14 days
+
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace

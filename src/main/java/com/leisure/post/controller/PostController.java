@@ -49,24 +49,6 @@ public class PostController {
                 .body(ApiResponse.success("게시글이 게시되었습니다", response));
     }
 
-    // TODO: 게시글 목록/피드 조회
-    // TODO: 특정 게시글 조회
-//    @GetMapping("/posts")
-//    public ResponseEntity<ApiResponse<PostFeedResponse>> getPosts(
-//            @CurrentMember String publicId,
-//            @RequestParam(required = false) Long cursor,
-//            @RequestParam(defaultValue = "15") Integer limit,
-//            @RequestParam(required = false) PostCategory category) {
-//
-//        PostFeedResponse response = service.getPosts(cursor, limit, category);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success( "게시글 목록 조회에 성공했습니다.", response));
-//
-//    }
-
-
     @PatchMapping("/posts/{postId}/content")
     public ResponseEntity<ApiResponse<PostEditResponse>> editPost(@CurrentMember String publicId, @PathVariable Long postId, @Valid @RequestBody PostEditRequest request) {
 

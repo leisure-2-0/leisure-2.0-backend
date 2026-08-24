@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 개요
 
-`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
+`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글), `com.leisure.postLike`(좋아요), `com.leisure.Bookmark`(북마크)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
 
 ## 명령어
 
@@ -79,7 +79,16 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 - **비정규화 카운트** — `viewCount`/`likeCount`/`bookmarkCount`는 Post에 두고, 증감은 도메인 메서드가 아니라 리포지토리의 원자적 `@Modifying` 쿼리(`increaseLikeCount` 등)로 처리한다.
 - **AI 심사는 MVP 이후로 보류** — 현재 `publish`는 `submitForApproval`이 아니라 `publish()`로 **바로 PUBLISHED**로 간다. `submitForApproval`/`approve`/`reject`와 `PENDING`/`REJECTED` 상태는 AI 연동 대비용 **죽은 코드**로 남겨둔 것이니 임의로 지우지 말 것. AI를 붙일 때 `publish()`를 `submitForApproval` + 이벤트/리스너 흐름으로 되돌린다.
 - **소유권** — 서비스의 `getOwnedPost(publicId, postId)`가 글 조회(`findByPostIdAndDeletedAtIsNull`, 없으면 `POST_NOT_FOUND`) + 작성자 검증(`Post.isWrittenBy`, 불일치 시 `POST_FORBIDDEN`)을 묶어, 저장/게시/수정/삭제가 모두 재사용한다. 작성자 참조는 id-only(`memberId`)다.
-- **목록/피드 조회(`GET /posts`)는 아직 미구현** — QueryDSL 의존성(`com.querydsl:querydsl-jpa:5.1.0:jakarta`)은 추가됐고, 커서 기반 페이지네이션 + posts↔members 조인 프로젝션으로 짤 예정. 대표이미지·태그·좋아요/북마크 여부는 관련 도메인(Like/Bookmark/Tag/이미지) 구현 후 채운다.
+- **내 게시글 목록(`GET /members/me/posts`, `PostQueryService.getMyPosts`)** — 오프셋(page/size) 기반. QueryDSL(`PostCustomImpl`)로 members·postLike·postBookmark를 조인해 작성자 정보와 isLiked/isBookmarked까지 한 방에 프로젝션한다(N+1 회피). `PublishED`만 노출하므로 초안(WRITING/DRAFT)은 안 보이며, 초안 목록은 별도 엔드포인트로 둘 예정. "내 글"이라 작성자 탈퇴 필터는 생략.
+- **게시글 상세 조회(`getPostDetail`)와 메인 피드(`GET /posts`, 커서 기반)는 아직 미구현** — 상세는 `PostCustomImpl.findPostDetail`(QueryDSL)까지는 있고 서비스가 주석 처리됨. 피드는 커서 기반으로 짤 예정. 대표이미지·태그는 관련 도메인(Tag/이미지) 구현 후 채운다.
+
+## 좋아요 / 북마크 (postLike, Bookmark)
+
+`com.leisure.postLike`, `com.leisure.Bookmark`. 구조가 동일하다 — 회원↔게시글 조인테이블(`PostLike`/`PostBookmark`, id-only 참조) + 토글 API + 내 목록 조회.
+
+- **토글** — `POST/DELETE /posts/{postId}/likes`(`PostLikeService.like`/`unlike`), `POST/DELETE /posts/{postId}/bookmarks`(`BookmarkService`). 흐름: `getPublishedPost`로 대상 확인(없거나 PUBLISHED 아니면 `POST_NOT_FOUND`) → 중복 검사(`existsBy...`, 이미 눌렀으면 `..._ALREADY_...`) → 저장/삭제 → Post의 비정규화 카운트를 원자적 `@Modifying`으로 증감 → 최신 카운트와 상태 플래그를 응답. 저장 경로는 `save`+`flush` 후 `DataIntegrityViolationException`을 잡아 동시성 안전망을 둔다. 취소는 `deleteBy...` 반환값이 0이면 `..._NOT_..._YET`.
+- **내 목록 조회** — `GET /members/me/likes`, `GET /members/me/bookmarks`. 오프셋 기반이며 QueryDSL로 조인 프로젝션한다. **목록 쿼리(QueryDSL)와 count 쿼리(JPQL)의 where 필터가 반드시 일치해야** totalElements와 실제 개수가 어긋나지 않는다(삭제글·탈퇴작성자·PUBLISHED 조건 동일하게 유지). 정렬 `POPULAR`(likeCount desc)는 값이 변해 오프셋 페이지네이션과 상성이 나쁘지만 개인 목록 규모라 트레이드오프로 수용.
+- **페이지 파라미터 검증** — 각 QueryService가 `validatePage`(null→0, 음수→`PAGE_INVALID`)/`validateSize`(null→10, 1~30 밖→`PAGE_SIZE_INVALID`)로 방어한다.
 
 ## Git & CI 워크플로우
 
