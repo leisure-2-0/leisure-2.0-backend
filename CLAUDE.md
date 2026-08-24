@@ -80,7 +80,8 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 - **AI 심사는 MVP 이후로 보류** — 현재 `publish`는 `submitForApproval`이 아니라 `publish()`로 **바로 PUBLISHED**로 간다. `submitForApproval`/`approve`/`reject`와 `PENDING`/`REJECTED` 상태는 AI 연동 대비용 **죽은 코드**로 남겨둔 것이니 임의로 지우지 말 것. AI를 붙일 때 `publish()`를 `submitForApproval` + 이벤트/리스너 흐름으로 되돌린다.
 - **소유권** — 서비스의 `getOwnedPost(publicId, postId)`가 글 조회(`findByPostIdAndDeletedAtIsNull`, 없으면 `POST_NOT_FOUND`) + 작성자 검증(`Post.isWrittenBy`, 불일치 시 `POST_FORBIDDEN`)을 묶어, 저장/게시/수정/삭제가 모두 재사용한다. 작성자 참조는 id-only(`memberId`)다.
 - **내 게시글 목록(`GET /members/me/posts`, `PostQueryService.getMyPosts`)** — 오프셋(page/size) 기반. QueryDSL(`PostCustomImpl`)로 members·postLike·postBookmark를 조인해 작성자 정보와 isLiked/isBookmarked까지 한 방에 프로젝션한다(N+1 회피). `PublishED`만 노출하므로 초안(WRITING/DRAFT)은 안 보이며, 초안 목록은 별도 엔드포인트로 둘 예정. "내 글"이라 작성자 탈퇴 필터는 생략.
-- **게시글 상세 조회(`getPostDetail`)와 메인 피드(`GET /posts`, 커서 기반)는 아직 미구현** — 상세는 `PostCustomImpl.findPostDetail`(QueryDSL)까지는 있고 서비스가 주석 처리됨. 피드는 커서 기반으로 짤 예정. 대표이미지·태그는 관련 도메인(Tag/이미지) 구현 후 채운다.
+- **게시글 상세 조회(`GET /posts/{postId}`, `PostQueryService.getPostDetail`)** — 비로그인 공개(`@CurrentMember(required=false)`). QueryDSL(`findPostDetail`)로 작성자·isMine/isLiked/isBookmarked까지 프로젝션한다. 계층 규약: 리포지토리·서비스는 `PostDetailResult`(dto.result)를 반환하고 **컨트롤러가 `PostDetailResponse`로 변환**한다. 조회 성공 시 `increaseViewCount`(원자적 `@Modifying` UPDATE)로 조회수를 +1 한다(존재 확인 후 증가, 응답 viewCount는 증가 전 값). 조회수 어뷰징(중복 방지)·Redis 이관은 성능 측정 후로 보류(현재 TODO).
+- **메인 피드(`GET /posts`, `PostQueryService.getPosts`)** — 비로그인 공개, **커서 기반**(오프셋/`totalElements` 없음, `nextCursor`+`hasNext`만). 커서는 `PostCursor`를 JSON→Base64로 인코딩한 불투명 토큰이며 정렬(`PostSort` LATEST/POPULAR)에 맞는 필드를 담는다(LATEST=publishedAt, POPULAR=likeCount, 공통 tie-breaker postId). `limit+1`을 조회해 `hasNext`를 판정하고 초과분을 잘라낸다. **커서 조건(`cursorCondition`)과 orderBy가 정렬 기준별로 일치해야** 중복/누락이 없다. 대표이미지·태그는 관련 도메인(Tag/이미지) 구현 후 채운다.
 
 ## 좋아요 / 북마크 (postLike, Bookmark)
 

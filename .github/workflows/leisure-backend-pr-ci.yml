@@ -54,6 +54,66 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+#          prompt: |
+#            REPOSITORY: ${{ github.repository }}
+#            PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+#            작성자: ${{ github.event.pull_request.user.login }}
+#            BRANCH: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
+#
+#            - 이 PR을 한국어로 리뷰해줘.
+#            - 코드는 이미 현재 작업 디렉토리에 체크아웃되어 있으니, 다시 clone하거나 브랜치를 전환하지 마.
+#
+#            ## 토큰 절약을 위한 리뷰 범위
+#            - 리뷰 대상은 dev 브랜치 대비 이 PR의 변경분이야.
+#            - 변경된 파일과 diff는 아래 명령으로 확인해:
+#              - 변경 파일 목록: `git diff --name-only origin/dev...HEAD`
+#              - 전체 diff: `git diff origin/dev...HEAD`
+#            - diff와 무관한 파일이나 전체 코드베이스는 탐색하지 마.
+#
+#            ## 검토할 세 가지 관점
+#            1. 버그 — NPE·경계값·예외 무시·리소스 누수·트랜잭션 경계
+#            2. 보안
+#            3. 스타일 — CLAUDE.md 기준. 파일 없으면 이 항목 생략.
+#
+#            ## 댓글 작성 규칙
+#            - 진행 순서: (1) diff에서 이슈를 찾고 → (2) Critical/High는 해당 코드 줄에 인라인 코멘트를 달고 → (3) 마지막에 전체 요약 댓글을 남겨.
+#            - 인라인 코멘트(mcp__github_inline_comment__create_inline_comment, confirmed: true)는 Critical/High 이슈에만 사용해. Medium 이하는 인라인으로 달지 말고 요약 표의 개수에만 반영해.
+#            - 요약 댓글은 gh pr comment로 딱 하나만 남겨. 여러 개 만들지 마.
+#            - 이슈가 하나도 없으면 인라인은 생략하고, 요약 댓글에 "발견된 이슈 없음"으로 표기해.
+#            - 반드시 GitHub 댓글로 남겨야 해. 채팅 메시지로만 답하고 끝내지 마.
+#
+#            ## 요약 댓글 형식 (이 구조를 그대로 지킬 것)
+#
+#            ### <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Claude_AI_symbol.svg?width=24" width="24" align="top"> 클로드 Sonnet 4.6 코드 리뷰
+#
+#              **검토 파일:** {N}개 | **이슈:** {합계}개
+#
+#            #### 📋 리뷰 요약
+#
+#             | 심각도 | 개수 |
+#             |--------|------|
+#             | 🔴 Critical | {n} |
+#             | 🟠 High | {n} |
+#             | 🟡 Medium | {n} |
+#
+#            이슈가 하나도 없으면 위 표 대신 "✅ 발견된 이슈 없음"만 표기해.
+#
+#            #### 📁 파일별 상세 리뷰
+#
+#            파일마다 접이식으로 작성 (Critical/High가 있는 파일을 위로 정렬):
+#
+#            <details>
+#            <summary><b>{파일경로}</b> ({이슈 갯수}개 이슈)</summary>
+#
+#            - **{파일경로}:{라인}** — [{심각도}] [{유형}] {한 줄 제목}
+#              - 코드: `{실제 코드}`
+#              - 문제 정의: {무엇이 왜 문제인지}
+#              - 그래서: {한 줄 설명}
+#
+#            </details>
+#
+#            - {유형}은 버그 / 보안 / 스타일 중 하나야.
+#            - 한 파일 이슈가 5개를 넘으면 심각도 높은 순 상위 3개만 적고, 상세 끝에 "그 외 N개 생략"으로 표기해.
           prompt: |
             REPOSITORY: ${{ github.repository }}
             PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
@@ -62,58 +122,33 @@ jobs:
 
             - 이 PR을 한국어로 리뷰해줘.
             - 코드는 이미 현재 작업 디렉토리에 체크아웃되어 있으니, 다시 clone하거나 브랜치를 전환하지 마.
+            
+            아래 명령을 순서대로 실행해:
 
-            ## 토큰 절약을 위한 리뷰 범위
-            - 리뷰 대상은 dev 브랜치 대비 이 PR의 변경분이야.
-            - 변경된 파일과 diff는 아래 명령으로 확인해:
-              - 변경 파일 목록: `git diff --name-only origin/dev...HEAD`
-              - 전체 diff: `git diff origin/dev...HEAD`
-            - diff와 무관한 파일이나 전체 코드베이스는 탐색하지 마.
+              1. `git diff origin/dev...HEAD` 로 전체 diff를 한 번에 읽어.
+              2. 버그(NPE·경계값·트랜잭션 경계)와 보안 이슈만 찾아. 스타일은 생략.
+              3. `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "..."` 로 요약 댓글 하나만 남겨.
 
-            ## 검토할 세 가지 관점
-            1. 버그 — NPE·경계값·예외 무시·리소스 누수·트랜잭션 경계
-            2. 보안
-            3. 스타일 — CLAUDE.md 기준. 파일 없으면 이 항목 생략.
+              ## 요약 댓글 형식
 
-            ## 댓글 작성 규칙
-            - 진행 순서: (1) diff에서 이슈를 찾고 → (2) Critical/High는 해당 코드 줄에 인라인 코멘트를 달고 → (3) 마지막에 전체 요약 댓글을 남겨.
-            - 인라인 코멘트(mcp__github_inline_comment__create_inline_comment, confirmed: true)는 Critical/High 이슈에만 사용해. Medium 이하는 인라인으로 달지 말고 요약 표의 개수에만 반영해.
-            - 요약 댓글은 gh pr comment로 딱 하나만 남겨. 여러 개 만들지 마.
-            - 이슈가 하나도 없으면 인라인은 생략하고, 요약 댓글에 "발견된 이슈 없음"으로 표기해.
-            - 반드시 GitHub 댓글로 남겨야 해. 채팅 메시지로만 답하고 끝내지 마.
-
-            ## 요약 댓글 형식 (이 구조를 그대로 지킬 것)
-
-            ### <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Claude_AI_symbol.svg?width=24" width="24" align="top"> 클로드 Sonnet 4.6 코드 리뷰
+              ### 🤖 코드 리뷰 (claude-sonnet-4-6)
 
               **검토 파일:** {N}개 | **이슈:** {합계}개
 
-            #### 📋 리뷰 요약
+              | 심각도 | 개수 |
+              |--------|------|
+              | 🔴 Critical | {n} |
+              | 🟠 High | {n} |
+              | 🟡 Medium | {n} |
 
-             | 심각도 | 개수 |
-             |--------|------|
-             | 🔴 Critical | {n} |
-             | 🟠 High | {n} |
-             | 🟡 Medium | {n} |
+              이슈가 없으면 "✅ 발견된 이슈 없음" 한 줄만.
 
-            이슈가 하나도 없으면 위 표 대신 "✅ 발견된 이슈 없음"만 표기해.
+              #### 상세
 
-            #### 📁 파일별 상세 리뷰
+              | 파일 | 라인 | 심각도 | 내용 |
+              |------|------|--------|------|
+              | `파일경로` | L{n} | 🔴 | 문제 한 줄 요약 |
 
-            파일마다 접이식으로 작성 (Critical/High가 있는 파일을 위로 정렬):
-
-            <details>
-            <summary><b>{파일경로}</b> ({이슈 갯수}개 이슈)</summary>
-
-            - **{파일경로}:{라인}** — [{심각도}] [{유형}] {한 줄 제목}
-              - 코드: `{실제 코드}`
-              - 문제 정의: {무엇이 왜 문제인지}
-              - 그래서: {한 줄 설명}
-
-            </details>
-
-            - {유형}은 버그 / 보안 / 스타일 중 하나야.
-            - 한 파일 이슈가 5개를 넘으면 심각도 높은 순 상위 3개만 적고, 상세 끝에 "그 외 N개 생략"으로 표기해.
           claude_args: |
             --max-turns 30
             --model claude-sonnet-4-6
