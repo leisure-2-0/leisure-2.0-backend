@@ -50,7 +50,7 @@ class MainFeedQueryServiceTest {
 
     private MainFeedPostResponse post(long postId) {
         return new MainFeedPostResponse(
-                postId, "제목", PostCategory.RESTAURANT, 0, 0, 0, false, false, null,
+                postId, "제목", PostCategory.RESTAURANT, 0, 0, 0, false, false, "강릉", null,
                 new MainFeedPostResponse.AuthorResponse(MEMBER_ID, "nick", null)
         );
     }

@@ -21,6 +21,8 @@ public record MainFeedPostResponse(
 
         boolean isBookmarked,
 
+        String region,
+
         LocalDateTime publishedAt,
 
         AuthorResponse author

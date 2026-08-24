@@ -23,6 +23,8 @@ public record MyPostResponse(
 
         boolean isBookmarked,
 
+        String region,
+
         LocalDateTime publishedAt,
 
         LocalDateTime createdAt,

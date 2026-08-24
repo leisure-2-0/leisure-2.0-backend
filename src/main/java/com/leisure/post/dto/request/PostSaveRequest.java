@@ -1,6 +1,7 @@
 package com.leisure.post.dto.request;
 
 import com.leisure.post.domain.PostCategory;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
 public record PostSaveRequest(
@@ -10,5 +11,8 @@ public record PostSaveRequest(
 
         String content,
 
-        PostCategory category
+        PostCategory category,
+
+        @Valid
+        LocationRequest location
 ) {}
