@@ -40,6 +40,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustom {
             """)
     long countMyPosts(Long memberId);
 
+    // flushAutomatically = true로 @Modifying 레벨에서 flush를 위임할 수도 있지만,
+    // 현재는 save 직후 명시적으로 flush해서 unique constraint 예외를 즉시 처리한다.
     @Modifying(clearAutomatically = true)
     @Query("update Post p set p.likeCount = p.likeCount + 1 where p.postId = :postId")
     void increaseLikeCount(Long postId);

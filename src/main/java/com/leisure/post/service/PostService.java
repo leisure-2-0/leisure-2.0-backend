@@ -61,9 +61,6 @@ public class PostService {
         return new PostPublishResponse(post.getPostId(), post.getStatus(), post.getPublishedAt());
     }
 
-    // TODO: 게시글 목록/피드 조회
-    // TODO: 특정 게시글 조회
-
 
     @Transactional
     public PostEditResponse editPost(String publicId, Long postId, PostEditRequest request) {

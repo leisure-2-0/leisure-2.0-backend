@@ -78,8 +78,8 @@ public class BookmarkCustomImpl implements BookmarkCustom {
         }
 
         return new OrderSpecifier[]{
-                postBookmark.postBookmarkId.desc(),
-                postBookmark.createdAt.desc()
+                postBookmark.createdAt.desc(),
+                postBookmark.postBookmarkId.desc()
         };
     }
 }

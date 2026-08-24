@@ -78,8 +78,8 @@ public class PostLikeCustomImpl implements PostLikeCustom {
         }
 
         return  new OrderSpecifier[]{
-                postLike.postLikeId.desc(),
-                postLike.createdAt.desc()
+                postLike.createdAt.desc(),
+                postLike.postLikeId.desc()
         };
     }
 }

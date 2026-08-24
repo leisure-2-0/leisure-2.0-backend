@@ -1,6 +1,8 @@
 package com.leisure.member.domain;
 
 import com.leisure.global.entity.BaseSoftDeleteEntity;
+import com.leisure.global.exception.BusinessException;
+import com.leisure.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -52,6 +54,21 @@ public class Member extends BaseSoftDeleteEntity {
         if (publicId == null) {
             publicId = String.valueOf(UUID.randomUUID());
         }
+    }
+
+    public void changeNickname(String nickname) {
+        if (nickname.isBlank()) {
+            throw new BusinessException(ErrorCode.NICKNAME_REQUIRED);
+        }
+        this.nickname = nickname.trim();
+    }
+
+    public void changeProfileImageUrl(String profileImageUrl) {
+        if (profileImageUrl.isBlank()) {
+            this.profileImageUrl = null;
+            return;
+        }
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void changePassword(String password) {
