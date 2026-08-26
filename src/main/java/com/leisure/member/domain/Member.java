@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Locale;
 import java.util.UUID;
 
 
@@ -77,5 +78,9 @@ public class Member extends BaseSoftDeleteEntity {
 
     public boolean matchesPassword(String rawPassword, PasswordEncoder encoder) {
         return encoder.matches(rawPassword, this.password);
+    }
+
+    public static String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

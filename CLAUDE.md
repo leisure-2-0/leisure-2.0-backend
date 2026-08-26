@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 개요
 
-`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글), `com.leisure.postLike`(좋아요), `com.leisure.Bookmark`(북마크)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 단, 응답이 result와 사실상 동일하고 숨길 필드가 없는 단건 조회는 별도 `dto.response`를 두지 않고 `result`를 그대로 응답으로 내보내기도 한다(예: 게시글 상세 `PostDetailResult`). 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
+`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글), `com.leisure.postLike`(좋아요), `com.leisure.Bookmark`(북마크), `com.leisure.tag`(태그)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 단, 응답이 result와 사실상 동일하고 숨길 필드가 없는 단건 조회는 별도 `dto.response`를 두지 않고 `result`를 그대로 응답으로 내보내기도 한다. (게시글 상세가 원래 이 예외였으나, 태그가 붙으며 `PostDetailResult`(프로젝션)를 `PostDetailResponse`로 감싸게 되어 예외에서 빠졌다 — "태그" 참고. 규약은 "그때그때 최적"을 우선하며 상황이 바뀌면 갱신한다.) 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
 
 ## 명령어
 
@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 로컬 데이터베이스
 
-앱은 `localhost:3306`의 MySQL 8, 데이터베이스 `leisure`, 계정/비번 `root`/`root`가 필요하다(`application-local.yml` 참고). README.md에 Colima + Docker(macOS) 기반 세팅 방법이 정리되어 있다. `local` 프로파일은 `ddl-auto: create`라서 **매 기동 시 모든 테이블을 삭제 후 재생성한다** — 중요한 데이터를 `local` 프로파일에 연결하지 말 것. 기본(default) 프로파일용 datasource가 없으므로, `--spring.profiles.active=local`(혹은 다른 프로파일) 없이 실행하면 JPA가 커넥션을 요구하는 순간 기동에 실패한다.
+앱은 `localhost:3306`의 MySQL 8, 데이터베이스 `leisure-local`, 계정/비번 `root`/`root`가 필요하다(`application-local.yml` 참고). 로컬 인프라(MySQL 8 + Redis 7)는 `docker/docker-compose-local.yaml`로 함께 띄운다(`docker compose -f docker/docker-compose-local.yaml up -d`). MySQL은 `utf8mb4` + `utf8mb4_0900_ai_ci`(MySQL 8 기본, accent/case-insensitive) 콜레이션으로 뜬다 — 대소문자 무시 비교라 이메일 정규화와 이중 안전이 되고 닉네임 `John`/`john`도 중복 취급된다. README.md에 Colima + Docker(macOS) 기반 세팅이 정리돼 있으나 **수동 `docker run` 예시는 구버전(DB명 `leisure`)이라 현재는 위 compose 사용이 정본**이다. `local` 프로파일은 `ddl-auto: create`라서 **매 기동 시 모든 테이블을 삭제 후 재생성한다** — 중요한 데이터를 `local` 프로파일에 연결하지 말 것. 기본(default) 프로파일용 datasource가 없으므로, `--spring.profiles.active=local`(혹은 다른 프로파일) 없이 실행하면 JPA가 커넥션을 요구하는 순간 기동에 실패한다.
 
 ## 아키텍처 규칙
 
@@ -78,12 +78,13 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 - **삭제** — `BaseSoftDeleteEntity.delete()`로 소프트 삭제. 조회는 `findByPostIdAndDeletedAtIsNull`로 삭제분을 제외한다.
 - **비정규화 카운트** — `viewCount`/`likeCount`/`bookmarkCount`는 Post에 두고, 증감은 도메인 메서드가 아니라 리포지토리의 원자적 `@Modifying` 쿼리(`increaseLikeCount` 등)로 처리한다.
 - **위치(`PostLocation`)** — `@Embeddable` 값 객체(`region`/`placeName`/`address`/`latitude`/`longitude`)를 Post에 `@Embedded`로 인라인한다. 요청은 중첩 `LocationRequest`로 받아 `toPostLocation()`으로 도메인 값 객체로 변환하고, 서비스가 `request.location() == null`이면 null(유지)을 넘긴다. **null 계약: location 객체가 null이면 위치 유지, 오면 통째 교체**(내부 필드 null은 "그 정보 없음"으로 그대로 저장 — 카카오맵이 일부 필드를 못 채울 수 있음). `PostLocation.of(...)`는 전부 null이면 null을 반환한다(빈 껍데기 방지). 사용자에게 "위치 제거" 버튼은 없어 명시적 제거 유스케이스는 없다. 조회 노출: **상세는 전체 `LocationResult`, 목록(둘러보기/메인/내글/좋아요/북마크)은 `region`만**(카드에 "강릉"처럼 지역만 표시).
+- **태그(`tags`)** — 저장/게시/수정 요청(`PostSaveRequest`/`PostPublishRequest`/`PostEditRequest`)이 `Set<String> tags`(`@Size(max=5)`, 개수만 제한)를 함께 받는다. 서비스는 `request.tags() != null`일 때만 `replaceTags(postId, tags)`로 **전체 삭제 후 재삽입**(`TagRepository.deleteByPostId` 벌크 delete → `PostTag.createAll` saveAll)한다. **null=태그 유지, 빈 Set=전체 제거**. 상세는 아래 "태그" 섹션 참고.
 - **AI 심사는 MVP 이후로 보류** — 현재 `publish`는 `submitForApproval`이 아니라 `publish()`로 **바로 PUBLISHED**로 간다. `submitForApproval`/`approve`/`reject`와 `PENDING`/`REJECTED` 상태는 AI 연동 대비용 **죽은 코드**로 남겨둔 것이니 임의로 지우지 말 것. AI를 붙일 때 `publish()`를 `submitForApproval` + 이벤트/리스너 흐름으로 되돌린다.
 - **소유권** — 서비스의 `getOwnedPost(publicId, postId)`가 글 조회(`findByPostIdAndDeletedAtIsNull`, 없으면 `POST_NOT_FOUND`) + 작성자 검증(`Post.isWrittenBy`, 불일치 시 `POST_FORBIDDEN`)을 묶어, 저장/게시/수정/삭제가 모두 재사용한다. 작성자 참조는 id-only(`memberId`)다.
-- **내 게시글 목록(`GET /members/me/posts`, `PostQueryService.getMyPosts`)** — 오프셋(page/size) 기반. QueryDSL(`PostCustomImpl`)로 members·postLike·postBookmark를 조인해 작성자 정보와 isLiked/isBookmarked까지 한 방에 프로젝션한다(N+1 회피). `PublishED`만 노출하므로 초안(WRITING/DRAFT)은 안 보이며, 초안 목록은 별도 엔드포인트로 둘 예정. "내 글"이라 작성자 탈퇴 필터는 생략.
-- **게시글 상세 조회(`GET /posts/{postId}`, `PostQueryService.getPostDetail`)** — 비로그인 공개(`@CurrentMember(required=false)`). QueryDSL(`findPostDetail`)로 작성자·isMine/isLiked/isBookmarked까지 프로젝션한다. 리포지토리·서비스·컨트롤러 모두 `PostDetailResult`(dto.result)를 사용한다 — **단건 조회라 별도 `dto.response` 없이 result를 그대로 응답으로 내보낸다**(위 dto.result 예외 규약). 조회 성공 시 `increaseViewCount`(원자적 `@Modifying` UPDATE)로 조회수를 +1 한다(존재 확인 후 증가, 응답 viewCount는 증가 전 값). 조회수 어뷰징(중복 방지)·Redis 이관은 성능 측정 후로 보류(현재 TODO).
-- **둘러보기 피드(`GET /posts`, `PostQueryService.getPosts`)** — 비로그인 공개, **커서 기반**(오프셋/`totalElements` 없음, `nextCursor`+`hasNext`만). 커서는 `PostCursor`를 JSON→Base64로 인코딩한 불투명 토큰이며 정렬(`PostSort` LATEST/POPULAR)에 맞는 필드를 담는다(LATEST=publishedAt, POPULAR=likeCount, 공통 tie-breaker postId). `limit+1`을 조회해 `hasNext`를 판정하고 초과분을 잘라낸다. **커서 조건(`cursorCondition`)과 orderBy가 정렬 기준별로 일치해야** 중복/누락이 없다.
-- **메인 피드(`GET /posts/main`, `PostQueryService.getMainFeedPosts`)** — 비로그인 공개, 페이지네이션 없이 **최신/인기순 상위 18개 고정**(카테고리 필터 가능). 응답은 얇은 래퍼 없이 `List<MainFeedPostResponse>`를 직접 반환한다(둘러보기의 `PostResponse`와 필드는 같지만 결합도 분리를 위해 별도 DTO). `GET /posts/{postId}`(상세)와 경로가 겹치므로 상세는 `{postId:\\d+}`로 숫자만 매칭한다. 조회수·좋아요/북마크 정합성이나 Redis 캐싱은 성능 측정 후로 보류. 대표이미지·태그는 관련 도메인(Tag/이미지) 구현 후 채운다.
+- **내 게시글 목록(`GET /members/me/posts`, `PostQueryService.getMyPosts`)** — 오프셋(page/size) 기반. QueryDSL(`PostCustomImpl`)로 members·postLike·postBookmark를 조인해 작성자 정보와 isLiked/isBookmarked까지 `MyPostResult`로 프로젝션한 뒤(N+1 회피), `PostResponseAssembler.assembleMyPosts`로 태그를 병합해 `MyPostResponse`로 반환한다. `PublishED`만 노출하므로 초안(WRITING/DRAFT)은 안 보이며, 초안 목록은 별도 엔드포인트로 둘 예정. "내 글"이라 작성자 탈퇴 필터는 생략.
+- **게시글 상세 조회(`GET /posts/{postId}`, `PostQueryService.getPostDetail`)** — 비로그인 공개(`@CurrentMember(required=false)`). 리포지토리 `findPostDetail`이 QueryDSL로 작성자·isMine/isLiked/isBookmarked·location까지 `PostDetailResult`(dto.result)로 프로젝션한다. 서비스는 조회 후 `PostResponseAssembler.assembleDetail`로 **태그를 병합해 `PostDetailResponse`(dto.response)로 반환**한다(컨트롤러도 Response). 태그가 프로젝션에 안 담기므로 result/response를 나눴다("태그" 참고). 조회 성공 시 `increaseViewCount`(원자적 `@Modifying` UPDATE)로 조회수를 +1 한다(존재 확인 후 증가, 응답 viewCount는 증가 전 값). 조회수 어뷰징(중복 방지)·Redis 이관은 성능 측정 후로 보류(현재 TODO).
+- **둘러보기 피드(`GET /posts`, `PostQueryService.getPosts`)** — 비로그인 공개, **커서 기반**(오프셋/`totalElements` 없음, `nextCursor`+`hasNext`만). 커서는 `PostCursor`를 JSON→Base64로 인코딩한 불투명 토큰이며 정렬(`PostSort` LATEST/POPULAR)에 맞는 필드를 담는다(LATEST=publishedAt, POPULAR=likeCount, 공통 tie-breaker postId). `limit+1`을 조회해 `hasNext`를 판정하고 초과분을 잘라낸다. **커서 조건(`cursorCondition`)과 orderBy가 정렬 기준별로 일치해야** 중복/누락이 없다. 리포지토리는 `PostResult`로 프로젝션하고, 서비스는 **초과분을 잘라낸 뒤**(버릴 행의 태그 조회 방지) `PostResponseAssembler.assemblePosts`로 태그를 병합해 `PostResponse`로 만든다. 커서 헬퍼는 `PostResult` 기준으로 동작한다.
+- **메인 피드(`GET /posts/main`, `PostQueryService.getMainFeedPosts`)** — 비로그인 공개, 페이지네이션 없이 **최신/인기순 상위 18개 고정**(카테고리 필터 가능). 리포지토리는 `MainFeedPostResult`로 프로젝션하고, 서비스가 `PostResponseAssembler.assembleMainFeed`로 태그를 병합해 얇은 래퍼 없이 `List<MainFeedPostResponse>`를 직접 반환한다(둘러보기의 `PostResponse`와 필드는 같지만 결합도 분리를 위해 별도 DTO). `GET /posts/{postId}`(상세)와 경로가 겹치므로 상세는 `{postId:\\d+}`로 숫자만 매칭한다. 조회수·좋아요/북마크 정합성이나 Redis 캐싱은 성능 측정 후로 보류. **대표이미지**는 이미지 도메인 구현 후 채운다(태그는 반영 완료).
 - **비로그인 개인화 처리** — 공개 조회(둘러보기/메인/상세)에서 `@CurrentMember(required=false)`로 받은 `publicId`가 null이면 `memberId=null`로 조회한다. QueryDSL `memberIdEq` 헬퍼가 memberId가 null일 때 `Expressions.FALSE`(어떤 좋아요/북마크 행도 매칭 안 함)를 반환해 isLiked/isBookmarked를 false로 만든다.
 
 ## 좋아요 / 북마크 (postLike, Bookmark)
@@ -91,8 +92,22 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 `com.leisure.postLike`, `com.leisure.Bookmark`. 구조가 동일하다 — 회원↔게시글 조인테이블(`PostLike`/`PostBookmark`, id-only 참조) + 토글 API + 내 목록 조회.
 
 - **토글** — `POST/DELETE /posts/{postId}/likes`(`PostLikeService.like`/`unlike`), `POST/DELETE /posts/{postId}/bookmarks`(`BookmarkService`). 흐름: `getPublishedPost`로 대상 확인(없거나 PUBLISHED 아니면 `POST_NOT_FOUND`) → 중복 검사(`existsBy...`, 이미 눌렀으면 `..._ALREADY_...`) → 저장/삭제 → Post의 비정규화 카운트를 원자적 `@Modifying`으로 증감 → 최신 카운트와 상태 플래그를 응답. 저장 경로는 `save`+`flush` 후 `DataIntegrityViolationException`을 잡아 동시성 안전망을 둔다. 취소는 `deleteBy...` 반환값이 0이면 `..._NOT_..._YET`.
-- **내 목록 조회** — `GET /members/me/likes`, `GET /members/me/bookmarks`. 오프셋 기반이며 QueryDSL로 조인 프로젝션한다. **목록 쿼리(QueryDSL)와 count 쿼리(JPQL)의 where 필터가 반드시 일치해야** totalElements와 실제 개수가 어긋나지 않는다(삭제글·탈퇴작성자·PUBLISHED 조건 동일하게 유지). 정렬 `POPULAR`(likeCount desc)는 값이 변해 오프셋 페이지네이션과 상성이 나쁘지만 개인 목록 규모라 트레이드오프로 수용.
+- **내 목록 조회** — `GET /members/me/likes`, `GET /members/me/bookmarks`. 오프셋 기반이며 QueryDSL로 `LikedPostResult`/`BookmarkedPostResult`로 조인 프로젝션한 뒤, 각 도메인의 어셈블러(`LikedPostResponseAssembler`/`BookmarkedPostResponseAssembler`)가 태그를 병합해 `*Response`로 만든다. **목록 쿼리(QueryDSL)와 count 쿼리(JPQL)의 where 필터가 반드시 일치해야** totalElements와 실제 개수가 어긋나지 않는다(삭제글·탈퇴작성자·PUBLISHED 조건 동일하게 유지). 정렬 `POPULAR`(likeCount desc)는 값이 변해 오프셋 페이지네이션과 상성이 나쁘지만 개인 목록 규모라 트레이드오프로 수용.
 - **페이지 파라미터 검증** — 각 QueryService가 `validatePage`(null→0, 음수→`PAGE_INVALID`)/`validateSize`(null→10, 1~30 밖→`PAGE_SIZE_INVALID`)로 방어한다.
+
+## 태그 (tag)
+
+`com.leisure.tag`. 게시글 태그는 **1:N id-only 엔티티**로 저장한다(`@ElementCollection` 아님). 설계 배경·트레이드오프 전문은 `docs/tag-design-decisions.md` 참고.
+
+- **엔티티(`PostTag`)** — `post_id`(id-only 참조)/`post_tag_name` + 유니크 제약 `uk_post_tags_post_id_tag(post_id, post_tag_name)`. 정적 팩토리 `createAll(postId, tagNames)`가 정규화·중복제거를 책임진다: `trim` → 빈문자 필터 → **`distinct`**(반드시 trim 뒤에 — "강릉"/"강릉 " 충돌 방지) → 매핑. postId가 null이면 `POST_TAG_INVALID`.
+- **리포지토리(`TagRepository`)** — `findByPostIdIn(Collection)`(배치 조회)와 벌크 `@Modifying deleteByPostId`. 벌크 delete를 쓰는 이유: Spring Data 파생 삭제는 SELECT 1 + DELETE N인데, 벌크는 SELECT 없이 DELETE 1. (벌크는 영속성 컨텍스트 우회 — 같은 트랜잭션 이후 조회 시 주의.)
+- **왜 저장 모델이 1:N인가** — 태그를 **모든 목록 카드**에 노출해야 해 조회 비용이 실재한다. 검색/자동완성/통계는 **Elasticsearch**가 담당하므로 MySQL 저장 모델은 조회 병합에 유리한 쪽(1:N)을 택했다. 작성자처럼 참조는 id-only(`Long postId`)라 조인/프로젝션이 단순하다.
+- **조회 노출 = result/response 분리 + 어셈블러** — 태그는 1:N이라 프로젝션(`Projections.constructor`)에 함께 못 담는다. 그래서 **프로젝션용 `*Result`(태그 없음)** 로 조회하고, **어셈블러**가 태그를 병합해 **응답용 `*Response`(태그 포함)** 로 재조립한다(`*Response.from(result, tags)` 정적 팩토리). record 불변이라 "빈 태그 객체를 채우는" 방식 대신 DTO를 나눴다.
+  - **어셈블러** — post는 `post.assembler.PostResponseAssembler`(상세/둘러보기/메인/내글), 좋아요/북마크는 각 도메인의 `LikedPostResponseAssembler`/`BookmarkedPostResponseAssembler`. 서비스는 조회만 하고 조립은 어셈블러에 위임(서비스에 병합 헬퍼를 박지 않는다).
+  - **태그 조회 공유(`tag.service.TagReader`)** — "태그 조회 + postId별 그룹핑"을 tag 도메인 리프에 모아 세 어셈블러가 공유한다. `findTags(postId)`(단건, 그룹핑 불필요) / `findTagMap(postIds)`(다건, `IN` 1쿼리 → `Map<postId, List<String>>`로 그룹핑, N+1 회피). 모든 어셈블러가 tag에만 의존해 **의존 방향이 건강**하다(post↔like 결합 없음).
+  - **병합 규약** — 각 카드는 `tagMap.getOrDefault(postId, List.of())`로 태그를 꺼낸다. **태그 없는 글은 null이 아니라 빈 리스트**로 나가 프론트에 안전(항상 배열 보장).
+- **태그 병합 테스트는 아직 없음** — 쿼리서비스 유닛테스트는 어셈블러를 목으로 두고 조회 흐름만 검증하므로, `TagReader`/어셈블러의 **병합 로직 전용 테스트(예: `TagReaderTest`)는 미작성**이다(향후 보강 대상).
+- **미정** — 태그 **개별 길이 제한**(요청은 `@Size(max=5)`로 개수만 제한)과 DB 컬럼 length는 아직 안 정함. ES 색인 연동도 향후.
 
 ## Git & CI 워크플로우
 

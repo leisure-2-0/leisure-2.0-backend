@@ -4,6 +4,8 @@ import com.leisure.post.domain.PostCategory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
+import java.util.Set;
+
 public record PostPublishRequest (
 
         @Size(max = 50)
@@ -12,6 +14,9 @@ public record PostPublishRequest (
         String content,
 
         PostCategory category,
+
+        @Size(max = 5)
+        Set<String> tags,
 
         @Valid
         LocationRequest location

@@ -1,5 +1,6 @@
 package com.leisure.Bookmark.service;
 
+import com.leisure.Bookmark.assembler.BookmarkedPostResponseAssembler;
 import com.leisure.Bookmark.domain.BookmarkedPostSort;
 import com.leisure.Bookmark.dto.response.BookmarkedPostListResponse;
 import com.leisure.Bookmark.repository.BookmarkRepository;
@@ -19,6 +20,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,6 +36,9 @@ class BookmarkQueryServiceTest {
 
     @Mock
     private BookmarkRepository repository;
+
+    @Mock
+    private BookmarkedPostResponseAssembler assembler;
 
     @InjectMocks
     private BookmarkQueryService bookmarkQueryService;
@@ -53,6 +58,7 @@ class BookmarkQueryServiceTest {
         // 총 25개, size=10, page=1 → offset=10, totalPages=3, hasNext=true
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
         given(repository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 10L, 10)).willReturn(List.of());
+        given(assembler.assembleBookmarkedPosts(any())).willReturn(List.of());
         given(repository.countBookmarkedPosts(MEMBER_ID)).willReturn(25L);
 
         BookmarkedPostListResponse response =
@@ -68,6 +74,7 @@ class BookmarkQueryServiceTest {
     void getBookmarkedPosts_defaults() {
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
         given(repository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 0L, 10)).willReturn(List.of());
+        given(assembler.assembleBookmarkedPosts(any())).willReturn(List.of());
         given(repository.countBookmarkedPosts(MEMBER_ID)).willReturn(0L);
 
         BookmarkedPostListResponse response =

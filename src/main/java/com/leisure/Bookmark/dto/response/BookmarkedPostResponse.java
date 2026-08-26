@@ -1,8 +1,10 @@
 package com.leisure.Bookmark.dto.response;
 
+import com.leisure.Bookmark.dto.result.BookmarkedPostResult;
 import com.leisure.post.domain.PostCategory;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record BookmarkedPostResponse(
         Long postId,
@@ -29,7 +31,9 @@ public record BookmarkedPostResponse(
 
         LocalDateTime bookmarkedAt,
 
-        AuthorResponse author
+        AuthorResponse author,
+
+        List<String> tags
 ) {
 
     public record AuthorResponse(
@@ -39,5 +43,27 @@ public record BookmarkedPostResponse(
 
             String profileImageUrl
     ) {
+    }
+
+    public static BookmarkedPostResponse from(BookmarkedPostResult r, List<String> tags) {
+        AuthorResponse author = new AuthorResponse(
+                r.author().memberId(), r.author().nickname(), r.author().profileImageUrl());
+
+        return new BookmarkedPostResponse(
+                r.postId(),
+                r.title(),
+                r.category(),
+                r.viewCount(),
+                r.likeCount(),
+                r.bookmarkCount(),
+                r.isMine(),
+                r.isLiked(),
+                r.isBookmarked(),
+                r.region(),
+                r.publishedAt(),
+                r.bookmarkedAt(),
+                author,
+                tags
+        );
     }
 }
