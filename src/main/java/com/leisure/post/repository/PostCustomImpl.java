@@ -5,6 +5,8 @@ import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostResponse;
 import com.leisure.post.dto.response.PostResponse;
 import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.result.PostPinResult;
+import com.leisure.post.dto.result.RegionPinCountResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -28,6 +30,7 @@ public class PostCustomImpl implements PostCustom {
 
     private final JPAQueryFactory queryFactory;
 
+    // MyPost 조회 ==============================================================
     @Override
     public List<MyPostResponse> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
         return queryFactory.select(
@@ -78,6 +81,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // Post 조회 ==============================================================
     @Override
     public List<PostResponse> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
         return queryFactory.select(
@@ -126,6 +130,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // MainFeed 조회 ==============================================================
     @Override
     public List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
         return queryFactory.select(
@@ -173,6 +178,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // PostDetail 조회 ==============================================================
     private OrderSpecifier<?>[] orderBy(PostSort sort) {
         if (sort == PostSort.POPULAR) {
             return new OrderSpecifier[]{
@@ -187,6 +193,7 @@ public class PostCustomImpl implements PostCustom {
         };
     }
 
+    // ㄷㅂ? ==============================================================
     private BooleanExpression categoryEq(PostCategory category) {
         if (category == null) {
             return null;
@@ -195,6 +202,7 @@ public class PostCustomImpl implements PostCustom {
         return post.category.eq(category);
     }
 
+    // Post 조회 시 커서 조건 생성 ==============================================================
     private BooleanExpression cursorCondition(PostSort sort, PostCursor cursor) {
         if (cursor == null) {
             return null;
@@ -211,6 +219,7 @@ public class PostCustomImpl implements PostCustom {
                         .and(post.postId.lt(cursor.postId())));
     }
 
+    // ?
     private BooleanExpression memberIdEq(NumberPath<Long> memberIdPath, Long memberId) {
         if (memberId == null) {
             return Expressions.FALSE;
@@ -219,6 +228,7 @@ public class PostCustomImpl implements PostCustom {
         return memberIdPath.eq(memberId);
     }
 
+    // PostDetail 조회 ==============================================================
     @Override
     public Optional<PostDetailResult> findPostDetail(Long memberId, Long postId) {
         PostDetailResult response = queryFactory.select(
@@ -275,6 +285,7 @@ public class PostCustomImpl implements PostCustom {
         return Optional.ofNullable(response);
     }
 
+    // MyPost 조회 ==============================================================
     private OrderSpecifier<?>[] orderBy(MyPostSort sort) {
         if (sort == MyPostSort.POPULAR) {
             return new OrderSpecifier[]{
@@ -287,5 +298,62 @@ public class PostCustomImpl implements PostCustom {
                 post.publishedAt.desc(),
                 post.postId.desc()
         };
+    }
+
+    
+
+    // 지역별 게시글 개수 조회 ==============================================================
+    @Override
+    public List<RegionPinCountResult> findRegionPinCounts(PostCategory category) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                RegionPinCountResult.class,
+                                post.location.region,
+                                post.postId.count(),
+                                post.location.latitude.avg(),
+                                post.location.longitude.avg()
+                        )
+                )
+                .from(post)
+                .where(
+                        post.deletedAt.isNull(),
+                        post.status.eq(PostStatus.PUBLISHED),
+                        post.location.region.isNotNull(),
+                        categoryEq(category)
+                )
+                .groupBy(post.location.region)
+                .fetch();
+    }
+
+
+    // 지도 범위 내 게시글 핀 조회 ==============================================================
+    private static final int MAP_PINS_LIMIT = 500; // 지도 범위 내 게시글 핀 조회 시 최대 500개까지만 조회하도록 제한
+    
+    @Override
+    public List<PostPinResult> findPinsInBounds(double minLat, double maxLat, double minLng, double maxLng, PostCategory category) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                PostPinResult.class,
+                                post.postId,
+                                post.title,
+                                post.category,
+                                post.location.latitude,
+                                post.location.longitude
+                        )
+                )
+                .from(post)
+                .where(
+                        post.deletedAt.isNull(),
+                        post.status.eq(PostStatus.PUBLISHED),
+                        post.location.latitude.isNotNull(),
+                        post.location.longitude.isNotNull(),
+                        post.location.latitude.goe(minLat),
+                        post.location.latitude.loe(maxLat),
+                        post.location.longitude.goe(minLng),
+                        post.location.longitude.loe(maxLng),
+                        categoryEq(category)
+                )
+                .limit(MAP_PINS_LIMIT)
+                .fetch();
     }
 }
