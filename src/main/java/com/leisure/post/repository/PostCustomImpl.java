@@ -1,9 +1,9 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.*;
-import com.leisure.post.dto.response.MainFeedPostResponse;
-import com.leisure.post.dto.response.MyPostResponse;
-import com.leisure.post.dto.response.PostResponse;
+import com.leisure.post.dto.result.MainFeedPostResult;
+import com.leisure.post.dto.result.MyPostResult;
+import com.leisure.post.dto.result.PostResult;
 import com.leisure.post.dto.result.PostDetailResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -29,10 +29,10 @@ public class PostCustomImpl implements PostCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MyPostResponse> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
+    public List<MyPostResult> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
         return queryFactory.select(
                         Projections.constructor(
-                                MyPostResponse.class,
+                                MyPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -47,7 +47,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.createdAt,
                                 post.updatedAt,
                                 Projections.constructor(
-                                        MyPostResponse.AuthorResponse.class,
+                                        MyPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
@@ -79,10 +79,10 @@ public class PostCustomImpl implements PostCustom {
     }
 
     @Override
-    public List<PostResponse> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
+    public List<PostResult> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
         return queryFactory.select(
                         Projections.constructor(
-                                PostResponse.class,
+                                PostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -94,7 +94,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
-                                        PostResponse.AuthorResponse.class,
+                                        PostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
@@ -127,10 +127,10 @@ public class PostCustomImpl implements PostCustom {
     }
 
     @Override
-    public List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
+    public List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
         return queryFactory.select(
                         Projections.constructor(
-                                MainFeedPostResponse.class,
+                                MainFeedPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -142,7 +142,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
-                                        MainFeedPostResponse.AuthorResponse.class,
+                                        MainFeedPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl

@@ -1,7 +1,7 @@
 package com.leisure.Bookmark.repository;
 
 import com.leisure.Bookmark.domain.BookmarkedPostSort;
-import com.leisure.Bookmark.dto.response.BookmarkedPostResponse;
+import com.leisure.Bookmark.dto.result.BookmarkedPostResult;
 import com.leisure.post.domain.PostStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -23,11 +23,11 @@ public class BookmarkCustomImpl implements BookmarkCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<BookmarkedPostResponse> findBookmarkedPosts(Long memberId, BookmarkedPostSort sort, long offset, int size) {
+    public List<BookmarkedPostResult> findBookmarkedPosts(Long memberId, BookmarkedPostSort sort, long offset, int size) {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                BookmarkedPostResponse.class,
+                                BookmarkedPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -41,7 +41,7 @@ public class BookmarkCustomImpl implements BookmarkCustom {
                                 post.publishedAt,
                                 postBookmark.createdAt,
                                 Projections.constructor(
-                                        BookmarkedPostResponse.AuthorResponse.class,
+                                        BookmarkedPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl

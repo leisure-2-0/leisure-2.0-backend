@@ -3,9 +3,11 @@ package com.leisure.post.service;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
+import com.leisure.post.assembler.PostResponseAssembler;
 import com.leisure.post.domain.PostSort;
 import com.leisure.post.dto.response.PostListResponse;
 import com.leisure.post.dto.response.PostResponse;
+import com.leisure.post.dto.result.PostResult;
 import com.leisure.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,14 +38,25 @@ class PostFeedQueryServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private PostResponseAssembler assembler;
+
     @InjectMocks
     private PostQueryService postQueryService;
 
-    private PostResponse post(long postId, int likeCount) {
-        return new PostResponse(
+    private PostResult post(long postId, int likeCount) {
+        return new PostResult(
                 postId, "제목", null, 0, likeCount, 0, false, false, "강릉", null,
-                new PostResponse.AuthorResponse(1L, "nick", null)
+                new PostResult.AuthorResult(1L, "nick", null)
         );
+    }
+
+    // 어셈블러는 조회 결과(PostResult)를 그대로 응답으로 넘겨준다고 가정 (태그 병합은 어셈블러 테스트에서 검증)
+    private void stubAssembler() {
+        given(assembler.assemblePosts(any())).willAnswer(invocation -> {
+            List<PostResult> results = invocation.getArgument(0);
+            return results.stream().map(r -> PostResponse.from(r, List.of())).toList();
+        });
     }
 
     @Test
@@ -53,6 +66,7 @@ class PostFeedQueryServiceTest {
         given(repository.findPosts(any(), any(), any(), any(), anyInt()))
                 .willReturn(List.of(post(30, 50), post(29, 40), post(28, 30)));
         given(objectMapper.writeValueAsString(any())).willReturn("{\"postId\":29}");
+        stubAssembler();
 
         PostListResponse response = postQueryService.getPosts(null, null, PostSort.POPULAR, null, 2);
 
@@ -66,6 +80,7 @@ class PostFeedQueryServiceTest {
     void lastPage_noNext() {
         given(repository.findPosts(any(), any(), any(), any(), anyInt()))
                 .willReturn(List.of(post(30, 50), post(29, 40)));  // limit=2, 2개만
+        stubAssembler();
 
         PostListResponse response = postQueryService.getPosts(null, null, PostSort.POPULAR, null, 2);
 

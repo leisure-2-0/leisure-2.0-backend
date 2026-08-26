@@ -4,6 +4,7 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
 import com.leisure.member.service.MemberReader;
+import com.leisure.post.assembler.PostResponseAssembler;
 import com.leisure.post.domain.MyPostSort;
 import com.leisure.post.dto.response.MyPostListResponse;
 import com.leisure.post.repository.PostRepository;
@@ -19,6 +20,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,6 +37,9 @@ class MyPostQueryServiceTest {
 
     @Mock
     private PostRepository repository;
+
+    @Mock
+    private PostResponseAssembler assembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -54,6 +59,7 @@ class MyPostQueryServiceTest {
         // 총 25개, size=10, page=1 → offset=10, totalPages=3, hasNext=true
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
         given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 10L, 10)).willReturn(List.of());
+        given(assembler.assembleMyPosts(any())).willReturn(List.of());
         given(repository.countMyPosts(MEMBER_ID)).willReturn(25L);
 
         MyPostListResponse response = postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, 1, 10);
@@ -69,6 +75,7 @@ class MyPostQueryServiceTest {
     void getMyPosts_defaults() {
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
         given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15)).willReturn(List.of());
+        given(assembler.assembleMyPosts(any())).willReturn(List.of());
         given(repository.countMyPosts(MEMBER_ID)).willReturn(0L);
 
         MyPostListResponse response = postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, null, null);

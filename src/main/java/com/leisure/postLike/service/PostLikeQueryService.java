@@ -3,9 +3,11 @@ package com.leisure.postLike.service;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
+import com.leisure.postLike.assembler.LikedPostResponseAssembler;
 import com.leisure.postLike.domain.LikedPostSort;
 import com.leisure.postLike.dto.response.LikedPostListResponse;
 import com.leisure.postLike.dto.response.LikedPostResponse;
+import com.leisure.postLike.dto.result.LikedPostResult;
 import com.leisure.postLike.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ public class PostLikeQueryService {
 
     private final PostLikeRepository repository;
 
+    private final LikedPostResponseAssembler assembler;
+
     @Transactional(readOnly = true)
     public LikedPostListResponse getLikedPosts(String publicId, LikedPostSort sort, Integer page, Integer size) {
         Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
@@ -30,7 +34,9 @@ public class PostLikeQueryService {
 
         long offset = (long) pageNumber * pageSize;
 
-        List<LikedPostResponse> likedPosts = repository.findLikedPosts(memberId, sort, offset, pageSize);
+        List<LikedPostResult> results = repository.findLikedPosts(memberId, sort, offset, pageSize);
+
+        List<LikedPostResponse> likedPosts = assembler.assembleLikedPosts(results);
 
         long totalElements = repository.countLikedPosts(memberId);
 
