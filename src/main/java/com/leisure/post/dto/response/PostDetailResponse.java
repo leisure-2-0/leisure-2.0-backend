@@ -36,17 +36,22 @@ public record PostDetailResponse(
     List<String> tags
 ) {
     public record Author(Long memberId, String nickname, String profileImageUrl) {}
-    public record Location(String region, String placeName, String address, Double latitude, Double longitude) {}
+    public record Location(String region, String placeName, String address, Double latitude, Double longitude) {
+
+        public static Location of(String region, String placeName, String address, Double latitude, Double longitude) {
+            if (region == null && placeName == null && address == null && latitude == null && longitude == null) {
+                return null;
+            }
+            return new Location(region, placeName, address, latitude, longitude);
+        }
+    }
 
     public static PostDetailResponse from(PostDetailResult r, List<String> tags) {
         Author author = new Author(r.author().memberId(), r.author().nickname(), r.author().profileImageUrl());
 
-        Location location = null;
-
-        if (r.location() != null) {
-            location = new Location(r.location().region(), r.location().placeName(), r.location().address(),
-                    r.location().latitude(), r.location().longitude());
-        }
+        Location location = r.location() == null ? null
+                : Location.of(r.location().region(), r.location().placeName(), r.location().address(),
+                        r.location().latitude(), r.location().longitude());
 
         return new PostDetailResponse(
                 r.postId(),
