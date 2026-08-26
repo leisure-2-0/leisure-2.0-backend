@@ -2,7 +2,7 @@ package com.leisure.postLike.repository;
 
 import com.leisure.post.domain.PostStatus;
 import com.leisure.postLike.domain.LikedPostSort;
-import com.leisure.postLike.dto.response.LikedPostResponse;
+import com.leisure.postLike.dto.result.LikedPostResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,11 +23,11 @@ public class PostLikeCustomImpl implements PostLikeCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<LikedPostResponse> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size) {
+    public List<LikedPostResult> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size) {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                LikedPostResponse.class,
+                                LikedPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -41,7 +41,7 @@ public class PostLikeCustomImpl implements PostLikeCustom {
                                 post.publishedAt,
                                 postLike.createdAt,
                                 Projections.constructor(
-                                        LikedPostResponse.AuthorResponse.class,
+                                        LikedPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl

@@ -1,8 +1,10 @@
 package com.leisure.Bookmark.service;
 
+import com.leisure.Bookmark.assembler.BookmarkedPostResponseAssembler;
 import com.leisure.Bookmark.domain.BookmarkedPostSort;
 import com.leisure.Bookmark.dto.response.BookmarkedPostListResponse;
 import com.leisure.Bookmark.dto.response.BookmarkedPostResponse;
+import com.leisure.Bookmark.dto.result.BookmarkedPostResult;
 import com.leisure.Bookmark.repository.BookmarkRepository;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
@@ -21,6 +23,8 @@ public class BookmarkQueryService {
 
     private final BookmarkRepository repository;
 
+    private final BookmarkedPostResponseAssembler assembler;
+
     @Transactional(readOnly = true)
     public BookmarkedPostListResponse getBookmarkedPosts(String publicId, BookmarkedPostSort sort, Integer page, Integer size) {
         Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
@@ -30,7 +34,9 @@ public class BookmarkQueryService {
 
         long offset = (long) pageNumber * pageSize;
 
-        List<BookmarkedPostResponse> bookmarkedPosts = repository.findBookmarkedPosts(memberId, sort, offset, pageSize);
+        List<BookmarkedPostResult> results = repository.findBookmarkedPosts(memberId, sort, offset, pageSize);
+
+        List<BookmarkedPostResponse> bookmarkedPosts = assembler.assembleBookmarkedPosts(results);
 
         long totalElements = repository.countBookmarkedPosts(memberId);
 

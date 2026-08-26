@@ -89,6 +89,7 @@ public class Post extends BaseSoftDeleteEntity {
         }
     }
 
+    @Deprecated
     public void submitForApproval() {
         if (title == null || title.isBlank()) {
             throw new BusinessException(ErrorCode.POST_TITLE_REQUIRED);
@@ -100,6 +101,7 @@ public class Post extends BaseSoftDeleteEntity {
         this.status = PostStatus.PENDING;
     }
 
+    @Deprecated
     public void approve() {
         if (this.status != PostStatus.PENDING) {
             throw new BusinessException(ErrorCode.POST_NOT_PENDING);
@@ -113,6 +115,8 @@ public class Post extends BaseSoftDeleteEntity {
             throw new BusinessException(ErrorCode.POST_TITLE_REQUIRED);
         }
 
+        // TODO: content/category/location 검증
+
         if(this.status != PostStatus.WRITING && this.status != PostStatus.DRAFT) {
             throw new BusinessException(ErrorCode.POST_NOT_SUBMITTABLE);
         }
@@ -120,6 +124,7 @@ public class Post extends BaseSoftDeleteEntity {
         this.publishedAt = LocalDateTime.now();
     }
 
+    @Deprecated
     public void reject() {
         if (this.status != PostStatus.PENDING) {
             throw new BusinessException(ErrorCode.POST_NOT_PENDING);

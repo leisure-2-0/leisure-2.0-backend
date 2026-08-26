@@ -1,0 +1,30 @@
+services:
+  mysql:
+    container_name: projectY-mysql-local
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: leisure-local
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-data:/var/lib/mysql
+    # 서버 기본 문자셋/콜레이션 지정 (Hibernate가 ddl-auto로 만드는 테이블이 이 기본값을 상속)
+    # - utf8mb4            : 이모지 포함 완전한 유니코드(4바이트) 저장
+    # - utf8mb4_0900_ai_ci : MySQL 8 기본 콜레이션(UCA 9.0). ai=accent-insensitive, ci=case-insensitive
+    # 대소문자 무시 비교라 이메일 정규화와 이중 안전이 되고, 닉네임 John/john도 중복 취급(사칭 방지)
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+
+  redis:
+    container_name: projectY-redis-local
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mysql-data:
+  redis-data:
+
+

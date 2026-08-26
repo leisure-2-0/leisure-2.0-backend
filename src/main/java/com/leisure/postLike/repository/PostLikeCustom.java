@@ -2,11 +2,11 @@ package com.leisure.postLike.repository;
 
 
 import com.leisure.postLike.domain.LikedPostSort;
-import com.leisure.postLike.dto.response.LikedPostResponse;
+import com.leisure.postLike.dto.result.LikedPostResult;
 
 import java.util.List;
 
 public interface PostLikeCustom {
 
-    List<LikedPostResponse> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size);
+    List<LikedPostResult> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size);
 }

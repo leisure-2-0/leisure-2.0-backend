@@ -16,17 +16,23 @@ import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
 import com.leisure.post.repository.PostRepository;
 
+import com.leisure.tag.domain.PostTag;
+import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
+    private final MemberReader reader;
+
     private final PostRepository repository;
 
-    private final MemberReader reader;
+    private final TagRepository tagRepository;
 
 
     @Transactional
@@ -44,9 +50,11 @@ public class PostService {
     public PostSaveResponse saveDraft(String publicId, Long postId, PostSaveRequest request) {
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.applyContent(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         post.markAsDraft();
 
@@ -58,9 +66,11 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.applyContent(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         post.publish();
 
@@ -73,9 +83,11 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.editPublished(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.editPublished(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         return new PostEditResponse(post.getPostId());
     }
@@ -106,5 +118,15 @@ public class PostService {
 
     private PostLocation toLocation(LocationRequest request) {
         return request == null ? null : request.toPostLocation();
+    }
+
+    private void replaceTags(Long postId, Set<String> tagNames) {
+        tagRepository.deleteByPostId(postId);
+
+        if (tagNames.isEmpty()) {
+            return;
+        }
+
+        tagRepository.saveAll(PostTag.createAll(postId, tagNames));
     }
 }

@@ -1,9 +1,9 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.*;
-import com.leisure.post.dto.response.MainFeedPostResponse;
-import com.leisure.post.dto.response.MyPostResponse;
-import com.leisure.post.dto.response.PostResponse;
+import com.leisure.post.dto.result.MainFeedPostResult;
+import com.leisure.post.dto.result.MyPostResult;
+import com.leisure.post.dto.result.PostResult;
 import com.leisure.post.dto.result.PostDetailResult;
 
 import java.util.List;
@@ -11,11 +11,11 @@ import java.util.Optional;
 
 public interface PostCustom {
 
-    List<MyPostResponse> findMyPosts(Long memberId, MyPostSort sort, long offset, int size);
+    List<MyPostResult> findMyPosts(Long memberId, MyPostSort sort, long offset, int size);
 
-    List<PostResponse> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size);
+    List<PostResult> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size);
 
-    List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit);
+    List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit);
 
     Optional<PostDetailResult> findPostDetail(Long memberId, Long postId);
 }

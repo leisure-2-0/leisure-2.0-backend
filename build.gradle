@@ -23,13 +23,14 @@ ext {
     set('jjwtVersion', '0.12.6')
     set('p6spyVersion','2.0.1')
     set('queryDslVersion', '5.1.0')
+    set('swaggerVersion', '3.0.2')
 }
 
 dependencies {
-    // Spring MVC
+    // spring MVC
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
-    // Spring Security
+    // spring security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // Spring OAuth2
@@ -38,28 +39,28 @@ dependencies {
     // Password Hashing
     // implementation 'org.springframework.security:spring-security-crypto'
 
-    // JWT
+    // jwt
     implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
     runtimeOnly   "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
     runtimeOnly   "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
 
-    // Lombok
+    // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Validation
+    // validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // Database Driver
+    // database driver
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // Redis
+    // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // JPAs
+    // jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // QueryDSL
+    // querydsl
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
@@ -68,7 +69,10 @@ dependencies {
     // p6spy
     implementation "com.github.gavlyukovskiy:p6spy-spring-boot-starter:${p6spyVersion}"
 
-    // Test
+    // swagger
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${swaggerVersion}"
+
+    // test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

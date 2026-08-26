@@ -7,6 +7,7 @@ import com.leisure.post.domain.PostCategory;
 import com.leisure.post.domain.PostSort;
 import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostListResponse;
+import com.leisure.post.dto.response.PostDetailResponse;
 import com.leisure.post.dto.result.PostDetailResult;
 import com.leisure.post.dto.response.PostListResponse;
 import com.leisure.post.service.PostQueryService;
@@ -72,9 +73,9 @@ public class PostQueryController {
     }
 
     @GetMapping("/posts/{postId:\\d+}")
-    public ResponseEntity<ApiResponse<PostDetailResult>> getPostDetail(@CurrentMember(required = false) String publicId, @PathVariable Long postId) {
+    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@CurrentMember(required = false) String publicId, @PathVariable Long postId) {
 
-        PostDetailResult response = service.getPostDetail(publicId, postId);
+        PostDetailResponse response = service.getPostDetail(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
