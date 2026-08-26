@@ -1,10 +1,9 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.*;
-import com.leisure.post.dto.result.MainFeedPostResult;
-import com.leisure.post.dto.result.MyPostResult;
-import com.leisure.post.dto.result.PostResult;
-import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.response.DraftListResponse;
+import com.leisure.post.dto.result.*;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +17,8 @@ public interface PostCustom {
     List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit);
 
     Optional<PostDetailResult> findPostDetail(Long memberId, Long postId);
+
+    List<DraftListResponse> findMyDrafts(Long memberId);
+
+    Optional<DraftDetailResult> findMyDraftsDetail(Long memberId, Long postId);
 }

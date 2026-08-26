@@ -2,6 +2,7 @@ package com.leisure.post.service;
 
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
+import com.leisure.member.domain.Member;
 import com.leisure.member.service.MemberReader;
 import com.leisure.post.assembler.PostResponseAssembler;
 import com.leisure.post.domain.MyPostSort;
@@ -9,10 +10,7 @@ import com.leisure.post.domain.PostCategory;
 import com.leisure.post.domain.PostCursor;
 import com.leisure.post.domain.PostSort;
 import com.leisure.post.dto.response.*;
-import com.leisure.post.dto.result.MainFeedPostResult;
-import com.leisure.post.dto.result.MyPostResult;
-import com.leisure.post.dto.result.PostResult;
-import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.result.*;
 import com.leisure.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -217,5 +215,24 @@ public class PostQueryService {
         repository.increaseViewCount(result.postId());
 
         return assembler.assembleDetail(result);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DraftListResponse> getMyDrafts(String publicId) {
+
+        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+
+        return repository.findMyDrafts(memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public DraftDetailResponse getMyDraftDetail(String publicId, Long postId) {
+
+        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+
+        DraftDetailResult result = repository.findMyDraftsDetail(memberId, postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        return assembler.assembleDraftDetail(result);
     }
 }
