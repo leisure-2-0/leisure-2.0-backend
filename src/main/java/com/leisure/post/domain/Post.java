@@ -165,4 +165,8 @@ public class Post extends BaseSoftDeleteEntity {
             this.location = location;
         }
     }
+
+    public boolean isDraft() {
+            return status == PostStatus.WRITING || status == PostStatus.DRAFT;
+    }
 }

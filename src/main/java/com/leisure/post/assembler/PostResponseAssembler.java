@@ -1,13 +1,7 @@
 package com.leisure.post.assembler;
 
-import com.leisure.post.dto.response.MainFeedPostResponse;
-import com.leisure.post.dto.response.MyPostResponse;
-import com.leisure.post.dto.response.PostDetailResponse;
-import com.leisure.post.dto.response.PostResponse;
-import com.leisure.post.dto.result.MainFeedPostResult;
-import com.leisure.post.dto.result.MyPostResult;
-import com.leisure.post.dto.result.PostDetailResult;
-import com.leisure.post.dto.result.PostResult;
+import com.leisure.post.dto.response.*;
+import com.leisure.post.dto.result.*;
 import com.leisure.tag.service.TagReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,14 +14,6 @@ import java.util.Map;
 public class PostResponseAssembler {
 
     private final TagReader tagReader;
-
-    public PostDetailResponse assembleDetail(PostDetailResult result) {
-        // 이 글의 태그이름 리스트 조회 (단건이라 그룹핑 불필요)
-        List<String> tags = tagReader.findTags(result.postId());
-
-        // 조회 결과(result) + 태그 -> 최종 응답으로 조립
-        return PostDetailResponse.from(result, tags);
-    }
 
     public List<PostResponse> assemblePosts(List<PostResult> results) {
         // 빈 목록이면 태그 조회 없이 즉시 빈 리스트
@@ -76,5 +62,20 @@ public class PostResponseAssembler {
         return results.stream()
                 .map(r -> MyPostResponse.from(r, tagMap.getOrDefault(r.postId(), List.of())))
                 .toList();
+    }
+
+    public PostDetailResponse assembleDetail(PostDetailResult result) {
+        // 이 글의 태그이름 리스트 조회 (단건이라 그룹핑 불필요)
+        List<String> tags = tagReader.findTags(result.postId());
+
+        // 조회 결과(result) + 태그 -> 최종 응답으로 조립
+        return PostDetailResponse.from(result, tags);
+    }
+
+    public DraftDetailResponse assembleDraftDetail(DraftDetailResult result) {
+
+        List<String> tags = tagReader.findTags(result.postId());
+
+        return DraftDetailResponse.from(result, tags);
     }
 }

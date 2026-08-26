@@ -1,10 +1,8 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.*;
-import com.leisure.post.dto.result.MainFeedPostResult;
-import com.leisure.post.dto.result.MyPostResult;
-import com.leisure.post.dto.result.PostResult;
-import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.response.DraftListResponse;
+import com.leisure.post.dto.result.*;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -221,7 +219,7 @@ public class PostCustomImpl implements PostCustom {
 
     @Override
     public Optional<PostDetailResult> findPostDetail(Long memberId, Long postId) {
-        PostDetailResult response = queryFactory.select(
+        PostDetailResult result = queryFactory.select(
                         Projections.constructor(
                                 PostDetailResult.class,
                                 post.postId,
@@ -272,7 +270,7 @@ public class PostCustomImpl implements PostCustom {
                 )
                 .fetchOne();
 
-        return Optional.ofNullable(response);
+        return Optional.ofNullable(result);
     }
 
     private OrderSpecifier<?>[] orderBy(MyPostSort sort) {
@@ -287,5 +285,47 @@ public class PostCustomImpl implements PostCustom {
                 post.publishedAt.desc(),
                 post.postId.desc()
         };
+    }
+
+    @Override
+    public List<DraftListResponse> findMyDrafts(Long memberId) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                DraftListResponse.class,
+                                post.postId,
+                                post.title,
+                                post.category,
+                                post.updatedAt))
+                .from(post)
+                .where(post.memberId.eq(memberId),
+                        post.status.eq(PostStatus.DRAFT))
+                .orderBy(post.updatedAt.desc())
+                .fetch();
+    }
+
+    @Override
+    public Optional<DraftDetailResult> findMyDraftsDetail(Long memberId, Long postId) {
+        DraftDetailResult result = queryFactory.select(
+                        Projections.constructor(
+                                DraftDetailResult.class,
+                                post.postId,
+                                post.title,
+                                post.content,
+                                post.category,
+                                post.updatedAt,
+                                Projections.constructor(
+                                        DraftDetailResult.LocationResult.class,
+                                        post.location.region,
+                                        post.location.placeName,
+                                        post.location.address,
+                                        post.location.latitude,
+                                        post.location.longitude)))
+                .from(post)
+                .where(post.memberId.eq(memberId),
+                        post.postId.eq(postId),
+                        post.status.eq(PostStatus.DRAFT))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }

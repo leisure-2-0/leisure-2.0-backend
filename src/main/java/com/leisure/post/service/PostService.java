@@ -95,9 +95,20 @@ public class PostService {
     @Transactional
     public PostDeleteResponse deletePost(String publicId, Long postId) {
 
+        // 소유권 확인 (없으면 POST_NOT_FOUND, 남의 글이면 POST_FORBIDDEN)
         Post post = getOwnedPost(publicId, postId);
 
-        post.delete();
+        if (post.isDraft()) {
+            // 초안(WRITING/DRAFT): 게시된 적 없어 좋아요/북마크 참조가 없으므로 즉시 하드 삭제한다.
+            // 자식인 태그만 정리한 뒤 글을 물리 삭제 (같은 트랜잭션이라 원자적)
+            tagRepository.deleteByPostId(postId);
+            repository.delete(post);
+        } else {
+            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, @SQLRestriction으로 조회에서 제외)
+            // TODO: 소프트 삭제된 게시글은 배치로 일괄 하드 삭제하고,
+            //       태그·좋아요·북마크도 같은 생명주기로 함께 배치 삭제한다.
+            post.delete();
+        }
 
         return new PostDeleteResponse(post.getPostId());
     }
