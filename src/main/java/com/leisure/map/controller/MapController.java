@@ -20,7 +20,7 @@ public class MapController {
 
 
     // ================ 1. 지역별 게시글 집계 조회 API :: 클러스터 핀 ================
-    @GetMapping("/posts/map/regions")
+    @GetMapping("/maps/regions")
     public ResponseEntity<ApiResponse<List<RegionPinCountResponse>>> getRegionPinCounts( //지역별 게시글 개수 리스트
             @RequestParam(required = false) PostCategory category //선택적 카테고리 필터
     ) {
@@ -35,7 +35,7 @@ public class MapController {
 
 
     // ================ 2. 지도 범위 내 게시글 핀 조회 API :: 개별 핀 ====================
-    @GetMapping("/posts/map/pins")
+    @GetMapping("/maps/pins")
     public ResponseEntity<ApiResponse<List<PostMapPinResponse>>> getPostPins(
             @RequestParam double minLat, // 최소 위도
             @RequestParam double maxLat, // 최대 위도 

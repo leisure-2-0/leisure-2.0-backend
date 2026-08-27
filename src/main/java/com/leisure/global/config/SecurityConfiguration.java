@@ -49,7 +49,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/members/email/check").permitAll()
                         .requestMatchers(HttpMethod.GET, "/members/nickname/check").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts/map/regions", "/posts/map/pins").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/maps/regions", "/maps/pins").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/error").permitAll()
