@@ -298,6 +298,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.updatedAt))
                 .from(post)
                 .where(post.memberId.eq(memberId),
+                        post.deletedAt.isNull(),
                         post.status.eq(PostStatus.DRAFT))
                 .orderBy(post.updatedAt.desc())
                 .fetch();
@@ -323,6 +324,7 @@ public class PostCustomImpl implements PostCustom {
                 .from(post)
                 .where(post.memberId.eq(memberId),
                         post.postId.eq(postId),
+                        post.deletedAt.isNull(),
                         post.status.eq(PostStatus.DRAFT))
                 .fetchOne();
 
