@@ -1,7 +1,7 @@
 package com.leisure.map.controller;
 
 import com.leisure.global.response.ApiResponse;
-import com.leisure.map.dto.response.PostMapPinResponse;
+import com.leisure.map.dto.response.MapPinResponse;
 import com.leisure.map.dto.response.RegionPinCountResponse;
 import com.leisure.map.service.MapQueryService;
 import com.leisure.post.domain.PostCategory;
@@ -36,7 +36,7 @@ public class MapController {
 
     // ================ 2. 지도 범위 내 게시글 핀 조회 API :: 개별 핀 ====================
     @GetMapping("/maps/pins")
-    public ResponseEntity<ApiResponse<List<PostMapPinResponse>>> getPostPins(
+    public ResponseEntity<ApiResponse<List<MapPinResponse>>> getPostPins(
             @RequestParam double minLat, // 최소 위도
             @RequestParam double maxLat, // 최대 위도 
             @RequestParam double minLng, // 최소 경도
@@ -44,7 +44,7 @@ public class MapController {
             @RequestParam(required = false) PostCategory category // 선택적 카테고리 필터
     ) {
         // 서비스 호출하여 지도 범위 내 게시글 핀 조회
-        List<PostMapPinResponse> response = service.getPostPins(minLat, maxLat, minLng, maxLng, category);
+        List<MapPinResponse> response = service.getPostPins(minLat, maxLat, minLng, maxLng, category);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -2,7 +2,7 @@ package com.leisure.map.dto.response;
 
 import com.leisure.post.domain.PostCategory;
 
-public record PostMapPinResponse(
+public record MapPinResponse(
         Long postId, // 게시글 ID
         String title, // 게시글 제목
         PostCategory category, // 게시글 카테고리

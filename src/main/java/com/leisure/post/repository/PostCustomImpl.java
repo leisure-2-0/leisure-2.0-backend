@@ -5,8 +5,6 @@ import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostResponse;
 import com.leisure.post.dto.response.PostResponse;
 import com.leisure.post.dto.result.PostDetailResult;
-import com.leisure.post.dto.result.PostPinResult;
-import com.leisure.post.dto.result.RegionPinCountResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -298,62 +296,5 @@ public class PostCustomImpl implements PostCustom {
                 post.publishedAt.desc(),
                 post.postId.desc()
         };
-    }
-
-    
-
-    // 지역별 게시글 개수 조회 ==============================================================
-    @Override
-    public List<RegionPinCountResult> findRegionPinCounts(PostCategory category) {
-        return queryFactory.select(
-                        Projections.constructor(
-                                RegionPinCountResult.class,
-                                post.location.region,
-                                post.postId.count(),
-                                post.location.latitude.avg(),
-                                post.location.longitude.avg()
-                        )
-                )
-                .from(post)
-                .where(
-                        post.deletedAt.isNull(),
-                        post.status.eq(PostStatus.PUBLISHED),
-                        post.location.region.isNotNull(),
-                        categoryEq(category)
-                )
-                .groupBy(post.location.region)
-                .fetch();
-    }
-
-
-    // 지도 범위 내 게시글 핀 조회 ==============================================================
-    private static final int MAP_PINS_LIMIT = 500; // 지도 범위 내 게시글 핀 조회 시 최대 500개까지만 조회하도록 제한
-    
-    @Override
-    public List<PostPinResult> findPinsInBounds(double minLat, double maxLat, double minLng, double maxLng, PostCategory category) {
-        return queryFactory.select(
-                        Projections.constructor(
-                                PostPinResult.class,
-                                post.postId,
-                                post.title,
-                                post.category,
-                                post.location.latitude,
-                                post.location.longitude
-                        )
-                )
-                .from(post)
-                .where(
-                        post.deletedAt.isNull(),
-                        post.status.eq(PostStatus.PUBLISHED),
-                        post.location.latitude.isNotNull(),
-                        post.location.longitude.isNotNull(),
-                        post.location.latitude.goe(minLat),
-                        post.location.latitude.loe(maxLat),
-                        post.location.longitude.goe(minLng),
-                        post.location.longitude.loe(maxLng),
-                        categoryEq(category)
-                )
-                .limit(MAP_PINS_LIMIT)
-                .fetch();
     }
 }

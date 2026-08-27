@@ -5,8 +5,6 @@ import com.leisure.post.dto.response.MainFeedPostResponse;
 import com.leisure.post.dto.response.MyPostResponse;
 import com.leisure.post.dto.response.PostResponse;
 import com.leisure.post.dto.result.PostDetailResult;
-import com.leisure.post.dto.result.PostPinResult;
-import com.leisure.post.dto.result.RegionPinCountResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,8 +19,4 @@ public interface PostCustom {
     List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit);
 
     Optional<PostDetailResult> findPostDetail(Long memberId, Long postId);
-
-    List<RegionPinCountResult> findRegionPinCounts(PostCategory category);
-
-    List<PostPinResult> findPinsInBounds(double minLat, double maxLat, double minLng, double maxLng, PostCategory category);
 }
