@@ -31,7 +31,7 @@ spring:
       #   - create      : 실행할 때마다 테이블 새로 생성 (기존 데이터 삭제)
       #   - create-drop : create + 앱 종료 시 테이블 삭제
       ddl-auto: validate
-    show-sql: true       # 실행되는 SQL 쿼리를 콘솔에 출력
+    show-sql: false       # 실행되는 SQL 쿼리를 콘솔에 출력
 
 jwt:
   secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
@@ -62,3 +62,11 @@ swagger:
   title: 프로젝트 Y Local API
   description: 프로젝트 Y 로컬 테스트용 문서
   version: 1.0.0-local
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      logging: slf4j
+      multiline: true
+      log-format: "%(currentTime) | took %(executionTime)ms | %(category) | connection %(connectionId) | %(sqlSingleLine)"
