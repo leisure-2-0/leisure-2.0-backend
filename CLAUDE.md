@@ -23,11 +23,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 서비스 계층은 Mockito 순수 유닛 테스트로 검증한다(`MemberServiceTest`, `AuthServiceTest`, `PostServiceTest` 등 참고) — `@ExtendWith(MockitoExtension.class)` + `@Mock`/`@InjectMocks`만 쓰고 Spring 컨텍스트·DB·Redis 없이 돌아가므로 `@Tag("integration")`을 붙이지 않는다. 주의: 엔티티의 `publicId`/`memberId`/`postId` 같은 PK·발급 필드는 `@PrePersist`나 DB에서 채워지는데 유닛 테스트에는 영속화가 없어 값이 비어 있다 — 필요하면 `ReflectionTestUtils.setField(entity, "field", ...)`로 주입하거나, `save()` 목이 발급을 흉내내도록 스텁한다.
 
-테스트 클래스는 원칙적으로 서비스 1:1로 두되(`PostService`→`PostServiceTest`), 조회(Query) 서비스처럼 한 서비스가 여러 조회 유스케이스를 담으면 **유스케이스별로 클래스를 분리**해 이름에서 대상이 드러나게 한다(예: `PostQueryService.getMyPosts`→`MyPostQueryServiceTest`, 이후 상세/피드는 `PostDetailQueryServiceTest`/`PostFeedQueryServiceTest`). 현재 서비스 유닛 테스트는 있으나 **컨트롤러(MockMvc) 계층 테스트는 아직 없다** — `@RequestBody`/`@Valid` 누락 같은 바인딩 버그는 각 API 개발 시 함께 커버한다.
+테스트 클래스는 원칙적으로 서비스 1:1로 두되(`PostService`→`PostServiceTest`), 조회(Query) 서비스처럼 한 서비스가 여러 조회 유스케이스를 담으면 **유스케이스별로 클래스를 분리**해 이름에서 대상이 드러나게 한다(예: `PostQueryService.getMyPosts`→`MyPostQueryServiceTest`, 상세/피드/임시저장은 `PostDetailQueryServiceTest`/`PostFeedQueryServiceTest`/`DraftQueryServiceTest`). 도메인 순수 로직(setter 없는 전이·정규화 등)은 Mockito 없이 평범한 단위 테스트로 검증한다(예: `Member.normalizeEmail`→`MemberTest`). 현재 서비스·도메인 유닛 테스트는 있으나 **컨트롤러(MockMvc)·리포지토리(@DataJpaTest) 계층 테스트는 아직 없다** — `@RequestBody`/`@Valid` 누락 같은 바인딩 버그, QueryDSL 쿼리 정합성은 각 API 개발 시 함께 커버한다. (태그 병합 `TagReader`/어셈블러 전용 테스트도 미작성 — 쿼리서비스 테스트는 어셈블러를 목으로 두므로.)
 
 ## 로컬 데이터베이스
 
-앱은 `localhost:3306`의 MySQL 8, 데이터베이스 `leisure-local`, 계정/비번 `root`/`root`가 필요하다(`application-local.yml` 참고). 로컬 인프라(MySQL 8 + Redis 7)는 `docker/docker-compose-local.yaml`로 함께 띄운다(`docker compose -f docker/docker-compose-local.yaml up -d`). MySQL은 `utf8mb4` + `utf8mb4_0900_ai_ci`(MySQL 8 기본, accent/case-insensitive) 콜레이션으로 뜬다 — 대소문자 무시 비교라 이메일 정규화와 이중 안전이 되고 닉네임 `John`/`john`도 중복 취급된다. README.md에 Colima + Docker(macOS) 기반 세팅이 정리돼 있으나 **수동 `docker run` 예시는 구버전(DB명 `leisure`)이라 현재는 위 compose 사용이 정본**이다. `local` 프로파일은 `ddl-auto: create`라서 **매 기동 시 모든 테이블을 삭제 후 재생성한다** — 중요한 데이터를 `local` 프로파일에 연결하지 말 것. 기본(default) 프로파일용 datasource가 없으므로, `--spring.profiles.active=local`(혹은 다른 프로파일) 없이 실행하면 JPA가 커넥션을 요구하는 순간 기동에 실패한다.
+앱은 `localhost:3306`의 MySQL 8, 데이터베이스 `leisure-local`, 계정/비번 `root`/`root`가 필요하다(`application-local.yml` 참고). 로컬 인프라(MySQL 8 + Redis 7)는 `docker/docker-compose-local.yaml`로 함께 띄운다(`docker compose -f docker/docker-compose-local.yaml up -d`). MySQL은 `utf8mb4` + `utf8mb4_0900_ai_ci`(MySQL 8 기본, accent/case-insensitive) 콜레이션으로 뜬다 — 대소문자 무시 비교라 이메일 정규화와 이중 안전이 되고 닉네임 `John`/`john`도 중복 취급된다. README.md에 Colima + Docker(macOS) 기반 세팅이 정리돼 있으나 **수동 `docker run` 예시는 구버전(DB명 `leisure`)이라 현재는 위 compose 사용이 정본**이다. `local` 프로파일은 `ddl-auto: validate`다 — Hibernate가 스키마를 **생성하지 않고 엔티티와 일치하는지 검증만** 한다. **마이그레이션 도구(Flyway/Liquibase)나 schema.sql이 아직 없으므로, 빈 DB로 처음 띄우면 검증할 테이블이 없어 기동에 실패한다** — 최초 1회는 `ddl-auto: create`로 스키마를 만든 뒤 `validate`로 돌리거나(볼륨에 스키마 유지), 스키마 소스를 추가해야 한다(TODO: Flyway 도입 검토). SQL 로깅은 `show-sql` 대신 **p6spy**(실제 바인딩 파라미터 + 실행시간)로 출력한다. 기본(default) 프로파일용 datasource가 없으므로, `--spring.profiles.active=local`(혹은 다른 프로파일) 없이 실행하면 JPA가 커넥션을 요구하는 순간 기동에 실패한다.
 
 ## 아키텍처 규칙
 
@@ -111,6 +111,16 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
   - **병합 규약** — 각 카드는 `tagMap.getOrDefault(postId, List.of())`로 태그를 꺼낸다. **태그 없는 글은 null이 아니라 빈 리스트**로 나가 프론트에 안전(항상 배열 보장).
 - **태그 병합 테스트는 아직 없음** — 쿼리서비스 유닛테스트는 어셈블러를 목으로 두고 조회 흐름만 검증하므로, `TagReader`/어셈블러의 **병합 로직 전용 테스트(예: `TagReaderTest`)는 미작성**이다(향후 보강 대상).
 - **미정** — 태그 **개별 길이 제한**(요청은 `@Size(max=5)`로 개수만 제한)과 DB 컬럼 length는 아직 안 정함. ES 색인 연동도 향후.
+
+## API 문서화 (Swagger / springdoc)
+
+springdoc-openapi(webmvc-ui)로 문서를 생성한다. Swagger UI는 `/swagger-ui/index.html`, 스펙은 `/v3/api-docs`. 둘 다 `SecurityConfiguration`에서 `permitAll`이어야 UI가 스펙을 로드한다(`/v3/api-docs/**` 누락 시 "Failed to load API definition").
+
+- **설정** — `global/config/SwaggerConfiguration`(`OpenAPI` 빈) + `global/properties/SwaggerProperties`(`@ConfigurationProperties("swagger")`, title/description/version/servers). 값은 `application-*.yml`에서 주입(프로파일별 문서 가능). `servers`가 `Map`이라 `@Value`가 아닌 `@ConfigurationProperties`를 쓴다.
+- **`@CurrentMember` 파라미터 숨김** — `SwaggerConfiguration`의 static 초기화에서 `SpringDocUtils.getConfig().addAnnotationsToIgnore(CurrentMember.class)`로 문서에서 제외한다(토큰에서 주입되는 값이라 클라가 안 보냄).
+- **인증 표기** — `BearerAuth`(HTTP bearer/JWT) 스킴을 `Components`에 정의하고, **인증이 필요한 엔드포인트에만 `@SecurityRequirement(name = "BearerAuth")`** 를 붙인다(스킴 이름 대소문자 정확히 일치해야 토큰이 실린다). **`@CurrentMember(required=false)`(비로그인 공개)엔 붙이지 않는다.**
+- **엔드포인트 문서** — 컨트롤러에 `@Tag`(도메인 그룹), 메서드에 `@Operation(summary, description)`. description은 "이름으로 모르는 계약"만(상태 전이 조건, null 계약, 세션 무효화 등) — 뻔한 반복은 넣지 않는다.
+- **파라미터/바디** — 쿼리·경로 파라미터는 `@Parameter`(의미 있는 것만: `sort`/`cursor`/`page`·`size`. required/default/enum값은 자동 노출이라 반복 금지), 요청 바디 필드는 `@Schema`(이름으로 모르는 **계약**만: `tags`의 null=유지/빈배열=제거, `location`의 null 계약 등). 응답 DTO·자명한 필드는 생략.
 
 ## Git & CI 워크플로우
 
