@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Locale;
 import java.util.UUID;
 
 
@@ -46,7 +47,7 @@ public class Member extends BaseSoftDeleteEntity {
     }
 
     public static Member create(String email, String password, String nickname, String profileImageUrl) {
-        return new Member(email, password, nickname, profileImageUrl);
+        return new Member(email, password, nickname, normalizeProfileImageUrl(profileImageUrl));
     }
 
     @PrePersist
@@ -68,7 +69,7 @@ public class Member extends BaseSoftDeleteEntity {
             this.profileImageUrl = null;
             return;
         }
-        this.profileImageUrl = profileImageUrl;
+        this.profileImageUrl = profileImageUrl.trim();
     }
 
     public void changePassword(String password) {
@@ -77,5 +78,17 @@ public class Member extends BaseSoftDeleteEntity {
 
     public boolean matchesPassword(String rawPassword, PasswordEncoder encoder) {
         return encoder.matches(rawPassword, this.password);
+    }
+
+    public static String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeProfileImageUrl(String profileImageUrl) {
+        if (profileImageUrl == null || profileImageUrl.isBlank()) {
+            return null;
+        }
+
+        return profileImageUrl.trim();
     }
 }

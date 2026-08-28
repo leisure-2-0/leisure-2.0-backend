@@ -16,17 +16,23 @@ import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
 import com.leisure.post.repository.PostRepository;
 
+import com.leisure.tag.domain.PostTag;
+import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
+    private final MemberReader reader;
+
     private final PostRepository repository;
 
-    private final MemberReader reader;
+    private final TagRepository tagRepository;
 
 
     @Transactional
@@ -44,9 +50,11 @@ public class PostService {
     public PostSaveResponse saveDraft(String publicId, Long postId, PostSaveRequest request) {
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.applyContent(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         post.markAsDraft();
 
@@ -58,9 +66,11 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.applyContent(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         post.publish();
 
@@ -73,9 +83,11 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        PostLocation location = toLocation(request.location());
+        post.editPublished(request.title(), request.content(), request.category(), toLocation(request.location()));
 
-        post.editPublished(request.title(), request.content(), request.category(), location);
+        if (request.tags() != null) {
+            replaceTags(post.getPostId(), request.tags());
+        }
 
         return new PostEditResponse(post.getPostId());
     }
@@ -83,9 +95,20 @@ public class PostService {
     @Transactional
     public PostDeleteResponse deletePost(String publicId, Long postId) {
 
+        // 소유권 확인 (없으면 POST_NOT_FOUND, 남의 글이면 POST_FORBIDDEN)
         Post post = getOwnedPost(publicId, postId);
 
-        post.delete();
+        if (post.isDraft()) {
+            // 초안(WRITING/DRAFT): 게시된 적 없어 좋아요/북마크 참조가 없으므로 즉시 하드 삭제한다.
+            // 자식인 태그만 정리한 뒤 글을 물리 삭제 (같은 트랜잭션이라 원자적)
+            tagRepository.deleteByPostId(postId);
+            repository.delete(post);
+        } else {
+            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, @SQLRestriction으로 조회에서 제외)
+            // TODO: 소프트 삭제된 게시글은 배치로 일괄 하드 삭제하고,
+            //       태그·좋아요·북마크도 같은 생명주기로 함께 배치 삭제한다.
+            post.delete();
+        }
 
         return new PostDeleteResponse(post.getPostId());
     }
@@ -106,5 +129,15 @@ public class PostService {
 
     private PostLocation toLocation(LocationRequest request) {
         return request == null ? null : request.toPostLocation();
+    }
+
+    private void replaceTags(Long postId, Set<String> tagNames) {
+        tagRepository.deleteByPostId(postId);
+
+        if (tagNames.isEmpty()) {
+            return;
+        }
+
+        tagRepository.saveAll(PostTag.createAll(postId, tagNames));
     }
 }

@@ -8,13 +8,14 @@ public record PasswordChangeRequest(
 
         @NotBlank(message = ValidationMessageConstants.PASSWORD_REQUIRED)
         @Pattern(message = ValidationMessageConstants.PASSWORD_INVALID_FORMAT,
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{8,20}$")
+                regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%])[a-zA-Z\\d!@#$%]{8,20}$")
         String currentPassword,
 
         @NotBlank(message = ValidationMessageConstants.PASSWORD_REQUIRED)
         @Pattern(message = ValidationMessageConstants.PASSWORD_INVALID_FORMAT,
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{8,20}$")
+                regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%])[a-zA-Z\\d!@#$%]{8,20}$")
         String newPassword,
 
+        @NotBlank(message = ValidationMessageConstants.PASSWORD_CONFIRM_REQUIRED)
         String newPasswordConfirm) {
 }

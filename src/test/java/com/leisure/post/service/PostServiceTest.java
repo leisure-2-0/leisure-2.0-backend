@@ -16,6 +16,7 @@ import com.leisure.post.dto.response.PostPublishResponse;
 import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
 import com.leisure.post.repository.PostRepository;
+import com.leisure.tag.repository.TagRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +43,9 @@ class PostServiceTest {
 
     @Mock
     private MemberReader reader;
+
+    @Mock
+    private TagRepository tagRepository;
 
     @InjectMocks
     private PostService postService;
@@ -66,6 +71,12 @@ class PostServiceTest {
         Post post = writingPost(memberId);
         post.applyContent("제목", "본문", PostCategory.RESTAURANT, null);
         post.publish();
+        return post;
+    }
+
+    private Post draftPost(Long memberId) {
+        Post post = writingPost(memberId);
+        post.markAsDraft();
         return post;
     }
 
@@ -100,7 +111,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("제목", "본문", PostCategory.HOTEL, null);
+            PostSaveRequest request = new PostSaveRequest("제목", "본문", PostCategory.HOTEL, null, null);
 
             // when
             PostSaveResponse response = postService.saveDraft(PUBLIC_ID, POST_ID, request);
@@ -116,7 +127,7 @@ class PostServiceTest {
         void notFound() {
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.empty());
-            PostSaveRequest request = new PostSaveRequest("제목", null, null, null);
+            PostSaveRequest request = new PostSaveRequest("제목", null, null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -130,7 +141,7 @@ class PostServiceTest {
             Post post = writingPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("제목", null, null, null);
+            PostSaveRequest request = new PostSaveRequest("제목", null, null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -144,7 +155,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostSaveRequest request = new PostSaveRequest("바꾼제목", null, null, null);
+            PostSaveRequest request = new PostSaveRequest("바꾼제목", null, null, null, null);
 
             assertThatThrownBy(() -> postService.saveDraft(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -164,7 +175,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostPublishRequest request = new PostPublishRequest("제목", "본문", PostCategory.RESTAURANT, null);
+            PostPublishRequest request = new PostPublishRequest("제목", "본문", PostCategory.RESTAURANT, null, null);
 
             // when
             PostPublishResponse response = postService.publish(PUBLIC_ID, POST_ID, request);
@@ -180,7 +191,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostPublishRequest request = new PostPublishRequest(null, "본문", PostCategory.RESTAURANT, null);
+            PostPublishRequest request = new PostPublishRequest(null, "본문", PostCategory.RESTAURANT, null, null);
 
             assertThatThrownBy(() -> postService.publish(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -200,7 +211,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL, null);
+            PostEditRequest request = new PostEditRequest("수정 제목", "수정 본문", PostCategory.HOTEL, null, null);
 
             // when
             PostEditResponse response = postService.editPost(PUBLIC_ID, POST_ID, request);
@@ -219,7 +230,7 @@ class PostServiceTest {
             Post post = writingPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null);
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -233,7 +244,7 @@ class PostServiceTest {
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("   ", null, null, null);
+            PostEditRequest request = new PostEditRequest("   ", null, null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -247,7 +258,7 @@ class PostServiceTest {
             Post post = publishedPost(OTHER_MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
             given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
-            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null);
+            PostEditRequest request = new PostEditRequest("수정 제목", null, null, null, null);
 
             assertThatThrownBy(() -> postService.editPost(PUBLIC_ID, POST_ID, request))
                     .isInstanceOf(BusinessException.class)
@@ -261,8 +272,8 @@ class PostServiceTest {
     class DeletePost {
 
         @Test
-        @DisplayName("본인 글이면 소프트 삭제하고 postId를 반환한다")
-        void success() {
+        @DisplayName("게시글(PUBLISHED)이면 소프트 삭제하고 하드 삭제/태그 정리는 하지 않는다")
+        void published_softDelete() {
             // given
             Post post = publishedPost(MEMBER_ID);
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
@@ -271,9 +282,29 @@ class PostServiceTest {
             // when
             PostDeleteResponse response = postService.deletePost(PUBLIC_ID, POST_ID);
 
-            // then
+            // then — 소프트 삭제(deleted_at 기록), 하드 삭제/태그 삭제 없음
             assertThat(response.postId()).isEqualTo(POST_ID);
             assertThat(post.getDeletedAt()).isNotNull();
+            verify(repository, never()).delete(post);
+            verify(tagRepository, never()).deleteByPostId(POST_ID);
+        }
+
+        @Test
+        @DisplayName("초안(DRAFT)이면 태그를 정리하고 하드 삭제하며 소프트 삭제(deleted_at)는 하지 않는다")
+        void draft_hardDelete() {
+            // given
+            Post post = draftPost(MEMBER_ID);
+            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member(MEMBER_ID));
+            given(repository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(post));
+
+            // when
+            PostDeleteResponse response = postService.deletePost(PUBLIC_ID, POST_ID);
+
+            // then — 태그 정리 + 하드 삭제, 소프트 삭제 아님(deleted_at null)
+            assertThat(response.postId()).isEqualTo(POST_ID);
+            assertThat(post.getDeletedAt()).isNull();
+            verify(tagRepository).deleteByPostId(POST_ID);
+            verify(repository).delete(post);
         }
 
         @Test

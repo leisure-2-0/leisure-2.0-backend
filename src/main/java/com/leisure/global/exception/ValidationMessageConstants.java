@@ -10,7 +10,9 @@ public final class ValidationMessageConstants {
 
     public static final String PASSWORD_REQUIRED = "비밀번호를 입력해 주세요.";
 
-    public static final String PASSWORD_INVALID_FORMAT = "비밀번호는 8~20자의 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.";
+    public static final String PASSWORD_CONFIRM_REQUIRED = "비밀번호 확인을 입력해 주세요.";
+
+    public static final String PASSWORD_INVALID_FORMAT = "비밀번호는 8~20자의 영문, 숫자, 특수문자(!@#$%)를 모두 포함해야 합니다.";
 
     public static final String NICKNAME_REQUIRED = "닉네임을 입력해 주세요.";
 

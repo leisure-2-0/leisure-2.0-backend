@@ -11,7 +11,7 @@ spring:
     #   - allowPublicKeyRetrieval=true    → MySQL 8 비밀번호 인증 시 공개키 가져오기 허용
     #   - serverTimezone=Asia/Seoul       → 서버 시간대를 한국 시간으로 설정
     #   - characterEncoding=UTF-8         → 한글 등 문자 깨짐 방지
-    url: jdbc:mysql://localhost:3306/leisure?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/leisure-local?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root                        # DB 계정 이름
     password: root                        # DB 계정 비밀번호
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 용 JDBC 드라이버
@@ -30,8 +30,8 @@ spring:
       #   - update      : 변경된 부분만 반영 (데이터 유지)
       #   - create      : 실행할 때마다 테이블 새로 생성 (기존 데이터 삭제)
       #   - create-drop : create + 앱 종료 시 테이블 삭제
-      ddl-auto: create
-    show-sql: true       # 실행되는 SQL 쿼리를 콘솔에 출력
+      ddl-auto: validate
+    show-sql: false       # 실행되는 SQL 쿼리를 콘솔에 출력
 
 jwt:
   secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
@@ -50,3 +50,23 @@ cookie:
 #  level:
 #    org.hibernate.SQL: debug
 #    org.hibernate.orm.jdbc.bind: trace
+
+springdoc:
+  enable-data-rest: false
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+swagger:
+  title: 프로젝트 Y Local API
+  description: 프로젝트 Y 로컬 테스트용 문서
+  version: 1.0.0-local
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      logging: slf4j
+      multiline: true
+      log-format: "%(currentTime) | took %(executionTime)ms | %(category) | connection %(connectionId) | %(sqlSingleLine)"

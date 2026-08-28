@@ -1,10 +1,8 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.*;
-import com.leisure.post.dto.response.MainFeedPostResponse;
-import com.leisure.post.dto.response.MyPostResponse;
-import com.leisure.post.dto.response.PostResponse;
-import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.response.DraftListResponse;
+import com.leisure.post.dto.result.*;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -30,10 +28,10 @@ public class PostCustomImpl implements PostCustom {
 
     // MyPost 조회 ==============================================================
     @Override
-    public List<MyPostResponse> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
+    public List<MyPostResult> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
         return queryFactory.select(
                         Projections.constructor(
-                                MyPostResponse.class,
+                                MyPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -48,7 +46,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.createdAt,
                                 post.updatedAt,
                                 Projections.constructor(
-                                        MyPostResponse.AuthorResponse.class,
+                                        MyPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
@@ -81,10 +79,10 @@ public class PostCustomImpl implements PostCustom {
 
     // Post 조회 ==============================================================
     @Override
-    public List<PostResponse> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
+    public List<PostResult> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
         return queryFactory.select(
                         Projections.constructor(
-                                PostResponse.class,
+                                PostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -96,7 +94,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
-                                        PostResponse.AuthorResponse.class,
+                                        PostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
@@ -130,10 +128,10 @@ public class PostCustomImpl implements PostCustom {
 
     // MainFeed 조회 ==============================================================
     @Override
-    public List<MainFeedPostResponse> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
+    public List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
         return queryFactory.select(
                         Projections.constructor(
-                                MainFeedPostResponse.class,
+                                MainFeedPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -145,7 +143,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.location.region,
                                 post.publishedAt,
                                 Projections.constructor(
-                                        MainFeedPostResponse.AuthorResponse.class,
+                                        MainFeedPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
@@ -229,7 +227,7 @@ public class PostCustomImpl implements PostCustom {
     // PostDetail 조회 ==============================================================
     @Override
     public Optional<PostDetailResult> findPostDetail(Long memberId, Long postId) {
-        PostDetailResult response = queryFactory.select(
+        PostDetailResult result = queryFactory.select(
                         Projections.constructor(
                                 PostDetailResult.class,
                                 post.postId,
@@ -280,7 +278,7 @@ public class PostCustomImpl implements PostCustom {
                 )
                 .fetchOne();
 
-        return Optional.ofNullable(response);
+        return Optional.ofNullable(result);
     }
 
     // MyPost 조회 ==============================================================
@@ -296,5 +294,49 @@ public class PostCustomImpl implements PostCustom {
                 post.publishedAt.desc(),
                 post.postId.desc()
         };
+    }
+
+    @Override
+    public List<DraftListResponse> findMyDrafts(Long memberId) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                DraftListResponse.class,
+                                post.postId,
+                                post.title,
+                                post.category,
+                                post.updatedAt))
+                .from(post)
+                .where(post.memberId.eq(memberId),
+                        post.deletedAt.isNull(),
+                        post.status.eq(PostStatus.DRAFT))
+                .orderBy(post.updatedAt.desc())
+                .fetch();
+    }
+
+    @Override
+    public Optional<DraftDetailResult> findMyDraftsDetail(Long memberId, Long postId) {
+        DraftDetailResult result = queryFactory.select(
+                        Projections.constructor(
+                                DraftDetailResult.class,
+                                post.postId,
+                                post.title,
+                                post.content,
+                                post.category,
+                                post.updatedAt,
+                                Projections.constructor(
+                                        DraftDetailResult.LocationResult.class,
+                                        post.location.region,
+                                        post.location.placeName,
+                                        post.location.address,
+                                        post.location.latitude,
+                                        post.location.longitude)))
+                .from(post)
+                .where(post.memberId.eq(memberId),
+                        post.postId.eq(postId),
+                        post.deletedAt.isNull(),
+                        post.status.eq(PostStatus.DRAFT))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }

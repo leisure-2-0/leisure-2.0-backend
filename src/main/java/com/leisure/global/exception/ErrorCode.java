@@ -74,8 +74,12 @@ public enum ErrorCode {
 
     POST_NOT_EDITABLE(HttpStatus.CONFLICT, "현재 상태에서는 게시글을 수정할 수 없습니다."),
 
+    POST_TAG_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 태그입니다."),
+
     // ===== 공통 / 시스템 표준 예외 매핑 =====
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
+
+    INVALID_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 요청 파라미터입니다."),
 
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 

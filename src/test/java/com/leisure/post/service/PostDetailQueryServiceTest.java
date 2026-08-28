@@ -4,7 +4,9 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
 import com.leisure.member.service.MemberReader;
+import com.leisure.post.assembler.PostResponseAssembler;
 import com.leisure.post.domain.PostCategory;
+import com.leisure.post.dto.response.PostDetailResponse;
 import com.leisure.post.dto.result.PostDetailResult;
 import com.leisure.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +42,9 @@ class PostDetailQueryServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private PostResponseAssembler assembler;
+
     @InjectMocks
     private PostQueryService postQueryService;
 
@@ -61,13 +67,20 @@ class PostDetailQueryServiceTest {
         );
     }
 
+    // 어셈블러는 조회 결과(PostDetailResult)를 그대로 응답으로 넘겨준다고 가정 (태그 병합은 어셈블러 테스트에서 검증)
+    private void stubAssembler() {
+        given(assembler.assembleDetail(any()))
+                .willAnswer(invocation -> PostDetailResponse.from(invocation.getArgument(0), List.of()));
+    }
+
     @Test
     @DisplayName("로그인 상태면 memberId로 상세를 조회해 반환한다")
     void success_loggedIn() {
         given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
         given(repository.findPostDetail(MEMBER_ID, POST_ID)).willReturn(Optional.of(result()));
+        stubAssembler();
 
-        PostDetailResult response = postQueryService.getPostDetail(PUBLIC_ID, POST_ID);
+        PostDetailResponse response = postQueryService.getPostDetail(PUBLIC_ID, POST_ID);
 
         assertThat(response.postId()).isEqualTo(POST_ID);
         assertThat(response.isMine()).isTrue();
@@ -78,8 +91,9 @@ class PostDetailQueryServiceTest {
     @DisplayName("비로그인(publicId=null)이면 memberId=null로 조회하고 회원 조회를 하지 않는다")
     void success_anonymous() {
         given(repository.findPostDetail(null, POST_ID)).willReturn(Optional.of(result()));
+        stubAssembler();
 
-        PostDetailResult response = postQueryService.getPostDetail(null, POST_ID);
+        PostDetailResponse response = postQueryService.getPostDetail(null, POST_ID);
 
         assertThat(response.postId()).isEqualTo(POST_ID);
         verify(reader, never()).getMemberByPublicId(any());

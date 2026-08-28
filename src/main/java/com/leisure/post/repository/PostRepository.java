@@ -55,18 +55,44 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustom {
     // flushAutomatically = true로 @Modifying 레벨에서 flush를 위임할 수도 있지만,
     // 현재는 save 직후 명시적으로 flush해서 unique constraint 예외를 즉시 처리한다.
     @Modifying(clearAutomatically = true)
-    @Query("update Post p set p.likeCount = p.likeCount + 1 where p.postId = :postId")
+    @Query("""
+            update Post p
+            set p.likeCount = p.likeCount + 1
+            where p.postId = :postId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            """)
     void increaseLikeCount(Long postId);
 
     @Modifying(clearAutomatically = true)
-    @Query("update Post p set p.likeCount = p.likeCount - 1 where p.postId = :postId and p.likeCount > 0")
+    @Query("""
+            update Post p
+            set p.likeCount = p.likeCount - 1
+            where p.postId = :postId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            and p.likeCount > 0
+            """)
     void decreaseLikeCount(Long postId);
 
     @Modifying(clearAutomatically = true)
-    @Query("update Post p set p.bookmarkCount = p.bookmarkCount + 1 where p.postId = :postId")
+    @Query("""
+            update Post p
+            set p.bookmarkCount = p.bookmarkCount + 1
+            where p.postId = :postId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            """)
     void increaseBookmarkCount(Long postId);
 
     @Modifying(clearAutomatically = true)
-    @Query("update Post p set p.bookmarkCount = p.bookmarkCount - 1 where p.postId = :postId and p.bookmarkCount > 0")
+    @Query("""
+            update Post p
+            set p.bookmarkCount = p.bookmarkCount - 1
+            where p.postId = :postId
+            and p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            and p.bookmarkCount > 0
+            """)
     void decreaseBookmarkCount(Long postId);
 }

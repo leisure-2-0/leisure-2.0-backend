@@ -2,13 +2,15 @@ package com.leisure.post.service;
 
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
+import com.leisure.member.domain.Member;
 import com.leisure.member.service.MemberReader;
+import com.leisure.post.assembler.PostResponseAssembler;
 import com.leisure.post.domain.MyPostSort;
 import com.leisure.post.domain.PostCategory;
 import com.leisure.post.domain.PostCursor;
 import com.leisure.post.domain.PostSort;
 import com.leisure.post.dto.response.*;
-import com.leisure.post.dto.result.PostDetailResult;
+import com.leisure.post.dto.result.*;
 import com.leisure.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class PostQueryService {
 
     private final ObjectMapper objectMapper;
 
+    private final PostResponseAssembler assembler;
+
     @Transactional(readOnly = true)
     public MyPostListResponse getMyPosts(String publicId, MyPostSort sort, Integer page, Integer size) {
         Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
@@ -40,7 +44,9 @@ public class PostQueryService {
 
         long offset = (long) pageNumber * pageSize;
 
-        List<MyPostResponse> myPosts = repository.findMyPosts(memberId, sort, offset, pageSize);
+        List<MyPostResult> results = repository.findMyPosts(memberId, sort, offset, pageSize);
+
+        List<MyPostResponse> myPosts = assembler.assembleMyPosts(results);
 
         long totalElements = repository.countMyPosts(memberId);
 
@@ -92,16 +98,17 @@ public class PostQueryService {
 
         PostCursor postCursor = decodeCursor(sort, cursor);
 
-        List<PostResponse> posts = repository.findPosts(memberId, category, sort, postCursor, validLimit + 1);
+        List<PostResult> results = repository.findPosts(memberId, category, sort, postCursor, validLimit + 1);
 
-        boolean hasNext = posts.size() > validLimit;
+        boolean hasNext = results.size() > validLimit;
 
         if (hasNext) {
-            // posts = new ArrayList<>(posts.stream().limit(validLimit).toList());
-            posts = new ArrayList<>(posts.subList(0, validLimit));
+            results = new ArrayList<>(results.subList(0, validLimit));
         }
 
-        String nextCursor = createNextCursor(posts, hasNext, sort);
+        String nextCursor = createNextCursor(results, hasNext, sort);
+
+        List<PostResponse> posts = assembler.assemblePosts(results);
 
         return new PostListResponse(posts, nextCursor, hasNext);
     }
@@ -149,14 +156,14 @@ public class PostQueryService {
         }
     }
 
-    private String createNextCursor(List<PostResponse> posts, boolean hasNext, PostSort sort) {
+    private String createNextCursor(List<PostResult> posts, boolean hasNext, PostSort sort) {
 
         if (!hasNext || posts.isEmpty()) {
             return null;
         }
 
         try {
-            PostResponse lastPost = posts.get(posts.size() - 1);
+            PostResult lastPost = posts.get(posts.size() - 1);
 
             PostCursor nextCursor = createPostCursor(lastPost, sort);
 
@@ -169,7 +176,7 @@ public class PostQueryService {
         }
     }
 
-    private PostCursor createPostCursor(PostResponse post, PostSort sort) {
+    private PostCursor createPostCursor(PostResult post, PostSort sort) {
         if (sort == PostSort.POPULAR) {
             return new PostCursor(post.postId(), null, post.likeCount());
         }
@@ -186,12 +193,14 @@ public class PostQueryService {
             memberId = reader.getMemberByPublicId(publicId).getMemberId();
         }
 
-        return repository.findMainFeedPosts(memberId, category, sort, 18);
+        List<MainFeedPostResult> results = repository.findMainFeedPosts(memberId, category, sort, 18);
+
+        return assembler.assembleMainFeed(results);
     }
 
 
     @Transactional
-    public PostDetailResult getPostDetail(String publicId, Long postId) {
+    public PostDetailResponse getPostDetail(String publicId, Long postId) {
 
         Long memberId = null;
 
@@ -205,6 +214,25 @@ public class PostQueryService {
         // TODO: 부하 테스트 후 Redis 조회수 INCR
         repository.increaseViewCount(result.postId());
 
-        return result;
+        return assembler.assembleDetail(result);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DraftListResponse> getMyDrafts(String publicId) {
+
+        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+
+        return repository.findMyDrafts(memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public DraftDetailResponse getMyDraftDetail(String publicId, Long postId) {
+
+        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+
+        DraftDetailResult result = repository.findMyDraftsDetail(memberId, postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        return assembler.assembleDraftDetail(result);
     }
 }

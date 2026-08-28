@@ -34,26 +34,26 @@ jobs:
       - name: 단위 테스트 실행
         run: ./gradlew test --no-daemon
 
-  claude-code-review:
-    needs: unit-test
-    name: 클로드 Sonnet 4.6 코드 리뷰
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-      issues: write
-      pull-requests: write
-
-    steps:
-      - name: 코드 가져오기
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 클로드 코드 리뷰
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+#  claude-code-review:
+#    needs: unit-test
+#    name: 클로드 Sonnet 4.6 코드 리뷰
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: read
+#      id-token: write
+#      issues: write
+#      pull-requests: write
+#
+#    steps:
+#      - name: 코드 가져오기
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - name: 클로드 코드 리뷰
+#        uses: anthropics/claude-code-action@v1
+#        with:
+#          claude_code_oauth_token: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
 #          prompt: |
 #            REPOSITORY: ${{ github.repository }}
 #            PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
@@ -114,43 +114,43 @@ jobs:
 #
 #            - {유형}은 버그 / 보안 / 스타일 중 하나야.
 #            - 한 파일 이슈가 5개를 넘으면 심각도 높은 순 상위 3개만 적고, 상세 끝에 "그 외 N개 생략"으로 표기해.
-          prompt: |
-            REPOSITORY: ${{ github.repository }}
-            PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-            작성자: ${{ github.event.pull_request.user.login }}
-            BRANCH: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
-
-            - 이 PR을 한국어로 리뷰해줘.
-            - 코드는 이미 현재 작업 디렉토리에 체크아웃되어 있으니, 다시 clone하거나 브랜치를 전환하지 마.
-            
-            아래 명령을 순서대로 실행해:
-
-              1. `git diff origin/dev...HEAD` 로 전체 diff를 한 번에 읽어.
-              2. 버그(NPE·경계값·트랜잭션 경계)와 보안 이슈만 찾아. 스타일은 생략.
-              3. `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "..."` 로 요약 댓글 하나만 남겨.
-
-              요약 댓글 형식
-
-              코드 리뷰 (claude-sonnet-4-6)
-
-              **검토 파일:** {N}개 | **이슈:** {합계}개
-
-              | 심각도 | 개수 |
-              |--------|------|
-              | 🔴 Critical | {n} |
-              | 🟠 High | {n} |
-              | 🟡 Medium | {n} |
-
-              이슈가 없으면 "✅ 발견된 이슈 없음" 한 줄만.
-
-              상세
-
-              | 파일 | 라인 | 심각도 | 내용 |
-              |------|------|--------|------|
-              | `파일경로` | L{n} | 🔴 | 문제 한 줄 요약 |
-
-          claude_args: |
-            --max-turns 30
-            --model claude-sonnet-4-6
-            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
-          show_full_output: true
+#          prompt: |
+#            REPOSITORY: ${{ github.repository }}
+#            PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+#            작성자: ${{ github.event.pull_request.user.login }}
+#            BRANCH: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
+#
+#            - 이 PR을 한국어로 리뷰해줘.
+#            - 코드는 이미 현재 작업 디렉토리에 체크아웃되어 있으니, 다시 clone하거나 브랜치를 전환하지 마.
+#
+#            아래 명령을 순서대로 실행해:
+#
+#              1. `git diff origin/dev...HEAD` 로 전체 diff를 한 번에 읽어.
+#              2. 버그(NPE·경계값·트랜잭션 경계)와 보안 이슈만 찾아. 스타일은 생략.
+#              3. `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "..."` 로 요약 댓글 하나만 남겨.
+#
+#              요약 댓글 형식
+#
+#              코드 리뷰 (claude-sonnet-4-6)
+#
+#              **검토 파일:** {N}개 | **이슈:** {합계}개
+#
+#              | 심각도 | 개수 |
+#              |--------|------|
+#              | 🔴 Critical | {n} |
+#              | 🟠 High | {n} |
+#              | 🟡 Medium | {n} |
+#
+#              이슈가 없으면 "✅ 발견된 이슈 없음" 한 줄만.
+#
+#              상세
+#
+#              | 파일 | 라인 | 심각도 | 내용 |
+#              |------|------|--------|------|
+#              | `파일경로` | L{n} | 🔴 | 문제 한 줄 요약 |
+#
+#          claude_args: |
+#            --max-turns 30
+#            --model claude-sonnet-4-6
+#            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+#          show_full_output: true

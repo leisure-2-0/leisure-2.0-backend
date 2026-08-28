@@ -47,14 +47,16 @@ public class MemberService {
 
         validatePasswordMatch(request.password(), request.passwordCheck());
 
-        validateMemberUniqueness(request.email(), request.nickname());
+        String email = Member.normalizeEmail(request.email());
+
+        validateMemberUniqueness(email, request.nickname());
 
         // TODO: PreSigned URL 기반 이미지 업로드 로직
 
         String encodedPassword = encoder.encode(request.password());
 
         Member member = Member.create(
-                request.email(),
+                email,
                 encodedPassword,
                 request.nickname(),
                 request.profileImageUrl());
@@ -138,7 +140,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public void checkEmail(String email) {
-        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
+        if (repository.existsByEmailAndDeletedAtIsNull(Member.normalizeEmail(email))) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
     }

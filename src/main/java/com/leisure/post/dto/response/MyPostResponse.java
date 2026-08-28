@@ -1,8 +1,10 @@
 package com.leisure.post.dto.response;
 
 import com.leisure.post.domain.PostCategory;
+import com.leisure.post.dto.result.MyPostResult;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record MyPostResponse(
         Long postId,
@@ -31,7 +33,9 @@ public record MyPostResponse(
 
         LocalDateTime updatedAt,
 
-        AuthorResponse author
+        AuthorResponse author,
+
+        List<String> tags
 ) {
 
     public record AuthorResponse(
@@ -41,5 +45,28 @@ public record MyPostResponse(
 
             String profileImageUrl
     ) {
+    }
+
+    public static MyPostResponse from(MyPostResult r, List<String> tags) {
+        AuthorResponse author = new AuthorResponse(
+                r.author().memberId(), r.author().nickname(), r.author().profileImageUrl());
+
+        return new MyPostResponse(
+                r.postId(),
+                r.title(),
+                r.category(),
+                r.viewCount(),
+                r.likeCount(),
+                r.bookmarkCount(),
+                r.isMine(),
+                r.isLiked(),
+                r.isBookmarked(),
+                r.region(),
+                r.publishedAt(),
+                r.createdAt(),
+                r.updatedAt(),
+                author,
+                tags
+        );
     }
 }
