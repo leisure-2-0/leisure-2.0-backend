@@ -79,6 +79,8 @@ public enum ErrorCode {
     // ===== 공통 / 시스템 표준 예외 매핑 =====
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
+    INVALID_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 요청 파라미터입니다."),
+
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "유효하지 않은 커서입니다."),

@@ -151,5 +151,5 @@ PING     -- PONG 이 오면 정상
 ## 참고
 
 - 스프링 접속 설정은 `application-local.yml`의 `datasource.url`(DB `leisure-local`, 포트 3306) / `username`·`password`(root/root)와 `spring.data.redis`(localhost:6379)가 위 컨테이너 설정과 일치해야 합니다.
-- `local` 프로파일은 `ddl-auto: create`라 **기동 시마다 테이블을 삭제 후 재생성**합니다. 중요한 데이터를 로컬에 두지 마세요.
+- `local` 프로파일은 `ddl-auto: validate`라 **스키마를 생성하지 않고 검증만** 합니다. 마이그레이션 도구가 아직 없으므로, **빈 DB로 처음 띄우면 테이블이 없어 기동에 실패**합니다 — 최초 1회 `create`로 스키마를 만든 뒤(볼륨에 유지) `validate`로 돌리거나 스키마 소스를 추가하세요. SQL은 p6spy로 로깅됩니다.
 - 앱 실행 시 프로파일을 반드시 지정합니다: `./gradlew bootRun --args='--spring.profiles.active=local'` 또는 IDE Run Configuration의 Active profiles / 환경변수 `SPRING_PROFILES_ACTIVE=local`.
