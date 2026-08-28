@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
+// 기능 목록 _ 실제 구현은 PostRepositoryImpl에서 수행
 public interface PostCustom {
 
     List<MyPostResult> findMyPosts(Long memberId, MyPostSort sort, long offset, int size);

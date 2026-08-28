@@ -26,6 +26,7 @@ public class PostCustomImpl implements PostCustom {
 
     private final JPAQueryFactory queryFactory;
 
+    // MyPost 조회 ==============================================================
     @Override
     public List<MyPostResult> findMyPosts(Long memberId, MyPostSort sort, long offset, int size) {
         return queryFactory.select(
@@ -76,6 +77,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // Post 조회 ==============================================================
     @Override
     public List<PostResult> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size) {
         return queryFactory.select(
@@ -124,6 +126,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // MainFeed 조회 ==============================================================
     @Override
     public List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {
         return queryFactory.select(
@@ -171,6 +174,7 @@ public class PostCustomImpl implements PostCustom {
                 .fetch();
     }
 
+    // PostDetail 조회 ==============================================================
     private OrderSpecifier<?>[] orderBy(PostSort sort) {
         if (sort == PostSort.POPULAR) {
             return new OrderSpecifier[]{
@@ -185,6 +189,7 @@ public class PostCustomImpl implements PostCustom {
         };
     }
 
+    // ㄷㅂ? ==============================================================
     private BooleanExpression categoryEq(PostCategory category) {
         if (category == null) {
             return null;
@@ -193,6 +198,7 @@ public class PostCustomImpl implements PostCustom {
         return post.category.eq(category);
     }
 
+    // Post 조회 시 커서 조건 생성 ==============================================================
     private BooleanExpression cursorCondition(PostSort sort, PostCursor cursor) {
         if (cursor == null) {
             return null;
@@ -209,6 +215,7 @@ public class PostCustomImpl implements PostCustom {
                         .and(post.postId.lt(cursor.postId())));
     }
 
+    // ?
     private BooleanExpression memberIdEq(NumberPath<Long> memberIdPath, Long memberId) {
         if (memberId == null) {
             return Expressions.FALSE;
@@ -217,6 +224,7 @@ public class PostCustomImpl implements PostCustom {
         return memberIdPath.eq(memberId);
     }
 
+    // PostDetail 조회 ==============================================================
     @Override
     public Optional<PostDetailResult> findPostDetail(Long memberId, Long postId) {
         PostDetailResult result = queryFactory.select(
@@ -273,6 +281,7 @@ public class PostCustomImpl implements PostCustom {
         return Optional.ofNullable(result);
     }
 
+    // MyPost 조회 ==============================================================
     private OrderSpecifier<?>[] orderBy(MyPostSort sort) {
         if (sort == MyPostSort.POPULAR) {
             return new OrderSpecifier[]{
@@ -298,6 +307,7 @@ public class PostCustomImpl implements PostCustom {
                                 post.updatedAt))
                 .from(post)
                 .where(post.memberId.eq(memberId),
+                        post.deletedAt.isNull(),
                         post.status.eq(PostStatus.DRAFT))
                 .orderBy(post.updatedAt.desc())
                 .fetch();
@@ -323,6 +333,7 @@ public class PostCustomImpl implements PostCustom {
                 .from(post)
                 .where(post.memberId.eq(memberId),
                         post.postId.eq(postId),
+                        post.deletedAt.isNull(),
                         post.status.eq(PostStatus.DRAFT))
                 .fetchOne();
 

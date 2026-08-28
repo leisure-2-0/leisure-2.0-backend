@@ -43,7 +43,7 @@ public class PostController {
 
     @Operation(
             summary = "게시글 임시 저장",
-            description = "임시 저장 버튼이나 자동 저장 시 호출된다. 작성중(WRITING) 상태면 임시 저장(DRAFT)으로 승격된다. "
+            description= "임시 저장 버튼이나 자동 저장 시 호출된다. 작성중(WRITING) 상태면 임시 저장(DRAFT)으로 승격된다. "
                     + "무검증(제목·본문·카테고리가 비어도 성공)이며, 각 필드는 null=기존 값 유지 / 빈 문자열=비우기의 부분 갱신이다. "
                     + "tags를 함께 보내면(null이 아니면) 전체 교체되고, 임시 저장 상태 글의 수정은 이 엔드포인트를 재호출하면 된다."
     )
@@ -94,7 +94,7 @@ public class PostController {
 
     @Operation(
             summary = "게시글 삭제",
-            description = "본인 게시글을 소프트 삭제한다(deleted_at 기록, 물리 삭제 아님). "
+            description = "본인 게시글을 소프트 삭제한다(deleted_at 기록, 작성 중이거나 임시 저장의 경우는 물리 삭제). "
                     + "삭제된 글은 이후 조회에서 제외된다."
     )
     @SecurityRequirement(name = "BearerAuth")

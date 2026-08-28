@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
@@ -58,6 +59,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleMessageNotReadableException(HttpMessageNotReadableException e) {
         return toResponse(ErrorCode.INVALID_REQUEST_BODY);
+    }
+
+    /**
+     * MethodArgumentTypeMismatchException
+     * <p>
+     * Spring이 요청 파라미터를 컨트롤러 메서드 인자 타입으로 변환하지 못했을 때 발생
+     * 쿼리스트링의 enum 값 오류, 숫자 타입 경로변수에 문자열 입력 같은 경우
+     * 클라이언트 측 파라미터 형식 오류이므로 400을 반환
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return toResponse(ErrorCode.INVALID_REQUEST_PARAMETER);
     }
 
     /**
