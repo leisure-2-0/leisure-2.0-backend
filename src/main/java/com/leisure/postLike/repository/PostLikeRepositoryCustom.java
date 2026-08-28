@@ -6,7 +6,7 @@ import com.leisure.postLike.dto.result.LikedPostResult;
 
 import java.util.List;
 
-public interface PostLikeCustom {
+public interface PostLikeRepositoryCustom {
 
     List<LikedPostResult> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size);
 }

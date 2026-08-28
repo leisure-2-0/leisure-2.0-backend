@@ -1,8 +1,8 @@
-package com.leisure.Bookmark.repository;
+package com.leisure.postLike.repository;
 
-import com.leisure.Bookmark.domain.BookmarkedPostSort;
-import com.leisure.Bookmark.dto.result.BookmarkedPostResult;
 import com.leisure.post.domain.PostStatus;
+import com.leisure.postLike.domain.LikedPostSort;
+import com.leisure.postLike.dto.result.LikedPostResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,16 +18,16 @@ import static com.leisure.postLike.domain.QPostLike.postLike;
 
 @Repository
 @RequiredArgsConstructor
-public class BookmarkCustomImpl implements BookmarkCustom {
+public class PostLikeRepositoryCustomImpl implements PostLikeRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<BookmarkedPostResult> findBookmarkedPosts(Long memberId, BookmarkedPostSort sort, long offset, int size) {
+    public List<LikedPostResult> findLikedPosts(Long memberId, LikedPostSort sort, long offset, int size) {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                BookmarkedPostResult.class,
+                                LikedPostResult.class,
                                 post.postId,
                                 post.title,
                                 post.category,
@@ -35,31 +35,31 @@ public class BookmarkCustomImpl implements BookmarkCustom {
                                 post.likeCount,
                                 post.bookmarkCount,
                                 post.memberId.eq(memberId),
-                                postLike.postLikeId.isNotNull(),
-                                postBookmark.memberId.eq(memberId),
+                                postLike.memberId.eq(memberId),
+                                postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
                                 post.publishedAt,
-                                postBookmark.createdAt,
+                                postLike.createdAt,
                                 Projections.constructor(
-                                        BookmarkedPostResult.AuthorResult.class,
+                                        LikedPostResult.AuthorResult.class,
                                         member.memberId,
                                         member.nickname,
                                         member.profileImageUrl
                                 )
                         )
                 )
-                .from(postBookmark)
+                .from(postLike)
                 .join(post)
-                .on(postBookmark.postId.eq(post.postId))
+                .on(postLike.postId.eq(post.postId))
                 .join(member)
                 .on(post.memberId.eq(member.memberId))
-                .leftJoin(postLike)
+                .leftJoin(postBookmark)
                 .on(
-                        postLike.postId.eq(post.postId),
-                        postLike.memberId.eq(memberId)
+                        postBookmark.postId.eq(post.postId),
+                        postBookmark.memberId.eq(memberId)
                 )
                 .where(
-                        postBookmark.memberId.eq(memberId),
+                        postLike.memberId.eq(memberId),
                         post.deletedAt.isNull(),
                         member.deletedAt.isNull(),
                         post.status.eq(PostStatus.PUBLISHED)
@@ -70,17 +70,17 @@ public class BookmarkCustomImpl implements BookmarkCustom {
                 .fetch();
     }
 
-    private OrderSpecifier<?>[] orderBy(BookmarkedPostSort sort) {
-        if (sort == BookmarkedPostSort.POPULAR) {
-            return new OrderSpecifier[]{
-                    post.bookmarkCount.desc(),
+    private OrderSpecifier<?>[] orderBy(LikedPostSort sort) {
+        if (sort == LikedPostSort.POPULAR) {
+            return new OrderSpecifier[] {
+                    post.likeCount.desc(),
                     post.postId.desc()
             };
         }
 
-        return new OrderSpecifier[]{
-                postBookmark.createdAt.desc(),
-                postBookmark.postBookmarkId.desc()
+        return  new OrderSpecifier[]{
+                postLike.createdAt.desc(),
+                postLike.postLikeId.desc()
         };
     }
 }

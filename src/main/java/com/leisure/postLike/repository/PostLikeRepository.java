@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PostLikeRepository extends JpaRepository<PostLike, Long>, PostLikeCustom {
+public interface PostLikeRepository extends JpaRepository<PostLike, Long>, PostLikeRepositoryCustom {
 
 
     boolean existsByMemberIdAndPostId(Long memberId, Long postId);

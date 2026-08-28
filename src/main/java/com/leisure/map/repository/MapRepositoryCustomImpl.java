@@ -12,17 +12,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.leisure.member.domain.QMember.member;
 import static com.leisure.post.domain.QPost.post;
 
 @Repository
 @RequiredArgsConstructor
-public class MapCustomImpl implements MapCustom {
+public class MapRepositoryCustomImpl implements MapRepositoryCustom {
+
+    private static final int MAP_PINS_LIMIT = 500;
 
     private final JPAQueryFactory queryFactory;
 
-    private static final int MAP_PINS_LIMIT = 500; // 지도 범위 내 게시글 핀 조회 시 최대 500개까지만 조회하도록 제한
-
-    // 지역별 게시글 개수 조회 ==============================================================
     @Override
     public List<RegionPinCountResponse> findRegionPinCounts(PostCategory category) {
         return queryFactory.select(
@@ -35,17 +35,22 @@ public class MapCustomImpl implements MapCustom {
                         )
                 )
                 .from(post)
+                .join(member)
+                .on(post.memberId.eq(member.memberId))
                 .where(
                         post.deletedAt.isNull(),
-                        post.status.eq(PostStatus.PUBLISHED),
+                        member.deletedAt.isNull(),
                         post.location.region.isNotNull(),
+                        post.location.latitude.isNotNull(),
+                        post.location.longitude.isNotNull(),
+                        post.status.eq(PostStatus.PUBLISHED),
                         categoryEq(category)
                 )
+                // TODO: GROUP BY 컬럼에 인덱스 생성
                 .groupBy(post.location.region)
                 .fetch();
     }
 
-    // 지도 범위 내 게시글 핀 조회 ==============================================================
     @Override
     public List<MapPinResponse> findPinsInBounds(double minLat, double maxLat, double minLng, double maxLng, PostCategory category) {
         return queryFactory.select(
@@ -59,22 +64,25 @@ public class MapCustomImpl implements MapCustom {
                         )
                 )
                 .from(post)
+                .join(member)
+                .on(post.memberId.eq(member.memberId))
                 .where(
                         post.deletedAt.isNull(),
-                        post.status.eq(PostStatus.PUBLISHED),
+                        member.deletedAt.isNull(),
                         post.location.latitude.isNotNull(),
                         post.location.longitude.isNotNull(),
                         post.location.latitude.goe(minLat),
                         post.location.latitude.loe(maxLat),
                         post.location.longitude.goe(minLng),
                         post.location.longitude.loe(maxLng),
+                        post.status.eq(PostStatus.PUBLISHED),
                         categoryEq(category)
                 )
+                .orderBy(post.publishedAt.desc(), post.postId.desc())
                 .limit(MAP_PINS_LIMIT)
                 .fetch();
     }
 
-    // map에서 처음 필요해진 카테고리 필터 헬퍼 _ post 쪽 PostCustomImpl.categoryEq와 동일한 로직(재사용 불가라 복붙)
     private BooleanExpression categoryEq(PostCategory category) {
         if (category == null) {
             return null;
