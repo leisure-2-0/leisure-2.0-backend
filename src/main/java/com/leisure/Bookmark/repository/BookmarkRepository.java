@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BookmarkRepository extends JpaRepository<PostBookmark, Long>, BookmarkCustom {
+public interface BookmarkRepository extends JpaRepository<PostBookmark, Long>, BookmarkRepositoryCustom {
 
     boolean existsByMemberIdAndPostId(Long memberId, Long postId);
 
