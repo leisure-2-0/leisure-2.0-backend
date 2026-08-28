@@ -22,7 +22,7 @@ import static com.leisure.postLike.domain.QPostLike.postLike;
 
 @Repository
 @RequiredArgsConstructor
-public class PostCustomImpl implements PostCustom {
+public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 

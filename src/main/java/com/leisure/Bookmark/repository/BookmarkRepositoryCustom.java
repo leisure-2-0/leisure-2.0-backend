@@ -5,7 +5,7 @@ import com.leisure.Bookmark.dto.result.BookmarkedPostResult;
 
 import java.util.List;
 
-public interface BookmarkCustom {
+public interface BookmarkRepositoryCustom {
 
     List<BookmarkedPostResult> findBookmarkedPosts(Long memberId, BookmarkedPostSort sort, long offset, int size);
 }

@@ -6,8 +6,7 @@ import com.leisure.post.domain.PostCategory;
 
 import java.util.List;
 
-// 기능 목록 _ 실제 구현은 MapCustomImpl에서 수행
-public interface MapCustom {
+public interface MapRepositoryCustom {
 
     List<RegionPinCountResponse> findRegionPinCounts(PostCategory category);
 
