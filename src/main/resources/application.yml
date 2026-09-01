@@ -12,6 +12,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect  # 사용할 DB 방언(MySQL 문법에 맞게 SQL 생성)
         format_sql: true                             # 출력되는 SQL을 보기 좋게 줄바꿈/들여쓰기
+        jdbc:
+          time_zone: Asia/Seoul
+
+  Jackson:
+    time-zone: Asia-Seoul
 
   open-in-view: false    # OSIV 끔 → 영속성 컨텍스트를 트랜잭션 범위로 제한
 
