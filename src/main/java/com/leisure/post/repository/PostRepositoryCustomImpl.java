@@ -15,10 +15,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.leisure.Bookmark.domain.QPostBookmark.postBookmark;
+import static com.leisure.bookmark.domain.QPostBookmark.postBookmark;
 import static com.leisure.member.domain.QMember.member;
 import static com.leisure.post.domain.QPost.post;
-import static com.leisure.postLike.domain.QPostLike.postLike;
+import static com.leisure.postlike.domain.QPostLike.postLike;
 
 @Repository
 @RequiredArgsConstructor

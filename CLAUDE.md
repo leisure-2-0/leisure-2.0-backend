@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 개요
 
-`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글), `com.leisure.postLike`(좋아요), `com.leisure.Bookmark`(북마크), `com.leisure.tag`(태그), `com.leisure.festival`(축제 — TourAPI 연동, 현재 엔티티만 있는 초기 단계)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 단, 응답이 result와 사실상 동일하고 숨길 필드가 없는 단건 조회는 별도 `dto.response`를 두지 않고 `result`를 그대로 응답으로 내보내기도 한다. (게시글 상세가 원래 이 예외였으나, 태그가 붙으며 `PostDetailResult`(프로젝션)를 `PostDetailResponse`로 감싸게 되어 예외에서 빠졌다 — "태그" 참고. 규약은 "그때그때 최적"을 우선하며 상황이 바뀌면 갱신한다.) 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
+`leisure` — Spring Boot 4.0.6 / Java 21 백엔드 (Spring MVC + JPA/Hibernate + MySQL 8, 토큰 저장소로 Redis). 공통 인프라는 `com.leisure.global` 아래에 있고, 기능 도메인으로 `com.leisure.member`(회원), `com.leisure.auth`(로그인/인증), `com.leisure.post`(게시글), `com.leisure.postlike`(좋아요), `com.leisure.bookmark`(북마크), `com.leisure.tag`(태그), `com.leisure.festival`(축제 — TourAPI 연동 배치), `com.leisure.region`(지역 — TourAPI 법정동 코드)가 개발 중이다 — `domain`(엔티티) / `repository` / `service` / `controller` / `dto.request` / `dto.response` / `dto.result` / `event` 레이어 구조를 따른다(도메인마다 필요한 레이어만 둔다). `dto.result`는 서비스가 컨트롤러에 돌려주는 내부 결과 객체로, 클라이언트에 나가는 `dto.response`와 구분한다(예: 로그인에서 서비스는 두 토큰을 담은 `LoginResult`를 반환하고, 컨트롤러가 access 토큰만 담은 `LoginResponse`로 변환). 단, 응답이 result와 사실상 동일하고 숨길 필드가 없는 단건 조회는 별도 `dto.response`를 두지 않고 `result`를 그대로 응답으로 내보내기도 한다. (게시글 상세가 원래 이 예외였으나, 태그가 붙으며 `PostDetailResult`(프로젝션)를 `PostDetailResponse`로 감싸게 되어 예외에서 빠졌다 — "태그" 참고. 규약은 "그때그때 최적"을 우선하며 상황이 바뀌면 갱신한다.) 인증은 JWT 기반이며 관련 공통 인프라는 `global/auth` 아래에 있다(아래 "인증 & 토큰" 참고).
 
 ## 명령어
 
@@ -90,9 +90,9 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
 - **메인 피드(`GET /posts/main`, `PostQueryService.getMainFeedPosts`)** — 비로그인 공개, 페이지네이션 없이 **최신/인기순 상위 18개 고정**(카테고리 필터 가능). 리포지토리는 `MainFeedPostResult`로 프로젝션하고, 서비스가 `PostResponseAssembler.assembleMainFeed`로 태그를 병합해 얇은 래퍼 없이 `List<MainFeedPostResponse>`를 직접 반환한다(둘러보기의 `PostResponse`와 필드는 같지만 결합도 분리를 위해 별도 DTO). `GET /posts/{postId}`(상세)와 경로가 겹치므로 상세는 `{postId:\\d+}`로 숫자만 매칭한다. 조회수·좋아요/북마크 정합성이나 Redis 캐싱은 성능 측정 후로 보류. **대표이미지**는 이미지 도메인 구현 후 채운다(태그는 반영 완료).
 - **비로그인 개인화 처리** — 공개 조회(둘러보기/메인/상세)에서 `@CurrentMember(required=false)`로 받은 `publicId`가 null이면 `memberId=null`로 조회한다. QueryDSL `memberIdEq` 헬퍼가 memberId가 null일 때 `Expressions.FALSE`(어떤 좋아요/북마크 행도 매칭 안 함)를 반환해 isLiked/isBookmarked를 false로 만든다.
 
-## 좋아요 / 북마크 (postLike, Bookmark)
+## 좋아요 / 북마크 (postlike, bookmark)
 
-`com.leisure.postLike`, `com.leisure.Bookmark`. 구조가 동일하다 — 회원↔게시글 조인테이블(`PostLike`/`PostBookmark`, id-only 참조) + 토글 API + 내 목록 조회.
+`com.leisure.postlike`, `com.leisure.bookmark`. 구조가 동일하다 — 회원↔게시글 조인테이블(`PostLike`/`PostBookmark`, id-only 참조) + 토글 API + 내 목록 조회.
 
 - **토글** — `POST/DELETE /posts/{postId}/likes`(`PostLikeService.like`/`unlike`), `POST/DELETE /posts/{postId}/bookmarks`(`BookmarkService`). 흐름: `getPublishedPost`로 대상 확인(없거나 PUBLISHED 아니면 `POST_NOT_FOUND`) → 중복 검사(`existsBy...`, 이미 눌렀으면 `..._ALREADY_...`) → 저장/삭제 → Post의 비정규화 카운트를 원자적 `@Modifying`으로 증감 → 최신 카운트와 상태 플래그를 응답. 저장 경로는 `save`+`flush` 후 `DataIntegrityViolationException`을 잡아 동시성 안전망을 둔다. 취소는 `deleteBy...` 반환값이 0이면 `..._NOT_..._YET`.
 - **내 목록 조회** — `GET /members/me/likes`, `GET /members/me/bookmarks`. 오프셋 기반이며 QueryDSL로 `LikedPostResult`/`BookmarkedPostResult`로 조인 프로젝션한 뒤, 각 도메인의 어셈블러(`LikedPostResponseAssembler`/`BookmarkedPostResponseAssembler`)가 태그를 병합해 `*Response`로 만든다. **목록 쿼리(QueryDSL)와 count 쿼리(JPQL)의 where 필터가 반드시 일치해야** totalElements와 실제 개수가 어긋나지 않는다(삭제글·탈퇴작성자·PUBLISHED 조건 동일하게 유지). 정렬 `POPULAR`(likeCount desc)는 값이 변해 오프셋 페이지네이션과 상성이 나쁘지만 개인 목록 규모라 트레이드오프로 수용.

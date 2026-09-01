@@ -1,6 +1,6 @@
 package com.leisure.festival.domain;
 
-import com.leisure.festival.dto.FestivalData;
+import com.leisure.festival.dto.command.FestivalData;
 import com.leisure.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

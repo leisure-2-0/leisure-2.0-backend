@@ -1,7 +1,7 @@
 package com.leisure.festival.service;
 
 import com.leisure.festival.domain.Festival;
-import com.leisure.festival.dto.FestivalData;
+import com.leisure.festival.dto.command.FestivalData;
 import com.leisure.festival.dto.result.FestivalSyncResult;
 import com.leisure.festival.repository.FestivalRepository;
 import lombok.RequiredArgsConstructor;

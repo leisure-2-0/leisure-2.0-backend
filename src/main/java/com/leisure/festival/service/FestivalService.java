@@ -1,7 +1,7 @@
 package com.leisure.festival.service;
 
 import com.leisure.festival.domain.Festival;
-import com.leisure.festival.dto.FestivalData;
+import com.leisure.festival.dto.command.FestivalData;
 import com.leisure.festival.dto.result.FestivalSyncResult;
 import com.leisure.festival.repository.FestivalRepository;
 import com.leisure.global.external.tourapi.TourApiClient;
@@ -37,7 +37,7 @@ public class FestivalService {
 
     private static final Pattern HREF_PATTERN = Pattern.compile("href=\"([^\"]+)\"");
 
-    public FestivalSyncResult syncFestivalList() {
+    public void syncFestivalList() {
 
         String eventStartDate = LocalDate.now()
                 .withDayOfYear(1)
@@ -53,8 +53,6 @@ public class FestivalService {
 
         log.info("[festival-sync] 목록 완료 inserted={}, updated={}, total={}",
                 result.inserted(), result.updated(), result.total());
-
-        return result;
     }
 
     public void syncOverviewAndHomepage() {

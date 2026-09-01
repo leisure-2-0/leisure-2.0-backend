@@ -2,10 +2,11 @@ package com.leisure.region.service;
 
 import com.leisure.global.external.tourapi.TourApiClient;
 import com.leisure.global.external.tourapi.dto.response.LdongCodeResponse.Item;
-import com.leisure.region.dto.RegionData;
-import com.leisure.region.dto.response.RegionSyncResponse;
+import com.leisure.region.dto.command.RegionData;
 import com.leisure.region.dto.result.RegionSyncResult;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,11 +16,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegionService {
 
+    private static final Logger log = LoggerFactory.getLogger(RegionService.class);
+
     private final TourApiClient client;
 
-    private final RegionUpserter upserter;
+    private final RegionWriter writer;
 
-    public RegionSyncResponse syncRegions() {
+    public void syncRegions() {
 
         List<RegionData> list = new ArrayList<>();
 
@@ -34,7 +37,9 @@ public class RegionService {
 
         }
 
-        RegionSyncResult result = upserter.upsert(list);
-        return new RegionSyncResponse(result.inserted(), result.updated(), result.total());
+        RegionSyncResult result = writer.updates(list);
+
+        log.info("[region-sync] 완료 inserted={}, updated={}, total={}",
+                result.inserted(), result.updated(), result.total());
     }
 }
