@@ -27,15 +27,15 @@ public class FestivalService {
 
     private static final Logger log = LoggerFactory.getLogger(FestivalService.class);
 
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    private static final Pattern HREF_PATTERN = Pattern.compile("href=\"([^\"]+)\"");
+
     private final FestivalRepository repository;
 
     private final TourApiClient client;
 
     private final FestivalWriter writer;
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-
-    private static final Pattern HREF_PATTERN = Pattern.compile("href=\"([^\"]+)\"");
 
     public void syncFestivalList() {
 
@@ -43,7 +43,7 @@ public class FestivalService {
                 .withDayOfYear(1)
                 .format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        List<Item> items = client.searchAllFestivals(eventStartDate);
+        List<Item> items = client.fetchFestivals(eventStartDate);
 
         List<FestivalData> dataList = items.stream()
                 .map(item -> toData(item))

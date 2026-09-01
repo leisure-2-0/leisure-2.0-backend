@@ -68,7 +68,7 @@ public class TourApiClient {
         return builder.build(true).toUri();
     }
 
-    public List<Item> searchAllFestivals(String eventStartDate) {
+    public List<Item> fetchFestivals(String eventStartDate) {
 
         List<Item> allItems = new ArrayList<>();
 
