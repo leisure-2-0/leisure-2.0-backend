@@ -126,5 +126,14 @@ public class Festival extends BaseTimeEntity {
             this.tourModifiedAt = incoming;
         }
     }
+
+    public void updateFromDetailCommon(String overview, String homepageUrl) {
+        this.overview = overview;
+        this.homepageUrl = homepageUrl;
+    }
+
+    public void updateFromDetailIntro(String eventTime) {
+        this.eventTime = eventTime;
+    }
 }
 
