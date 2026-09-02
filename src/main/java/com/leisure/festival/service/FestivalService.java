@@ -132,7 +132,8 @@ public class FestivalService {
                 blankToNull(item.contentTypeId()),
                 blankToNull(item.lclsSystm2()),
                 blankToNull(item.lclsSystm3()),
-                parseDateTime(item.modifiedTime())
+                parseDateTime(item.modifiedTime()),
+                blankToNull(item.firstImage2())
         );
     }
 

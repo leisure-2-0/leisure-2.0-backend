@@ -63,6 +63,9 @@ public record FestivalListResponse(Response response) implements TourApiResponse
             String lclsSystm3,
 
             @JsonProperty("modifiedtime")
-            String modifiedTime
+            String modifiedTime,
+
+            @JsonProperty("firstimage2")
+            String firstImage2
     ) {}
 }

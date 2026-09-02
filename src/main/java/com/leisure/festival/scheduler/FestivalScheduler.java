@@ -28,7 +28,7 @@ public class FestivalScheduler {
 
     @Scheduled(cron = "0 30 23 * * *", zone = "Asia/Seoul")
     public void syncOverviewAndHomepage() {
-        log.info("[festival-detail] 소개글·홈페이지 배치 시작");
+        log.info("[festival-detail] 소개글, 홈페이지 배치 시작");
 
         try {
             service.syncOverviewAndHomepage();

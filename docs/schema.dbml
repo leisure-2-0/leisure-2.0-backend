@@ -96,9 +96,10 @@ Table festivals {
   content_type_id varchar(255)
   lcls_systm2 varchar(255) [note: '중분류(축제/공연/행사)']
   lcls_systm3 varchar(255) [note: '소분류']
-  tour_modified_at datetime [note: 'modifiedtime, 상세 배치 델타 기준']
-  created_at datetime [not null]
-  updated_at datetime [not null]
+  tour_modified_at timestamp [note: 'modifiedtime, 상세 배치 델타 기준']
+  thumbnail_url varchar(1000) [note: '대표이미지 썸네일 URL, TourAPI firstimage2']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
 }
 
 Table regions {
@@ -107,8 +108,8 @@ Table regions {
   ldong_signgu_cd varchar(255) [not null]
   regn_name varchar(255) [not null]
   signgu_name varchar(255) [not null]
-  created_at datetime [not null]
-  updated_at datetime [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
 
   indexes {
     (ldong_regn_cd, ldong_signgu_cd) [unique, name: 'uk_regions_area_sigungu']

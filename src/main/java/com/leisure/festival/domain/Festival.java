@@ -74,10 +74,13 @@ public class Festival extends BaseTimeEntity {
     @Column(name = "tour_modified_at", comment = "TourAPI 콘텐츠 수정일시, modifiedtime — 상세 보강 배치의 델타 감지 기준")
     private LocalDateTime tourModifiedAt;
 
+    @Column(name = "thumbnail_url", length = 1000, comment = "대표이미지 썸네일 URL, TourAPI firstimage2")
+    private String thumbnailUrl;
+
     private Festival(String tourContentId, String name, String address, String detailAddress,
                      LocalDate eventStartDate, LocalDate eventEndDate, Double latitude, Double longitude,
                      String ldongRegnCd, String ldongSignguCd, String contentTypeId,
-                     String lclsSystm2, String lclsSystm3, LocalDateTime tourModifiedAt) {
+                     String lclsSystm2, String lclsSystm3, LocalDateTime tourModifiedAt, String thumbnailUrl) {
         this.tourContentId = tourContentId;
         this.name = name;
         this.address = address;
@@ -92,13 +95,14 @@ public class Festival extends BaseTimeEntity {
         this.lclsSystm2 = lclsSystm2;
         this.lclsSystm3 = lclsSystm3;
         this.tourModifiedAt = tourModifiedAt;
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public static Festival create(FestivalData data) {
         return new Festival(data.tourContentId(), data.name(), data.address(), data.detailAddress(),
                 data.eventStartDate(), data.eventEndDate(), data.latitude(), data.longitude(),
                 data.ldongRegnCd(), data.ldongSignguCd(), data.contentTypeId(),
-                data.lclsSystm2(), data.lclsSystm3(), data.tourModifiedAt());
+                data.lclsSystm2(), data.lclsSystm3(), data.tourModifiedAt(), data.thumbnailUrl());
     }
 
     public void updateFromList(FestivalData data) {
@@ -114,6 +118,7 @@ public class Festival extends BaseTimeEntity {
         this.contentTypeId = data.contentTypeId();
         this.lclsSystm2 = data.lclsSystm2();
         this.lclsSystm3 = data.lclsSystm3();
+        this.thumbnailUrl = data.thumbnailUrl();
 
         LocalDateTime incoming = data.tourModifiedAt();
         if (incoming != null && (this.tourModifiedAt == null || incoming.isAfter(this.tourModifiedAt))) {

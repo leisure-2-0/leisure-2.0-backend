@@ -30,5 +30,7 @@ public record FestivalData(
 
         String lclsSystm3,
 
-        LocalDateTime tourModifiedAt
+        LocalDateTime tourModifiedAt,
+
+        String thumbnailUrl
 ) {}
