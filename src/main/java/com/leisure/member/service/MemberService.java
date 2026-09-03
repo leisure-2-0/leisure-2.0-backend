@@ -130,8 +130,8 @@ public class MemberService {
         tokenStatusStore.increaseInvalidationVersion(publicId);
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
-        String newAccessToken = tokenProvider.issueAccessToken(publicId, member.getEmail(), invalidationVersion);
-        String newRefreshToken = tokenProvider.issueRefreshToken(publicId, member.getEmail(), invalidationVersion);
+        String newAccessToken = tokenProvider.issueAccessToken(publicId, member.getEmail(), member.getRole(), invalidationVersion);
+        String newRefreshToken = tokenProvider.issueRefreshToken(publicId, member.getEmail(), member.getRole(), invalidationVersion);
 
         refreshTokenStore.save(publicId, newRefreshToken, tokenProvider.getRefreshTokenTtl());
 

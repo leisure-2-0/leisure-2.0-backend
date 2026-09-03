@@ -39,11 +39,16 @@ public class Member extends BaseSoftDeleteEntity {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private MemberRole role;
+
     private Member(String email, String password, String nickname, String profileImageUrl) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
+        this.role = MemberRole.MEMBER;
     }
 
     public static Member create(String email, String password, String nickname, String profileImageUrl) {

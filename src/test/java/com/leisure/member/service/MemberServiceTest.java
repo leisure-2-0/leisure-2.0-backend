@@ -7,6 +7,7 @@ import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
+import com.leisure.member.domain.MemberRole;
 import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
@@ -311,8 +312,8 @@ class MemberServiceTest {
             given(encoder.matches("curPw1!", STORED_PASSWORD)).willReturn(true);
             given(encoder.encode("newPw1!")).willReturn("NEW_ENCODED");
             given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(1L);
-            given(tokenProvider.issueAccessToken(PUBLIC_ID, EMAIL, 1L)).willReturn("access");
-            given(tokenProvider.issueRefreshToken(PUBLIC_ID, EMAIL, 1L)).willReturn("refresh");
+            given(tokenProvider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 1L)).willReturn("access");
+            given(tokenProvider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 1L)).willReturn("refresh");
             given(tokenProvider.getRefreshTokenTtl()).willReturn(1000L);
             PasswordChangeRequest request = new PasswordChangeRequest("curPw1!", "newPw1!", "newPw1!");
 

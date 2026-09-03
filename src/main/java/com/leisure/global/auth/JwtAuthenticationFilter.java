@@ -6,6 +6,7 @@ import com.leisure.global.auth.store.RedisBlacklistTokenStore;
 import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
+import com.leisure.member.domain.MemberRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -53,6 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String publicId = provider.getPublicId(pureToken);
             String email = provider.getEmail(pureToken);
+            MemberRole role = provider.getRole(pureToken);
 
             long claimVersion = provider.extractInvalidationVersion(pureToken);
             long storedVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
@@ -62,9 +65,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
             MemberPrincipal principal = new MemberPrincipal(publicId, email);
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+            Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);

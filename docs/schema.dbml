@@ -20,6 +20,7 @@ Table members {
     password varchar(255) [not null, note: 'BCrypt']
     nickname varchar(50) [unique, not null, note: '공백 불가(^\\S+$)']
     profile_image_url varchar(500) [note: 'nullable']
+    role varchar(20) [not null, note: '회원 권한 (MEMBER/ADMIN), 기본 MEMBER']
     created_at timestamp [not null, note: '생성 시각(@CreatedDate)']
     updated_at timestamp [not null, note: '수정 시각(@LastModifiedDate)']
     deleted_at timestamp [note: '소프트 삭제 시각(nullable)']

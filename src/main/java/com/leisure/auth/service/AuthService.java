@@ -11,6 +11,7 @@ import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
+import com.leisure.member.domain.MemberRole;
 import com.leisure.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,11 +47,12 @@ public class AuthService {
 
         String publicId = member.getPublicId();
         String email = member.getEmail();
+        MemberRole role = member.getRole();
         long ttl = provider.getRefreshTokenTtl();
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
-        String accessToken = provider.issueAccessToken(publicId, email, invalidationVersion);
-        String refreshToken = provider.issueRefreshToken(publicId, email, invalidationVersion);
+        String accessToken = provider.issueAccessToken(publicId, email, role, invalidationVersion);
+        String refreshToken = provider.issueRefreshToken(publicId, email, role, invalidationVersion);
 
         refreshTokenStore.save(publicId, refreshToken, ttl);
 
@@ -79,12 +81,13 @@ public class AuthService {
         provider.verifyRefreshToken(refreshToken);
         String publicId = provider.getPublicId(refreshToken);
         String email = provider.getEmail(refreshToken);
+        MemberRole role = provider.getRole(refreshToken);
         long ttl = provider.getRefreshTokenTtl();
 
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
-        String newAccessToken = provider.issueAccessToken(publicId, email, invalidationVersion);
-        String newRefreshToken = provider.issueRefreshToken(publicId, email, invalidationVersion);
+        String newAccessToken = provider.issueAccessToken(publicId, email, role, invalidationVersion);
+        String newRefreshToken = provider.issueRefreshToken(publicId, email, role, invalidationVersion);
 
         TokenRotationContext context = new TokenRotationContext(publicId, refreshToken, newRefreshToken, ttl);
 
