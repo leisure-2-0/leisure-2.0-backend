@@ -1,0 +1,117 @@
+Enum post_category {
+    RESTAURANT
+    HOTEL
+    ACTIVITY
+    SCENERY
+  }
+
+  Enum post_status {
+    WRITING
+    DRAFT
+    PENDING
+    PUBLISHED
+    REJECTED
+  }
+
+Table members {
+    member_id bigint [pk, increment]
+    public_id varchar(36) [unique, not null, note: 'UUID, 발급 후 불변 — 외부 노출 식별자']
+    email varchar(255) [unique, not null, note: 'BCrypt 아님 / trim+소문자 정규화 후 저장']
+    password varchar(255) [not null, note: 'BCrypt']
+    nickname varchar(50) [unique, not null, note: '공백 불가(^\\S+$)']
+    profile_image_url varchar(500) [note: 'nullable']
+    created_at timestamp [not null, note: '생성 시각(@CreatedDate)']
+    updated_at timestamp [not null, note: '수정 시각(@LastModifiedDate)']
+    deleted_at timestamp [note: '소프트 삭제 시각(nullable)']
+  }
+
+Table posts {
+    post_id bigint [pk, increment]
+    member_id bigint [not null, ref: > members.member_id, note: 'id-only 참조(DB FK 없음)']
+    title varchar(50) [note: 'draft: nullable / PUBLISHED 시 필수']
+    content text [note: 'draft: nullable / PUBLISHED 시 필수']
+    status post_status [not null, note: '앱에서 설정 — 생성 시 WRITING']
+    category post_category [note: 'nullable']
+    view_count int [not null, default: 0, note: '비정규화 카운트(원자적 @Modifying 증감)']
+    like_count int [not null, default: 0]
+    bookmark_count int [not null, default: 0]
+    region varchar(255) [note: '@Embedded PostLocation — 목록 카드 노출용']
+    place_name varchar(255)
+    address varchar(255)
+    latitude double
+    longitude double
+    published_at timestamp [note: '공개 시각(PUBLISHED 전엔 null)']
+    created_at timestamp [not null, note: '초안 최초 생성 시각']
+    updated_at timestamp [not null, note: '마지막 수정(자동저장 포함) = 임시저장 시각']
+    deleted_at timestamp [note: '소프트 삭제(게시글). 초안은 하드 삭제라 행이 사라짐']
+  }
+
+Table post_likes {
+    post_like_id bigint [pk, increment, note: '대리키(복합 PK 아님)']
+    member_id bigint [not null, ref: > members.member_id, note: 'id-only 참조']
+    post_id bigint [not null, ref: > posts.post_id, note: 'id-only 참조']
+    created_at timestamp [not null]
+
+    indexes {
+      (member_id, post_id) [unique, name: 'uk_post_like_member_post'] // 중복 좋아요 차단
+    }
+  }
+
+Table post_bookmarks {
+    post_bookmark_id bigint [pk, increment, note: '대리키(복합 PK 아님)']
+    member_id bigint [not null, ref: > members.member_id, note: 'id-only 참조']
+    post_id bigint [not null, ref: > posts.post_id, note: 'id-only 참조']
+    created_at timestamp [not null]
+
+    indexes {
+      (member_id, post_id) [unique, name: 'uk_post_bookmark_member_post']
+    }
+  }
+
+Table post_tags {
+    post_tag_id bigint [pk, increment]
+    post_id bigint [not null, ref: > posts.post_id, note: 'id-only 참조']
+    post_tag_name varchar(255) [not null, note: '태그 이름 직접 저장(비정규화) — 별도 tags 테이블 없음. 검색/자동완성은 ES 담당']
+
+    indexes {
+      (post_id, post_tag_name) [unique, name: 'uk_post_tags_post_id_tag'] // 글당 중복 태그 차단
+    }
+  }
+
+Table festivals {
+  festival_id bigint [pk, increment]
+  tour_content_id varchar(255) [not null, unique, note: 'TourAPI contentid, upsert 자연키']
+  name varchar(255) [not null]
+  overview varchar(3000)
+  homepage_url varchar(1000)
+  event_time varchar(255)
+  address varchar(255)
+  detail_address varchar(255)
+  event_start_date date
+  event_end_date date
+  latitude double [note: 'TourAPI mapy']
+  longitude double [note: 'TourAPI mapx']
+  ldong_regn_cd varchar(255) [note: 'Region 조인 키(광역)']
+  ldong_signgu_cd varchar(255) [note: 'Region 조인 키(시군구)']
+  content_type_id varchar(255)
+  lcls_systm2 varchar(255) [note: '중분류(축제/공연/행사)']
+  lcls_systm3 varchar(255) [note: '소분류']
+  tour_modified_at timestamp [note: 'modifiedtime, 상세 배치 델타 기준']
+  thumbnail_url varchar(1000) [note: '대표이미지 썸네일 URL, TourAPI firstimage2']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table regions {
+  region_id bigint [pk, increment]
+  ldong_regn_cd varchar(255) [not null]
+  ldong_signgu_cd varchar(255) [not null]
+  regn_name varchar(255) [not null]
+  signgu_name varchar(255) [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (ldong_regn_cd, ldong_signgu_cd) [unique, name: 'uk_regions_area_sigungu']
+  }
+}
