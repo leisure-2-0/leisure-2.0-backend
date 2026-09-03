@@ -39,4 +39,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long>, Festi
             order by f.name asc
             """)
     List<MonthlyFestivalResponse> findMonthlyFestivals(LocalDate monthStart, LocalDate monthEnd, String code);
+
+    @Query("select count(f.festivalId) from Festival f where f.eventStartDate <= :monthEnd and f.eventEndDate >= :monthStart")
+    long countFestivalsInProgress(LocalDate monthStart, LocalDate monthEnd);
 }

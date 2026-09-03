@@ -1,6 +1,7 @@
 package com.leisure.post.repository;
 
 import com.leisure.post.domain.Post;
+import com.leisure.post.domain.PostStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -39,6 +40,16 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
             """)
     long countMyPosts(Long memberId);
+
+    long countByStatusAndDeletedAtIsNull(PostStatus status);
+
+    @Query("""
+            select count(distinct p.location.region)
+            from Post p
+            where p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            """)
+    long countCertifiedRegions();
 
     // TODO: 부하 테스트 후 Redis 조회수 INCR
     @Modifying(clearAutomatically = true)
