@@ -104,7 +104,7 @@ public class PostService {
             tagRepository.deleteByPostId(postId);
             repository.delete(post);
         } else {
-            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, @SQLRestriction으로 조회에서 제외)
+            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, 각 조회 쿼리의 명시 필터로 제외)
             // TODO: 소프트 삭제된 게시글은 배치로 일괄 하드 삭제하고,
             //       태그, 좋아요, 북마크도 같은 생명주기로 함께 배치 삭제한다.
             post.delete();

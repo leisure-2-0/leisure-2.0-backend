@@ -56,7 +56,7 @@ class PostServiceTest {
     private static final Long POST_ID = 10L;
 
     private Member member(Long memberId) {
-        Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+        Member member = Member.create("user@leisure.com", "ENCODED", "nick");
         ReflectionTestUtils.setField(member, "memberId", memberId);
         return member;
     }

@@ -1,3 +1,5 @@
+# "호스트포트:컨테이너포트"
+
 services:
   mysql:
     container_name: projectY-mysql-local
@@ -17,14 +19,26 @@ services:
 
   redis:
     container_name: projectY-redis-local
-    image: redis:7
+    image: redis:7 # 레디스도 gui 내장이 있나?
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
 
+  rabbitmq:
+    container_name: projectY-rabbitmq-local
+    image: rabbitmq:4.2.6-management-alpine
+    ports:
+      - "5672:5672"      # AMQP (앱 연결)
+      - "15672:15672"    # 관리 UI (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: leisure
+      RABBITMQ_DEFAULT_PASS: leisure
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
 volumes:
   mysql-data:
   redis-data:
-
+  rabbitmq-data:
 

@@ -25,6 +25,31 @@ spring:
       port: 6379
       database: 0
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: leisure
+    password: leisure
+
+    # 발행 확인(publisher confirm): 브로커가 메시지를 받았는지 비동기 ack. correlated=어떤 메시지가 확인됐는지 상관관계 데이터로 추적 가능
+    publisher-confirm-type: correlated
+    # 발행 반환(publisher return): 큐로 라우팅되지 못한 메시지를 다시 돌려받음(바인딩 오류 등 감지)
+    publisher-returns: true
+    template:
+      # 라우팅 실패 메시지를 버리지 않고 return 콜백으로 돌려보냄(publisher-returns가 실제로 동작하려면 필요)
+      mandatory: true
+    listener:
+      simple:
+        # ack 방식: auto=리스너 정상 종료 시 자동 ack, 예외 던지면 자동 nack
+        acknowledge-mode: manual
+        # 컨슈머가 한 번에 미리 가져오는 미확인 메시지 수(처리량 조절). 공식 = 왕복시간 / 처리시간
+        prefetch: 10
+        # nack된 메시지를 큐로 되돌릴지: false=되돌리지 않고 DLQ로 보냄(무한 재전송 루프 방지, 영구실패 격리)
+        default-requeue-rejected: false
+        retry:
+          # 인메모리 재시도: false=재시도 없이 실패 즉시 DLQ. (일시 장애 재시도 원하면 true + max-attempts)
+          enabled: false
+
   jpa:
     hibernate:
       # DDL(테이블 생성/수정) 자동화 전략

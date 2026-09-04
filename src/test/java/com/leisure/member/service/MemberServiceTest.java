@@ -63,7 +63,7 @@ class MemberServiceTest {
     private MemberService memberService;
 
     private SignUpRequest request(String email, String password, String passwordCheck, String nickname) {
-        return new SignUpRequest(email, password, passwordCheck, nickname, null);
+        return new SignUpRequest(email, password, passwordCheck, nickname);
     }
 
     @Nested
@@ -197,7 +197,8 @@ class MemberServiceTest {
         private static final String PUBLIC_ID = "public-id";
 
         private Member existingMember() {
-            Member member = Member.create("user@leisure.com", "ENCODED", "oldNick", "old.png");
+            Member member = Member.create("user@leisure.com", "ENCODED", "oldNick");
+            member.changeProfileImageUrl("old.png");   // 프로필수정으로 이미 저장된 상태 흉내
             ReflectionTestUtils.setField(member, "memberId", 1L);
             ReflectionTestUtils.setField(member, "publicId", PUBLIC_ID);
             return member;
@@ -282,7 +283,7 @@ class MemberServiceTest {
         @Test
         @DisplayName("회원을 소프트 삭제하고 MemberWithdrawnEvent를 발행한다")
         void success() {
-            Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+            Member member = Member.create("user@leisure.com", "ENCODED", "nick");
             given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
 
             memberService.withdraw(PUBLIC_ID);
@@ -301,7 +302,7 @@ class MemberServiceTest {
         private static final String STORED_PASSWORD = "STORED_ENCODED";
 
         private Member member() {
-            return Member.create(EMAIL, STORED_PASSWORD, "nick", null);
+            return Member.create(EMAIL, STORED_PASSWORD, "nick");
         }
 
         @Test

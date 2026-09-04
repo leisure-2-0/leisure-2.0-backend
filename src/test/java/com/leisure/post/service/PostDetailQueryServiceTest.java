@@ -53,7 +53,7 @@ class PostDetailQueryServiceTest {
     private static final Long POST_ID = 10L;
 
     private Member member() {
-        Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+        Member member = Member.create("user@leisure.com", "ENCODED", "nick");
         ReflectionTestUtils.setField(member, "memberId", MEMBER_ID);
         return member;
     }

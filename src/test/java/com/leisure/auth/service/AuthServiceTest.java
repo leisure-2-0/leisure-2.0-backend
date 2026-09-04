@@ -68,7 +68,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         // 저장된 비밀번호는 인코딩된 값, publicId는 @PrePersist 대신 리플렉션으로 주입
-        member = Member.create(EMAIL, ENCODED_PASSWORD, "nickname", null);
+        member = Member.create(EMAIL, ENCODED_PASSWORD, "nickname");
         ReflectionTestUtils.setField(member, "publicId", PUBLIC_ID);
     }
 

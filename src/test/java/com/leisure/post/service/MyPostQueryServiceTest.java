@@ -48,7 +48,7 @@ class MyPostQueryServiceTest {
     private static final Long MEMBER_ID = 1L;
 
     private Member member() {
-        Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+        Member member = Member.create("user@leisure.com", "ENCODED", "nick");
         ReflectionTestUtils.setField(member, "memberId", MEMBER_ID);
         return member;
     }

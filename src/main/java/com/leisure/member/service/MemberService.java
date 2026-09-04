@@ -51,15 +51,12 @@ public class MemberService {
 
         validateMemberUniqueness(email, request.nickname());
 
-        // TODO: PreSigned URL 기반 이미지 업로드 로직
-
         String encodedPassword = encoder.encode(request.password());
 
         Member member = Member.create(
                 email,
                 encodedPassword,
-                request.nickname(),
-                request.profileImageUrl());
+                request.nickname());
 
         try {
             repository.save(member);
@@ -105,6 +102,8 @@ public class MemberService {
             }
             member.changeNickname(nickname);
         }
+
+        // TODO: PreSigned URL 기반 이미지 업로드 로직
 
         if (profileImageUrl != null) {
             member.changeProfileImageUrl(profileImageUrl);
