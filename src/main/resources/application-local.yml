@@ -47,7 +47,10 @@ spring:
         # nack된 메시지를 큐로 되돌릴지: false=되돌리지 않고 DLQ로 보냄(무한 재전송 루프 방지, 영구실패 격리)
         default-requeue-rejected: false
         retry:
-          # 인메모리 재시도: false=재시도 없이 실패 즉시 DLQ. (일시 장애 재시도 원하면 true + max-attempts)
+          # 인메모리 재시도: false=재시도 없이 실패 즉시 DLQ.
+          # 참고) 이 컨슈머는 MANUAL ack로 예외를 직접 catch해 basicNack(→DLQ) 하는 구조라,
+          #       선언적 재시도(true)를 켜도 인터셉터가 예외를 못 받아 동작하지 않는다(의도적으로 off).
+          #       재시도가 필요하면 AUTO ack + 예외 전파 방식으로 바꿔야 한다. earn은 멱등이라 재시도 자체는 안전.
           enabled: false
 
   jpa:

@@ -9,7 +9,9 @@ import com.leisure.post.repository.PostRepository;
 import com.leisure.bookmark.repository.BookmarkRepository;
 import com.leisure.bookmark.domain.PostBookmark;
 import com.leisure.bookmark.dto.response.BookmarkResponse;
+import com.leisure.bookmark.event.PostBookmarkedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ public class BookmarkService {
     private final PostRepository postRepository;
 
     private final BookmarkRepository bookmarkRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public BookmarkResponse bookmark(String publicId, Long postId) {
@@ -48,6 +52,8 @@ public class BookmarkService {
         postRepository.increaseBookmarkCount(post.getPostId());
 
         int bookmarkCount = postRepository.findBookmarkCountByPostId(post.getPostId());
+
+        eventPublisher.publishEvent(new PostBookmarkedEvent(post.getMemberId(), memberId, post.getPostId()));
 
         return new BookmarkResponse(memberId, post.getPostId(), bookmarkCount, true);
     }

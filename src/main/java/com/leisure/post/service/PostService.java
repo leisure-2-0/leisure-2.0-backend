@@ -4,6 +4,7 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
 import com.leisure.post.domain.Post;
+import com.leisure.post.event.PostPublishedEvent;
 import com.leisure.post.domain.PostLocation;
 import com.leisure.post.dto.request.LocationRequest;
 import com.leisure.post.dto.response.PostDeleteResponse;
@@ -19,6 +20,7 @@ import com.leisure.post.repository.PostRepository;
 import com.leisure.tag.domain.PostTag;
 import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ public class PostService {
     private final PostRepository repository;
 
     private final TagRepository tagRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
@@ -73,6 +77,8 @@ public class PostService {
         }
 
         post.publish();
+
+        eventPublisher.publishEvent(new PostPublishedEvent(post.getMemberId(), post.getPostId()));
 
         return new PostPublishResponse(post.getPostId(), post.getStatus(), post.getPublishedAt());
     }
@@ -140,4 +146,5 @@ public class PostService {
 
         tagRepository.saveAll(PostTag.createAll(postId, tagNames));
     }
+
 }

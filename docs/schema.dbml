@@ -21,6 +21,7 @@ Table members {
     nickname varchar(50) [unique, not null, note: '공백 불가(^\\S+$)']
     profile_image_url varchar(500) [note: 'nullable']
     role varchar(20) [not null, note: '회원 권한 (MEMBER/ADMIN), 기본 MEMBER']
+    point int [not null, default: 0, note: '보유 여가 포인트(원자적 @Modifying 증감), 원장은 point_histories']
     created_at timestamp [not null, note: '생성 시각(@CreatedDate)']
     updated_at timestamp [not null, note: '수정 시각(@LastModifiedDate)']
     deleted_at timestamp [note: '소프트 삭제 시각(nullable)']
@@ -101,6 +102,20 @@ Table festivals {
   thumbnail_url varchar(1000) [note: '대표이미지 썸네일 URL, TourAPI firstimage2']
   created_at timestamp [not null]
   updated_at timestamp [not null]
+}
+
+Table point_histories {
+  point_history_id bigint [pk, increment]
+  member_id bigint [not null, ref: > members.member_id, note: '포인트 수령자(게시글 작성자) — id-only 참조']
+  amount int [not null, note: '적립 점수 (적립 시점 정책 점수 보존, PointType.amount)']
+  actor_id bigint [not null, ref: > members.member_id, note: '행위자(좋아요/북마크 누른 사람, 게시는 작성자 본인) — id-only 참조']
+  source_id bigint [not null, ref: > posts.post_id, note: '적립 트리거 대상(현재는 게시글 ID) — id-only 참조']
+  point_type varchar(30) [not null, note: '적립 사유 (POST_PUBLISH/LIKE_RECEIVED/BOOKMARK_RECEIVED)']
+  created_at timestamp [not null, note: 'append-only 원장 — updated_at/deleted_at 없음']
+
+  indexes {
+    (actor_id, source_id, point_type) [unique, name: 'uk_point_histories_actor_source_type'] // 1인당 1회 멱등키(취소/토글 재적립 없음)
+  }
 }
 
 Table regions {

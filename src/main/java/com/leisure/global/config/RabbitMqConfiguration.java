@@ -47,14 +47,14 @@ public class RabbitMqConfiguration {
         rabbitTemplate.setMessageConverter(jacksonJsonMessageConverter);
 
         rabbitTemplate.setMandatory(true);
-        rabbitTemplate.setConfirmCallback((correlation, ack, cause) -> {
-
-            if (ack) {
-                return;
-            }
-
-            log.error("[rabbit] 발행 미확인 correlation Id={} cause={}", correlation != null ? correlation.getId() : null, cause);
-        });
+//        rabbitTemplate.setConfirmCallback((correlation, ack, cause) -> {
+//
+//            if (ack) {
+//                return;
+//            }
+//
+//            log.error("[rabbit] 발행 미확인 correlation Id={} cause={}", correlation != null ? correlation.getId() : null, cause);
+//        });
 
         rabbitTemplate.setReturnsCallback(returned ->
                 log.error("[rabbit] 라우팅 실패 반환 exchange={} routingKey={} replyCode={} reason={} messageId={}",
