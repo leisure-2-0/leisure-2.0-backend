@@ -51,7 +51,7 @@ public class FestivalService {
 
         FestivalSyncResult result = writer.updates(dataList);
 
-        log.info("[festival-sync] 목록 완료 inserted={}, updated={}, total={}",
+        log.info("[festival-sync] 목록 완료 inserted={} updated={} total={}",
                 result.inserted(), result.updated(), result.total());
     }
 
@@ -83,7 +83,7 @@ public class FestivalService {
             }
         }
 
-        log.info("[festival-detail] 소개글 보강 완료 처리={}, 실패={}", success, failed);
+        log.info("[festival-detail] 소개글 보강 완료 성공={} 실패={}", success, failed);
     }
 
     public void syncEventTime() {
@@ -114,7 +114,7 @@ public class FestivalService {
             }
         }
 
-        log.info("[festival-detail] 운영시간 보강 완료 처리={}, 실패={}", success, failed);
+        log.info("[festival-detail] 운영시간 보강 완료 성공={} 실패={}", success, failed);
     }
 
     private FestivalData toData(Item item) {
@@ -170,7 +170,7 @@ public class FestivalService {
         try {
             return LocalDate.parse(raw, DateTimeFormatter.BASIC_ISO_DATE);
         } catch (DateTimeParseException e) {
-            log.warn("[festival-sync] 날짜 파싱 실패 contentId={}, raw={}", contentId, raw);
+            log.warn("[festival-sync] 날짜 파싱 실패 contentId={} raw={}", contentId, raw);
             return null;
         }
     }

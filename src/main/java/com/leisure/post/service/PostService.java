@@ -4,6 +4,7 @@ import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.service.MemberReader;
 import com.leisure.post.domain.Post;
+import com.leisure.post.event.PostPublishedEvent;
 import com.leisure.post.domain.PostLocation;
 import com.leisure.post.dto.request.LocationRequest;
 import com.leisure.post.dto.response.PostDeleteResponse;
@@ -19,6 +20,7 @@ import com.leisure.post.repository.PostRepository;
 import com.leisure.tag.domain.PostTag;
 import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ public class PostService {
     private final PostRepository repository;
 
     private final TagRepository tagRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
@@ -74,6 +78,8 @@ public class PostService {
 
         post.publish();
 
+        eventPublisher.publishEvent(new PostPublishedEvent(post.getMemberId(), post.getPostId()));
+
         return new PostPublishResponse(post.getPostId(), post.getStatus(), post.getPublishedAt());
     }
 
@@ -104,7 +110,7 @@ public class PostService {
             tagRepository.deleteByPostId(postId);
             repository.delete(post);
         } else {
-            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, @SQLRestriction으로 조회에서 제외)
+            // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, 각 조회 쿼리의 명시 필터로 제외)
             // TODO: 소프트 삭제된 게시글은 배치로 일괄 하드 삭제하고,
             //       태그, 좋아요, 북마크도 같은 생명주기로 함께 배치 삭제한다.
             post.delete();
@@ -140,4 +146,5 @@ public class PostService {
 
         tagRepository.saveAll(PostTag.createAll(postId, tagNames));
     }
+
 }

@@ -10,7 +10,9 @@ import com.leisure.post.repository.PostRepository;
 import com.leisure.postlike.repository.PostLikeRepository;
 import com.leisure.postlike.domain.PostLike;
 import com.leisure.postlike.dto.response.PostLikeResponse;
+import com.leisure.postlike.event.PostLikedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,8 @@ public class PostLikeService {
     private final PostRepository postRepository;
 
     private final PostLikeRepository likeRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PostLikeResponse like(String publicId, Long postId) {
@@ -49,6 +53,8 @@ public class PostLikeService {
         postRepository.increaseLikeCount(post.getPostId());
 
         int likeCount = postRepository.findLikeCountByPostId(post.getPostId());
+
+        eventPublisher.publishEvent(new PostLikedEvent(post.getMemberId(), member.getMemberId(), post.getPostId()));
 
         return new PostLikeResponse(member.getMemberId(), post.getPostId(), likeCount, true);
     }

@@ -27,16 +27,16 @@ ext {
 }
 
 dependencies {
-    // spring MVC
+    // spring mvc
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
     // spring security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // Spring OAuth2
+    // spring oAuth2
     // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    // Password Hashing
+    // password hashing
     // implementation 'org.springframework.security:spring-security-crypto'
 
     // jwt
@@ -57,18 +57,21 @@ dependencies {
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // rabbitmq(AMQP)
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
     // jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    // Flyway
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-mysql'
 
     // querydsl
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+    // flyway
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 
     // p6spy
     implementation "com.github.gavlyukovskiy:p6spy-spring-boot-starter:${p6spyVersion}"
@@ -79,6 +82,8 @@ dependencies {
     // test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+    // testImplementation "org.testcontainers:rabbitmq"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

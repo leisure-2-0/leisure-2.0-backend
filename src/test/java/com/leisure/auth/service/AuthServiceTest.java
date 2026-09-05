@@ -11,6 +11,7 @@ import com.leisure.global.auth.store.RedisTokenStatusStore;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
 import com.leisure.member.domain.Member;
+import com.leisure.member.domain.MemberRole;
 import com.leisure.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +68,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         // 저장된 비밀번호는 인코딩된 값, publicId는 @PrePersist 대신 리플렉션으로 주입
-        member = Member.create(EMAIL, ENCODED_PASSWORD, "nickname", null);
+        member = Member.create(EMAIL, ENCODED_PASSWORD, "nickname");
         ReflectionTestUtils.setField(member, "publicId", PUBLIC_ID);
     }
 
@@ -83,8 +84,8 @@ class AuthServiceTest {
         given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
         given(encoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(true);
         given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(0L);
-        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, 0L)).willReturn("access-token");
-        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, 0L)).willReturn("refresh-token");
+        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("access-token");
+        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("refresh-token");
         given(provider.getRefreshTokenTtl()).willReturn(1000L);
 
         // when
@@ -109,7 +110,7 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.LOGIN_FAILED);
 
-        verify(provider, never()).issueAccessToken(anyString(), anyString(), anyLong());
+        verify(provider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
         verify(refreshTokenStore, never()).save(anyString(), anyString(), anyLong());
     }
 
@@ -127,7 +128,7 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.LOGIN_FAILED);
 
-        verify(provider, never()).issueAccessToken(anyString(), anyString(), anyLong());
+        verify(provider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
         verify(refreshTokenStore, never()).save(anyString(), anyString(), anyLong());
     }
 
@@ -141,8 +142,9 @@ class AuthServiceTest {
         given(provider.getEmail(REFRESH_TOKEN)).willReturn(EMAIL);
         given(provider.getRefreshTokenTtl()).willReturn(1000L);
         given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(0L);
-        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, 0L)).willReturn("new-access-token");
-        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, 0L)).willReturn("new-refresh-token");
+        given(provider.getRole(REFRESH_TOKEN)).willReturn(MemberRole.MEMBER);
+        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-access-token");
+        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-refresh-token");
     }
 
     @Test

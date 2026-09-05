@@ -39,7 +39,7 @@ public class RegionService {
 
         RegionSyncResult result = writer.updates(list);
 
-        log.info("[region-sync] 완료 inserted={}, updated={}, total={}",
+        log.info("[region-sync] 완료 inserted={} updated={} total={}",
                 result.inserted(), result.updated(), result.total());
     }
 }

@@ -3,6 +3,8 @@ package com.leisure.global.auth;
 import com.leisure.global.auth.properties.JwtProperties;
 import com.leisure.global.exception.BusinessException;
 import com.leisure.global.exception.ErrorCode;
+import com.leisure.member.domain.Member;
+import com.leisure.member.domain.MemberRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -27,15 +29,15 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.secret()));
     }
 
-    public String issueAccessToken(String publicId, String email, long tokenInvalidationVersion) {
-        return issueToken(publicId, email, tokenInvalidationVersion, properties.accessTokenExpiration());
+    public String issueAccessToken(String publicId, String email, MemberRole role, long tokenInvalidationVersion) {
+        return issueToken(publicId, email, role, tokenInvalidationVersion, properties.accessTokenExpiration());
     }
 
-    public String issueRefreshToken(String publicId, String email, long tokenInvalidationVersion) {
-        return issueToken(publicId, email, tokenInvalidationVersion, properties.refreshTokenExpiration());
+    public String issueRefreshToken(String publicId, String email, MemberRole role, long tokenInvalidationVersion) {
+        return issueToken(publicId, email, role, tokenInvalidationVersion, properties.refreshTokenExpiration());
     }
 
-    private String issueToken(String publicId, String email, long tokenInvalidationVersion, long expirationTime) {
+    private String issueToken(String publicId, String email, MemberRole role, long tokenInvalidationVersion, long expirationTime) {
 
         ZonedDateTime issuedAt = ZonedDateTime.now();
         ZonedDateTime expiresAt = issuedAt.plus(Duration.ofMillis(expirationTime));
@@ -43,6 +45,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(publicId)
                 .claim("email", email)
+                .claim("role", role.name())
                 .claim("tokenInvalidationVersion", tokenInvalidationVersion)
                 .issuedAt(Date.from(issuedAt.toInstant()))
                 .expiration(Date.from(expiresAt.toInstant()))
@@ -100,6 +103,20 @@ public class JwtTokenProvider {
         }
 
         return email;
+    }
+
+    public MemberRole getRole(String token) {
+        String role = extractClaims(token).get("role", String.class);
+
+        if (role == null || role.isBlank()) {
+            throw new BusinessException(ErrorCode.TOKEN_INVALID);
+        }
+
+        try {
+            return MemberRole.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.TOKEN_INVALID);
+        }
     }
 
     public long extractInvalidationVersion(String token) {

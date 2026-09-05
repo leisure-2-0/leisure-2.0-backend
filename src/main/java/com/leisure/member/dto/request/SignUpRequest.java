@@ -1,7 +1,6 @@
 package com.leisure.member.dto.request;
 
 import com.leisure.global.exception.ValidationMessageConstants;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -24,9 +23,5 @@ public record SignUpRequest(
         @NotBlank(message = ValidationMessageConstants.NICKNAME_REQUIRED)
         @Size(max = 50, message = ValidationMessageConstants.NICKNAME_MAX_LENGTH)
         @Pattern(message = ValidationMessageConstants.NICKNAME_NO_SPACE, regexp = "^\\S+$")
-        String nickname,
-
-        @Size(max = 500)
-        String profileImageUrl
-) {
-}
+        String nickname
+) {}

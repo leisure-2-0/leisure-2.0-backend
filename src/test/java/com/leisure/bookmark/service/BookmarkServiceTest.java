@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -40,6 +41,9 @@ class BookmarkServiceTest {
     @Mock
     private BookmarkRepository bookmarkRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private BookmarkService bookmarkService;
 
@@ -48,7 +52,7 @@ class BookmarkServiceTest {
     private static final Long POST_ID = 10L;
 
     private Member member() {
-        Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+        Member member = Member.create("user@leisure.com", "ENCODED", "nick");
         ReflectionTestUtils.setField(member, "memberId", MEMBER_ID);
         return member;
     }

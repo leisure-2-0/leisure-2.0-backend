@@ -7,6 +7,12 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
+rabbitmq:
+  domain-exchange: domain.events
+  dead-letter-exchange: domain.events.dlx
+  api-queue: api.domain.events.queue
+  api-dlq: api.domain.events.dlq
+
   jpa:
     properties:
       hibernate:

@@ -10,6 +10,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
@@ -36,6 +39,12 @@ public class TourApiClient {
         this.properties = properties;
     }
 
+    private void requireServiceKey() {
+        if (!StringUtils.hasText(properties.serviceKey())) {
+            throw new TourApiException("[tour-api] serviceKey 미설정 (tour-api.service-key 확인)");
+        }
+    }
+
     public LdongCodeResponse fetchRegions() {
         URI uri = buildUri("/ldongCode2", null);
         return getWithRetry(uri, LdongCodeResponse.class);
@@ -48,9 +57,7 @@ public class TourApiClient {
 
     private URI buildUri(String path, String lDongRegnCd) {
 
-        if (!StringUtils.hasText(properties.serviceKey())) {
-            throw new TourApiException("[tour-api] serviceKey가 비어 있다. TOUR_API_SERVICE_KEY(tour-api.service-key)를 설정하라.");
-        }
+        requireServiceKey();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(properties.baseUrl())
                 .path(path)
@@ -99,9 +106,7 @@ public class TourApiClient {
 
     private URI buildFestivalUri(String path, String eventStartDate, int pageNo) {
 
-        if (!StringUtils.hasText(properties.serviceKey())) {
-            throw new TourApiException("[tour-api] serviceKey가 비어 있다. TOUR_API_SERVICE_KEY(tour-api.service-key)를 설정하라.");
-        }
+        requireServiceKey();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(properties.baseUrl())
                 .path(path)
@@ -129,9 +134,7 @@ public class TourApiClient {
 
     private URI buildDetailUri(String path, String contentId, String contentTypeId) {
 
-        if (!StringUtils.hasText(properties.serviceKey())) {
-            throw new TourApiException("[tour-api] serviceKey가 비어 있다. TOUR_API_SERVICE_KEY(tour-api.service-key)를 설정하라.");
-        }
+        requireServiceKey();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(properties.baseUrl())
                 .path(path)
@@ -165,26 +168,31 @@ public class TourApiClient {
 
             } catch (TourApiException e) {
                 throw e;
-            } catch (RuntimeException e) {
+            } catch (HttpClientErrorException e) {
+                throw new TourApiException("[tour-api] 4xx 응답, 재시도 생략 status=" + e.getStatusCode()
+                        + " url=" + maskServiceKey(uri), e);
+            } catch (HttpServerErrorException | ResourceAccessException | IllegalStateException e) {
                 last = e;
-                log.warn("[tour-api] 호출 실패 attempt={}/{}, url={}, reason={}",
+                log.warn("[tour-api] 일시 실패 재시도 attempt={}/{} url={} reason={}",
                         attempt, properties.maxAttempts(), maskServiceKey(uri), e.getMessage());
                 sleepBeforeRetry(attempt);
+            } catch (RuntimeException e) {
+                throw new TourApiException("[tour-api] 예상치 못한 오류 url=" + maskServiceKey(uri), e);
             }
         }
 
-        throw new TourApiException("[tour-api] 호출 실패 url=" + maskServiceKey(uri), last);
+        throw new TourApiException("[tour-api] 재시도 소진, 최종 실패 url=" + maskServiceKey(uri), last);
     }
 
     private void validate(TourApiResponse body, URI uri) {
 
         if (body == null || !StringUtils.hasText(body.resultCode())) {
-            throw new IllegalStateException("[tour-api] 빈 응답 url=" + maskServiceKey(uri));
+            throw new IllegalStateException("[tour-api] 비정상 응답(resultCode 없음) url=" + maskServiceKey(uri));
         }
 
         if (!"0000".equals(body.resultCode())) {
             throw new TourApiException(
-                    "[tour-api] 실패 응답 resultCode=" + body.resultCode() + ", url=" + maskServiceKey(uri));
+                    "[tour-api] API 오류 응답 resultCode=" + body.resultCode() + " url=" + maskServiceKey(uri));
         }
     }
 
