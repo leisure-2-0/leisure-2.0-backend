@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(
         name = "회원(Member)",
-        description = "회원가입, 회원탈퇴, 특정 회원 조회, 프로필 수정, 비밀번호 변경, 이메일·닉네임 중복 검증"
+        description = "회원가입, 회원탈퇴, 특정 회원 조회, 프로필 수정, 비밀번호 변경, 이메일, 닉네임 중복 검증"
 )
 @RestController
 @RequiredArgsConstructor
@@ -38,7 +38,7 @@ public class MemberController {
 
     @Operation(
                 summary = "회원 가입",
-                description = "이메일·비밀번호·닉네임·프로필 이미지로 회원을 생성합니다. 이메일은 소문자로 정규화되어 저장됩니다."
+                description = "이메일, 비밀번호, 닉네임, 프로필 이미지로 회원을 생성합니다. 이메일은 소문자로 정규화되어 저장됩니다."
     )
     @PostMapping("/members")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@Valid @RequestBody SignUpRequest request) {
@@ -65,7 +65,7 @@ public class MemberController {
 
     @Operation(
                 summary = "내 프로필 조회",
-                description = "현재 로그인한 회원의 이메일·닉네임·프로필 이미지를 조회한다."
+                description = "현재 로그인한 회원의 이메일, 닉네임, 프로필 이미지를 조회한다."
     )
     @SecurityRequirement(name = "BearerAuth")
     @GetMapping("/members/me")
@@ -81,7 +81,7 @@ public class MemberController {
 
     @Operation(
                 summary = "프로필 수정",
-                description = "닉네임·프로필 이미지를 수정한다. null 필드는 유지되며, 닉네임 변경 시 중복을 검사한다."
+                description = "닉네임, 프로필 이미지를 수정한다. null 필드는 유지되며, 닉네임 변경 시 중복을 검사한다."
     )
     @SecurityRequirement(name = "BearerAuth")
     @PatchMapping("/members/me")
@@ -96,7 +96,7 @@ public class MemberController {
 
     @Operation(
                 summary = "비밀번호 변경",
-                description = "현재 비밀번호 확인 후 변경한다. 다른 기기·세션은 모두 로그아웃되고 요청한 세션만 새 토큰으로 유지된다."
+                description = "현재 비밀번호 확인 후 변경한다. 다른 기기, 세션은 모두 로그아웃되고 요청한 세션만 새 토큰으로 유지된다."
     )
     @PatchMapping("/members/me/password")
     @SecurityRequirement(name = "BearerAuth")

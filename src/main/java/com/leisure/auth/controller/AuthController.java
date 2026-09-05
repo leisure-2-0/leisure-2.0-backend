@@ -43,7 +43,7 @@ public class AuthController {
 
     private final RefreshTokenResolver refreshResolver;
 
-    @Operation(summary = "로그인", description = "이메일·비밀번호로 로그인한다. access 토큰은 body로, refresh 토큰은 쿠키로 반환된다.")
+    @Operation(summary = "로그인", description = "이메일, 비밀번호로 로그인한다. access 토큰은 body로, refresh 토큰은 쿠키로 반환된다.")
     @PostMapping("/auth")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResult result = service.login(request);
@@ -72,7 +72,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "토큰 재발급", description = "쿠키의 refresh 토큰으로 access·refresh 토큰을 재발급한다(rotation). Bearer 토큰 불필요.")
+    @Operation(summary = "토큰 재발급", description = "쿠키의 refresh 토큰으로 access, refresh 토큰을 재발급한다(rotation). Bearer 토큰 불필요.")
     @PostMapping("/auth/refresh")
     public ResponseEntity<ApiResponse<ReissueResponse>> reissue(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = refreshResolver.resolve(request);

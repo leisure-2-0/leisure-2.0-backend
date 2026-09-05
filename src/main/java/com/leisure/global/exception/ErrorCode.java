@@ -107,6 +107,9 @@ public enum ErrorCode {
 
     POST_BOOKMARK_NOT_BOOKMARKED_YET(HttpStatus.NOT_FOUND, "북마크하지 않은 게시글입니다."),
 
+    // ===== 여가 포인트 =====
+    POINT_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 포인트 값입니다."),
+
     ;
 
     private final HttpStatus status;

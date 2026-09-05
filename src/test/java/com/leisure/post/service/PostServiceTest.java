@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -47,6 +48,9 @@ class PostServiceTest {
     @Mock
     private TagRepository tagRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private PostService postService;
 
@@ -56,7 +60,7 @@ class PostServiceTest {
     private static final Long POST_ID = 10L;
 
     private Member member(Long memberId) {
-        Member member = Member.create("user@leisure.com", "ENCODED", "nick", null);
+        Member member = Member.create("user@leisure.com", "ENCODED", "nick");
         ReflectionTestUtils.setField(member, "memberId", memberId);
         return member;
     }

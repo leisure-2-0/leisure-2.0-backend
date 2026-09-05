@@ -1,6 +1,8 @@
 package com.leisure.global.exception;
 
 import com.leisure.global.response.ApiResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -124,6 +126,29 @@ public class GlobalExceptionHandler {
 
         List<String> messages = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
+                .toList();
+
+        ErrorCode errorCode = ErrorCode.VALIDATION_FAILED;
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.name(), "입력값 검증에 실패했습니다.", messages));
+    }
+
+
+    /**
+     * ConstraintViolationException
+     *
+     * @Validated가 붙은 컨트롤러의 @RequestParam/@PathVariable 제약 위반 시 발생
+     * 예: @Min, @Max, @NotBlank 같은 파라미터 레벨 애노테이션 위반
+     * Body 검증인 MethodArgumentNotValidException과 짝을 이루는 파라미터 검증 실패
+     * HTTP 표준 의미상 422를 반환
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<List<String>>> handleConstraintViolationException(ConstraintViolationException e) {
+
+        List<String> messages = e.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
                 .toList();
 
         ErrorCode errorCode = ErrorCode.VALIDATION_FAILED;

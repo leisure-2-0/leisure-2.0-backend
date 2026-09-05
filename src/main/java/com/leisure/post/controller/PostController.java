@@ -44,7 +44,7 @@ public class PostController {
     @Operation(
             summary = "게시글 임시 저장",
             description= "임시 저장 버튼이나 자동 저장 시 호출된다. 작성중(WRITING) 상태면 임시 저장(DRAFT)으로 승격된다. "
-                    + "무검증(제목·본문·카테고리가 비어도 성공)이며, 각 필드는 null=기존 값 유지 / 빈 문자열=비우기의 부분 갱신이다. "
+                    + "무검증(제목, 본문, 카테고리가 비어도 성공)이며, 각 필드는 null=기존 값 유지 / 빈 문자열=비우기의 부분 갱신이다. "
                     + "tags를 함께 보내면(null이 아니면) 전체 교체되고, 임시 저장 상태 글의 수정은 이 엔드포인트를 재호출하면 된다."
     )
     @SecurityRequirement(name = "BearerAuth")
@@ -60,9 +60,9 @@ public class PostController {
 
     @Operation(
             summary = "게시글 게시",
-            description = "작성중(WRITING)·임시 저장(DRAFT) 상태의 게시글을 게시(PUBLISHED)한다. "
+            description = "작성중(WRITING), 임시 저장(DRAFT) 상태의 게시글을 게시(PUBLISHED)한다. "
                     + "요청 body의 내용을 반영(applyContent)한 뒤 상태를 전이하므로, 임시 저장을 한 번도 거치지 않아도 바로 게시할 수 있다. "
-                    + "제목이 null·빈 문자열·공백이면 게시되지 않는다(POST_TITLE_REQUIRED). tags를 함께 보내면 반영된다."
+                    + "제목이 null, 빈 문자열, 공백이면 게시되지 않는다(POST_TITLE_REQUIRED). tags를 함께 보내면 반영된다."
     )
     @SecurityRequirement(name = "BearerAuth")
     @PatchMapping("/posts/{postId}/publish")

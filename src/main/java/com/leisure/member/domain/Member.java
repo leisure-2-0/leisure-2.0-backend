@@ -39,15 +39,24 @@ public class Member extends BaseSoftDeleteEntity {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
-    private Member(String email, String password, String nickname, String profileImageUrl) {
+    @Column(name = "point", nullable = false)
+    private int point;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private MemberRole role;
+
+    private Member(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+        this.profileImageUrl = null;
+        this.point = 0;
+        this.role = MemberRole.MEMBER;
     }
 
-    public static Member create(String email, String password, String nickname, String profileImageUrl) {
-        return new Member(email, password, nickname, normalizeProfileImageUrl(profileImageUrl));
+    public static Member create(String email, String password, String nickname) {
+        return new Member(email, password, nickname);
     }
 
     @PrePersist
@@ -84,11 +93,20 @@ public class Member extends BaseSoftDeleteEntity {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private static String normalizeProfileImageUrl(String profileImageUrl) {
-        if (profileImageUrl == null || profileImageUrl.isBlank()) {
-            return null;
+//    private static String normalizeProfileImageUrl(String profileImageUrl) {
+//        if (profileImageUrl == null || profileImageUrl.isBlank()) {
+//            return null;
+//        }
+//
+//        return profileImageUrl.trim();
+//    }
+
+    public void addPoint(int amount) {
+
+        if (amount <= 0) {
+            throw new BusinessException(ErrorCode.POINT_INVALID);
         }
 
-        return profileImageUrl.trim();
+        this.point += amount;
     }
 }
