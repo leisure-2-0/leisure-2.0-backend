@@ -1,0 +1,27 @@
+{
+  "properties": {
+    "postId": {
+      "type": "long"
+    },
+    "title": {
+      "type": "text",
+      "analyzer": "korean"
+    },
+    "tags": {
+      "type": "keyword",
+      "fields": {
+        "text": {
+          "type": "text",
+          "analyzer": "korean"
+        }
+      }
+    },
+    "category": {
+      "type": "keyword"
+    },
+    "region": {
+      "type": "keyword",
+      "fields": { "text": { "type":  "text", "analyzer": "korean"} }
+    }
+  }
+}
