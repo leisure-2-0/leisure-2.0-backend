@@ -25,19 +25,19 @@ import static org.mockito.Mockito.verify;
 class RegionWriterTest {
 
     @Mock
-    private RegionRepository repository;
+    private RegionRepository regionRepository;
 
     @InjectMocks
-    private RegionWriter writer;
+    private RegionWriter regionWriter;
 
     @Test
     @DisplayName("기존 지역이 없으면 저장하고 inserted를 센다")
     void insert() {
-        given(repository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.empty());
+        given(regionRepository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.empty());
 
-        RegionSyncResult result = writer.updates(List.of(new RegionData("51", "150", "강원특별자치도", "강릉시")));
+        RegionSyncResult result = regionWriter.updates(List.of(new RegionData("51", "150", "강원특별자치도", "강릉시")));
 
-        verify(repository).save(any(Region.class));
+        verify(regionRepository).save(any(Region.class));
         assertThat(result.inserted()).isEqualTo(1);
         assertThat(result.updated()).isZero();
         assertThat(result.total()).isEqualTo(1);
@@ -47,11 +47,11 @@ class RegionWriterTest {
     @DisplayName("기존 지역이 있으면 이름만 갱신하고 저장하지 않는다(updated)")
     void update() {
         Region existing = Region.create("51", "150", "강원도", "강릉");
-        given(repository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.of(existing));
+        given(regionRepository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.of(existing));
 
-        RegionSyncResult result = writer.updates(List.of(new RegionData("51", "150", "강원특별자치도", "강릉시")));
+        RegionSyncResult result = regionWriter.updates(List.of(new RegionData("51", "150", "강원특별자치도", "강릉시")));
 
-        verify(repository, never()).save(any());
+        verify(regionRepository, never()).save(any());
         assertThat(existing.getRegnName()).isEqualTo("강원특별자치도");
         assertThat(existing.getSignguName()).isEqualTo("강릉시");
         assertThat(result.updated()).isEqualTo(1);
@@ -61,11 +61,11 @@ class RegionWriterTest {
     @Test
     @DisplayName("신규와 기존이 섞이면 각각 집계한다")
     void mixed() {
-        given(repository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.empty());
-        given(repository.findByLdongRegnCdAndLdongSignguCd("51", "210"))
+        given(regionRepository.findByLdongRegnCdAndLdongSignguCd("51", "150")).willReturn(Optional.empty());
+        given(regionRepository.findByLdongRegnCdAndLdongSignguCd("51", "210"))
                 .willReturn(Optional.of(Region.create("51", "210", "강원", "원주")));
 
-        RegionSyncResult result = writer.updates(List.of(
+        RegionSyncResult result = regionWriter.updates(List.of(
                 new RegionData("51", "150", "강원특별자치도", "강릉시"),
                 new RegionData("51", "210", "강원특별자치도", "원주시")));
 

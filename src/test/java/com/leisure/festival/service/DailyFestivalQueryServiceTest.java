@@ -27,10 +27,10 @@ import static org.mockito.Mockito.verify;
 class DailyFestivalQueryServiceTest {
 
     @Mock
-    private FestivalRepository repository;
+    private FestivalRepository festivalRepository;
 
     @InjectMocks
-    private FestivalQueryService service;
+    private FestivalQueryService festivalQueryService;
 
     @Captor
     private ArgumentCaptor<String> codeCaptor;
@@ -40,10 +40,10 @@ class DailyFestivalQueryServiceTest {
     @Test
     @DisplayName("코드는 enum으로, 시군구는 접미사를 뗀 지역명으로 변환해 응답한다")
     void mapping() {
-        given(repository.findDailyFestivals(any(), any())).willReturn(List.of(
+        given(festivalRepository.findDailyFestivals(any(), any())).willReturn(List.of(
                 new DailyFestivalResult("EV01", "강릉시", "축제A", "개요", "10:00~18:00", "http://a")));
 
-        List<DailyFestivalResponse> responses = service.getDailyFestivals(DATE, null);
+        List<DailyFestivalResponse> responses = festivalQueryService.getDailyFestivals(DATE, null);
 
         DailyFestivalResponse r = responses.get(0);
         assertThat(r.category()).isEqualTo(FestivalCategory.FESTIVAL);
@@ -57,10 +57,10 @@ class DailyFestivalQueryServiceTest {
     @Test
     @DisplayName("시군구가 null이면 지역명도 null이다(LEFT JOIN 미매칭 방어)")
     void nullRegion() {
-        given(repository.findDailyFestivals(any(), any())).willReturn(List.of(
+        given(festivalRepository.findDailyFestivals(any(), any())).willReturn(List.of(
                 new DailyFestivalResult("EV03", null, "행사B", null, null, null)));
 
-        DailyFestivalResponse r = service.getDailyFestivals(DATE, null).get(0);
+        DailyFestivalResponse r = festivalQueryService.getDailyFestivals(DATE, null).get(0);
 
         assertThat(r.signguName()).isNull();
         assertThat(r.category()).isEqualTo(FestivalCategory.EVENT);
@@ -69,12 +69,12 @@ class DailyFestivalQueryServiceTest {
     @Test
     @DisplayName("category가 있으면 코드로 변환해 넘기고, 없으면 null을 넘긴다")
     void categoryToCode() {
-        given(repository.findDailyFestivals(any(), any())).willReturn(List.of());
+        given(festivalRepository.findDailyFestivals(any(), any())).willReturn(List.of());
 
-        service.getDailyFestivals(DATE, FestivalCategory.PERFORMANCE);
-        service.getDailyFestivals(DATE, null);
+        festivalQueryService.getDailyFestivals(DATE, FestivalCategory.PERFORMANCE);
+        festivalQueryService.getDailyFestivals(DATE, null);
 
-        verify(repository, times(2)).findDailyFestivals(any(), codeCaptor.capture());
+        verify(festivalRepository, times(2)).findDailyFestivals(any(), codeCaptor.capture());
         assertThat(codeCaptor.getAllValues()).containsExactly("EV02", null);
     }
 }

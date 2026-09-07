@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DashboardController {
 
-    private final DashboardService service;
+    private final DashboardService dashboardService;
 
     @Operation(
             summary = "대시보드 통계 조회",
@@ -32,7 +32,7 @@ public class DashboardController {
     @GetMapping("/dashboards")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats() {
 
-        DashboardStatsResponse response = service.getDashboardStats();
+        DashboardStatsResponse response = dashboardService.getDashboardStats();
 
         return ResponseEntity
                 .status(HttpStatus.OK)

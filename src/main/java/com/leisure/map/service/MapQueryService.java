@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MapQueryService {
 
-    private final MapRepositoryCustom repository;
+    private final MapRepositoryCustom mapRepositoryCustom;
 
     private static final double MIN_LATITUDE = -90.0;
 
@@ -35,7 +35,7 @@ public class MapQueryService {
     @Transactional(readOnly = true) // 트랜잭션을 읽기 전용으로 설정하여 성능 최적화
     public List<RegionPinCountResponse> getRegionPinCounts(PostCategory category) {
         // 쿼리가 바로 응답 DTO로 projection하므로 변환 단계 없이 그대로 반환
-        return repository.findRegionPinCounts(category);
+        return mapRepositoryCustom.findRegionPinCounts(category);
     }
 
     // 지도 범위 내 게시글 핀 조회 ==============================================================
@@ -44,7 +44,7 @@ public class MapQueryService {
 
         validateBounds(minLat, maxLat, minLng, maxLng);
 
-        return repository.findPinsInBounds(minLat, maxLat, minLng, maxLng, category);
+        return mapRepositoryCustom.findPinsInBounds(minLat, maxLat, minLng, maxLng, category);
     }
 
     private void validateBounds(double minLat, double maxLat, double minLng, double maxLng) {

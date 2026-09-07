@@ -30,16 +30,16 @@ import static org.mockito.BDDMockito.given;
 class PostFeedQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostRepository repository;
+    private PostRepository postRepository;
 
     @Mock
     private ObjectMapper objectMapper;
 
     @Mock
-    private PostResponseAssembler assembler;
+    private PostResponseAssembler postResponseAssembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -53,7 +53,7 @@ class PostFeedQueryServiceTest {
 
     // 어셈블러는 조회 결과(PostResult)를 그대로 응답으로 넘겨준다고 가정 (태그 병합은 어셈블러 테스트에서 검증)
     private void stubAssembler() {
-        given(assembler.assemblePosts(any())).willAnswer(invocation -> {
+        given(postResponseAssembler.assemblePosts(any())).willAnswer(invocation -> {
             List<PostResult> results = invocation.getArgument(0);
             return results.stream().map(r -> PostResponse.from(r, List.of())).toList();
         });
@@ -63,7 +63,7 @@ class PostFeedQueryServiceTest {
     @DisplayName("limit+1개가 조회되면 hasNext=true, 초과분을 잘라내고 nextCursor를 만든다")
     void firstPage_hasNext() {
         // limit=2 → repo에 3개(limit+1) 요청, 3개 반환 → hasNext, 2개로 트림
-        given(repository.findPosts(any(), any(), any(), any(), anyInt()))
+        given(postRepository.findPosts(any(), any(), any(), any(), anyInt()))
                 .willReturn(List.of(post(30, 50), post(29, 40), post(28, 30)));
         given(objectMapper.writeValueAsString(any())).willReturn("{\"postId\":29}");
         stubAssembler();
@@ -78,7 +78,7 @@ class PostFeedQueryServiceTest {
     @Test
     @DisplayName("limit 이하로 조회되면 hasNext=false, nextCursor=null")
     void lastPage_noNext() {
-        given(repository.findPosts(any(), any(), any(), any(), anyInt()))
+        given(postRepository.findPosts(any(), any(), any(), any(), anyInt()))
                 .willReturn(List.of(post(30, 50), post(29, 40)));  // limit=2, 2개만
         stubAssembler();
 

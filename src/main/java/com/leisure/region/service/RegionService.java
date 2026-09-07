@@ -18,18 +18,18 @@ public class RegionService {
 
     private static final Logger log = LoggerFactory.getLogger(RegionService.class);
 
-    private final TourApiClient client;
+    private final TourApiClient tourApiClient;
 
-    private final RegionWriter writer;
+    private final RegionWriter regionWriter;
 
     public void syncRegions() {
 
         List<RegionData> list = new ArrayList<>();
 
-        List<Item> areas = client.fetchRegions().response().body().items().item();
+        List<Item> areas = tourApiClient.fetchRegions().response().body().items().item();
 
         for (Item area : areas) {
-            List<Item> sigungus = client.fetchSigungus(area.code()).response().body().items().item();
+            List<Item> sigungus = tourApiClient.fetchSigungus(area.code()).response().body().items().item();
 
             for (Item sigungu : sigungus) {
                 list.add(new RegionData(area.code(), sigungu.code(), area.name(), sigungu.name()));
@@ -37,7 +37,7 @@ public class RegionService {
 
         }
 
-        RegionSyncResult result = writer.updates(list);
+        RegionSyncResult result = regionWriter.updates(list);
 
         log.info("[region-sync] 완료 inserted={} updated={} total={}",
                 result.inserted(), result.updated(), result.total());

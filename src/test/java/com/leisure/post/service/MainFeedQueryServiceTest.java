@@ -30,16 +30,16 @@ import static org.mockito.Mockito.verify;
 class MainFeedQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostRepository repository;
+    private PostRepository postRepository;
 
     @Mock
     private ObjectMapper objectMapper;
 
     @Mock
-    private PostResponseAssembler assembler;
+    private PostResponseAssembler postResponseAssembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -62,7 +62,7 @@ class MainFeedQueryServiceTest {
 
     // 어셈블러는 조회 결과(MainFeedPostResult)를 그대로 응답으로 넘겨준다고 가정 (태그 병합은 어셈블러 테스트에서 검증)
     private void stubAssembler() {
-        given(assembler.assembleMainFeed(any())).willAnswer(invocation -> {
+        given(postResponseAssembler.assembleMainFeed(any())).willAnswer(invocation -> {
             List<MainFeedPostResult> results = invocation.getArgument(0);
             return results.stream().map(r -> MainFeedPostResponse.from(r, List.of())).toList();
         });
@@ -71,8 +71,8 @@ class MainFeedQueryServiceTest {
     @Test
     @DisplayName("로그인 상태면 memberId로 상위 18개를 조회한다")
     void loggedIn() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18))
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18))
                 .willReturn(List.of(post(1), post(2)));
         stubAssembler();
 
@@ -80,13 +80,13 @@ class MainFeedQueryServiceTest {
                 postQueryService.getMainFeedPosts(PUBLIC_ID, PostCategory.HOTEL, PostSort.POPULAR);
 
         assertThat(response).hasSize(2);
-        verify(repository).findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18);
+        verify(postRepository).findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18);
     }
 
     @Test
     @DisplayName("비로그인(publicId=null)이면 memberId=null로 조회하고 회원 조회를 하지 않는다")
     void anonymous() {
-        given(repository.findMainFeedPosts(null, null, PostSort.LATEST, 18))
+        given(postRepository.findMainFeedPosts(null, null, PostSort.LATEST, 18))
                 .willReturn(List.of(post(1)));
         stubAssembler();
 
@@ -94,7 +94,7 @@ class MainFeedQueryServiceTest {
                 postQueryService.getMainFeedPosts(null, null, PostSort.LATEST);
 
         assertThat(response).hasSize(1);
-        verify(reader, never()).getMemberByPublicId(any());
-        verify(repository).findMainFeedPosts(null, null, PostSort.LATEST, 18);
+        verify(memberReader, never()).getMemberByPublicId(any());
+        verify(postRepository).findMainFeedPosts(null, null, PostSort.LATEST, 18);
     }
 }

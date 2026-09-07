@@ -25,10 +25,10 @@ import static org.mockito.Mockito.verify;
 class MonthlyFestivalQueryServiceTest {
 
     @Mock
-    private FestivalRepository repository;
+    private FestivalRepository festivalRepository;
 
     @InjectMocks
-    private FestivalQueryService service;
+    private FestivalQueryService festivalQueryService;
 
     @Captor
     private ArgumentCaptor<LocalDate> monthStartCaptor;
@@ -42,11 +42,11 @@ class MonthlyFestivalQueryServiceTest {
     @Test
     @DisplayName("평년 2월은 월초 1일, 월말 28일로 계산해 리포지토리에 넘긴다")
     void monthRange_nonLeap() {
-        given(repository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
+        given(festivalRepository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
 
-        service.getMonthlyFestivals(2026, 2, null);
+        festivalQueryService.getMonthlyFestivals(2026, 2, null);
 
-        verify(repository).findMonthlyFestivals(monthStartCaptor.capture(), monthEndCaptor.capture(), any());
+        verify(festivalRepository).findMonthlyFestivals(monthStartCaptor.capture(), monthEndCaptor.capture(), any());
         assertThat(monthStartCaptor.getValue()).isEqualTo(LocalDate.of(2026, 2, 1));
         assertThat(monthEndCaptor.getValue()).isEqualTo(LocalDate.of(2026, 2, 28));
     }
@@ -54,23 +54,23 @@ class MonthlyFestivalQueryServiceTest {
     @Test
     @DisplayName("윤년 2월은 월말을 29일로 계산한다")
     void monthRange_leap() {
-        given(repository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
+        given(festivalRepository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
 
-        service.getMonthlyFestivals(2024, 2, null);
+        festivalQueryService.getMonthlyFestivals(2024, 2, null);
 
-        verify(repository).findMonthlyFestivals(monthStartCaptor.capture(), monthEndCaptor.capture(), any());
+        verify(festivalRepository).findMonthlyFestivals(monthStartCaptor.capture(), monthEndCaptor.capture(), any());
         assertThat(monthEndCaptor.getValue()).isEqualTo(LocalDate.of(2024, 2, 29));
     }
 
     @Test
     @DisplayName("category가 있으면 코드로 변환해 넘기고, 없으면 null을 넘긴다")
     void categoryToCode() {
-        given(repository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
+        given(festivalRepository.findMonthlyFestivals(any(), any(), any())).willReturn(List.of());
 
-        service.getMonthlyFestivals(2026, 8, FestivalCategory.FESTIVAL);
-        service.getMonthlyFestivals(2026, 8, null);
+        festivalQueryService.getMonthlyFestivals(2026, 8, FestivalCategory.FESTIVAL);
+        festivalQueryService.getMonthlyFestivals(2026, 8, null);
 
-        verify(repository, times(2)).findMonthlyFestivals(any(), any(), codeCaptor.capture());
+        verify(festivalRepository, times(2)).findMonthlyFestivals(any(), any(), codeCaptor.capture());
         assertThat(codeCaptor.getAllValues()).containsExactly("EV01", null);
     }
 }

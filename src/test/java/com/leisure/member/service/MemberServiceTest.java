@@ -39,13 +39,13 @@ import static org.mockito.Mockito.verify;
 class MemberServiceTest {
 
     @Mock
-    private MemberRepository repository;
+    private MemberRepository memberRepository;
 
     @Mock
-    private PasswordEncoder encoder;
+    private PasswordEncoder passwordEncoder;
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -76,11 +76,11 @@ class MemberServiceTest {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
 
-            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
-            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
-            given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
+            given(memberRepository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
+            given(passwordEncoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
             // save 시점에 @PrePersist가 하는 publicId 발급을 흉내
-            given(repository.save(any(Member.class))).willAnswer(invocation -> {
+            given(memberRepository.save(any(Member.class))).willAnswer(invocation -> {
                 Member saved = invocation.getArgument(0);
                 ReflectionTestUtils.setField(saved, "publicId", "generated-public-id");
                 return saved;
@@ -91,7 +91,7 @@ class MemberServiceTest {
 
             // then
             assertThat(response.publicId()).isEqualTo("generated-public-id");
-            verify(repository).save(any(Member.class));
+            verify(memberRepository).save(any(Member.class));
         }
 
         @Test
@@ -100,10 +100,10 @@ class MemberServiceTest {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
 
-            given(repository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
-            given(repository.existsByNicknameAndDeletedAtIsNull(anyString())).willReturn(false);
-            given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
-            given(repository.save(any(Member.class))).willAnswer(invocation -> {
+            given(memberRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull(anyString())).willReturn(false);
+            given(passwordEncoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
+            given(memberRepository.save(any(Member.class))).willAnswer(invocation -> {
                 Member saved = invocation.getArgument(0);
                 ReflectionTestUtils.setField(saved, "publicId", "generated-public-id");
                 return saved;
@@ -113,7 +113,7 @@ class MemberServiceTest {
             memberService.signUp(request);
 
             // then
-            verify(encoder).encode("Passw0rd!");
+            verify(passwordEncoder).encode("Passw0rd!");
         }
     }
 
@@ -126,7 +126,7 @@ class MemberServiceTest {
         void signUp_duplicateEmail() {
             // given
             SignUpRequest request = request("dup@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
-            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(true);
+            given(memberRepository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(true);
 
             // when & then
             assertThatThrownBy(() -> memberService.signUp(request))
@@ -134,7 +134,7 @@ class MemberServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.EMAIL_DUPLICATE);
 
-            verify(repository, never()).save(any(Member.class));
+            verify(memberRepository, never()).save(any(Member.class));
         }
 
         @Test
@@ -142,8 +142,8 @@ class MemberServiceTest {
         void signUp_duplicateNickname() {
             // given
             SignUpRequest request = request("user@leisure.com", "Passw0rd!", "Passw0rd!", "dupNick");
-            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
-            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(true);
+            given(memberRepository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(true);
 
             // when & then
             assertThatThrownBy(() -> memberService.signUp(request))
@@ -151,7 +151,7 @@ class MemberServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.NICKNAME_DUPLICATE);
 
-            verify(repository, never()).save(any(Member.class));
+            verify(memberRepository, never()).save(any(Member.class));
         }
 
         @Test
@@ -166,9 +166,9 @@ class MemberServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.PASSWORD_MISMATCH);
 
-            verify(repository, never()).existsByEmailAndDeletedAtIsNull(anyString());
-            verify(encoder, never()).encode(anyString());
-            verify(repository, never()).save(any(Member.class));
+            verify(memberRepository, never()).existsByEmailAndDeletedAtIsNull(anyString());
+            verify(passwordEncoder, never()).encode(anyString());
+            verify(memberRepository, never()).save(any(Member.class));
         }
 
         @Test
@@ -176,10 +176,10 @@ class MemberServiceTest {
         void signUp_dataIntegrityViolation() {
             // given (동시성으로 사전 검사를 통과한 뒤 DB 제약에서 걸리는 경우)
             SignUpRequest request = request("race@leisure.com", "Passw0rd!", "Passw0rd!", "nickname");
-            given(repository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
-            given(repository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
-            given(encoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
-            given(repository.save(any(Member.class)))
+            given(memberRepository.existsByEmailAndDeletedAtIsNull(request.email())).willReturn(false);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull(request.nickname())).willReturn(false);
+            given(passwordEncoder.encode(request.password())).willReturn("ENCODED_PASSWORD");
+            given(memberRepository.save(any(Member.class)))
                     .willThrow(new DataIntegrityViolationException("unique constraint"));
 
             // when & then
@@ -208,8 +208,8 @@ class MemberServiceTest {
         @DisplayName("닉네임과 프로필 이미지를 함께 수정한다")
         void success() {
             Member member = existingMember();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
-            given(repository.existsByNicknameAndDeletedAtIsNull("newNick")).willReturn(false);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull("newNick")).willReturn(false);
             ProfileChangeRequest request = new ProfileChangeRequest("newNick", "new.png");
 
             ProfileChangeResponse response = memberService.changeProfile(PUBLIC_ID, request);
@@ -222,8 +222,8 @@ class MemberServiceTest {
         @DisplayName("바꾸려는 닉네임이 이미 사용 중이면 NICKNAME_DUPLICATE 예외를 던지고 변경하지 않는다")
         void nicknameDuplicate() {
             Member member = existingMember();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
-            given(repository.existsByNicknameAndDeletedAtIsNull("dupNick")).willReturn(true);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull("dupNick")).willReturn(true);
             ProfileChangeRequest request = new ProfileChangeRequest("dupNick", null);
 
             assertThatThrownBy(() -> memberService.changeProfile(PUBLIC_ID, request))
@@ -238,12 +238,12 @@ class MemberServiceTest {
         @DisplayName("현재와 같은 닉네임이면 중복 검사를 건너뛴다(내 것 제외)")
         void sameNicknameSkipsDuplicateCheck() {
             Member member = existingMember();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
             ProfileChangeRequest request = new ProfileChangeRequest("oldNick", null);
 
             memberService.changeProfile(PUBLIC_ID, request);
 
-            verify(repository, never()).existsByNicknameAndDeletedAtIsNull(anyString());
+            verify(memberRepository, never()).existsByNicknameAndDeletedAtIsNull(anyString());
             assertThat(member.getNickname()).isEqualTo("oldNick");
         }
 
@@ -251,12 +251,12 @@ class MemberServiceTest {
         @DisplayName("프로필 이미지만 보내면 닉네임 중복 검사 없이 이미지만 바꾼다")
         void partialProfileOnly() {
             Member member = existingMember();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
             ProfileChangeRequest request = new ProfileChangeRequest(null, "new.png");
 
             ProfileChangeResponse response = memberService.changeProfile(PUBLIC_ID, request);
 
-            verify(repository, never()).existsByNicknameAndDeletedAtIsNull(anyString());
+            verify(memberRepository, never()).existsByNicknameAndDeletedAtIsNull(anyString());
             assertThat(response.nickname()).isEqualTo("oldNick");
             assertThat(response.profileImageUrl()).isEqualTo("new.png");
         }
@@ -265,7 +265,7 @@ class MemberServiceTest {
         @DisplayName("프로필 이미지를 빈 문자열로 보내면 이미지를 제거한다(null)")
         void removeProfileImage() {
             Member member = existingMember();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
             ProfileChangeRequest request = new ProfileChangeRequest(null, "");
 
             ProfileChangeResponse response = memberService.changeProfile(PUBLIC_ID, request);
@@ -284,7 +284,7 @@ class MemberServiceTest {
         @DisplayName("회원을 소프트 삭제하고 MemberWithdrawnEvent를 발행한다")
         void success() {
             Member member = Member.create("user@leisure.com", "ENCODED", "nick");
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
 
             memberService.withdraw(PUBLIC_ID);
 
@@ -309,9 +309,9 @@ class MemberServiceTest {
         @DisplayName("현재 비밀번호 확인 후 교체하고, 전 세션 무효화 + 새 토큰을 재발급한다")
         void success() {
             Member member = member();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
-            given(encoder.matches("curPw1!", STORED_PASSWORD)).willReturn(true);
-            given(encoder.encode("newPw1!")).willReturn("NEW_ENCODED");
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(passwordEncoder.matches("curPw1!", STORED_PASSWORD)).willReturn(true);
+            given(passwordEncoder.encode("newPw1!")).willReturn("NEW_ENCODED");
             given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(1L);
             given(tokenProvider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 1L)).willReturn("access");
             given(tokenProvider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 1L)).willReturn("refresh");
@@ -330,8 +330,8 @@ class MemberServiceTest {
         @DisplayName("현재 비밀번호가 틀리면 PASSWORD_MISMATCH 예외를 던진다")
         void currentPasswordMismatch() {
             Member member = member();
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
-            given(encoder.matches("wrong1!", STORED_PASSWORD)).willReturn(false);
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
+            given(passwordEncoder.matches("wrong1!", STORED_PASSWORD)).willReturn(false);
             PasswordChangeRequest request = new PasswordChangeRequest("wrong1!", "newPw1!", "newPw1!");
 
             assertThatThrownBy(() -> memberService.changePassword(PUBLIC_ID, request))
@@ -352,7 +352,7 @@ class MemberServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.PASSWORD_MISMATCH);
 
-            verify(reader, never()).getMemberByPublicId(anyString());
+            verify(memberReader, never()).getMemberByPublicId(anyString());
         }
     }
 
@@ -363,7 +363,7 @@ class MemberServiceTest {
         @Test
         @DisplayName("사용 가능한 이메일이면 예외 없이 통과한다")
         void available() {
-            given(repository.existsByEmailAndDeletedAtIsNull("new@leisure.com")).willReturn(false);
+            given(memberRepository.existsByEmailAndDeletedAtIsNull("new@leisure.com")).willReturn(false);
 
             memberService.checkEmail("new@leisure.com");
         }
@@ -371,7 +371,7 @@ class MemberServiceTest {
         @Test
         @DisplayName("이미 사용 중인 이메일이면 EMAIL_DUPLICATE 예외를 던진다")
         void duplicate() {
-            given(repository.existsByEmailAndDeletedAtIsNull("dup@leisure.com")).willReturn(true);
+            given(memberRepository.existsByEmailAndDeletedAtIsNull("dup@leisure.com")).willReturn(true);
 
             assertThatThrownBy(() -> memberService.checkEmail("dup@leisure.com"))
                     .isInstanceOf(BusinessException.class)
@@ -387,7 +387,7 @@ class MemberServiceTest {
         @Test
         @DisplayName("사용 가능한 닉네임이면 예외 없이 통과한다")
         void available() {
-            given(repository.existsByNicknameAndDeletedAtIsNull("newNick")).willReturn(false);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull("newNick")).willReturn(false);
 
             memberService.checkNickname("newNick");
         }
@@ -395,7 +395,7 @@ class MemberServiceTest {
         @Test
         @DisplayName("이미 사용 중인 닉네임이면 NICKNAME_DUPLICATE 예외를 던진다")
         void duplicate() {
-            given(repository.existsByNicknameAndDeletedAtIsNull("dupNick")).willReturn(true);
+            given(memberRepository.existsByNicknameAndDeletedAtIsNull("dupNick")).willReturn(true);
 
             assertThatThrownBy(() -> memberService.checkNickname("dupNick"))
                     .isInstanceOf(BusinessException.class)

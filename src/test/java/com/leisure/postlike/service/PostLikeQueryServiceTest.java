@@ -32,13 +32,13 @@ import static org.mockito.Mockito.verify;
 class PostLikeQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostLikeRepository repository;
+    private PostLikeRepository postLikeRepository;
 
     @Mock
-    private LikedPostResponseAssembler assembler;
+    private LikedPostResponseAssembler likedPostResponseAssembler;
 
     @InjectMocks
     private PostLikeQueryService postLikeQueryService;
@@ -56,10 +56,10 @@ class PostLikeQueryServiceTest {
     @DisplayName("page/size로 offset을 계산해 조회하고 totalPages·hasNext를 산출한다")
     void getLikedPosts_success() {
         // given: 총 25개, size=10, page=1 → offset=10, totalPages=3, hasNext=true(1+1<3)
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 10L, 10)).willReturn(List.of());
-        given(assembler.assembleLikedPosts(any())).willReturn(List.of());
-        given(repository.countLikedPosts(MEMBER_ID)).willReturn(25L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postLikeRepository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 10L, 10)).willReturn(List.of());
+        given(likedPostResponseAssembler.assembleLikedPosts(any())).willReturn(List.of());
+        given(postLikeRepository.countLikedPosts(MEMBER_ID)).willReturn(25L);
 
         // when
         LikedPostListResponse response = postLikeQueryService.getLikedPosts(PUBLIC_ID, LikedPostSort.LATEST, 1, 10);
@@ -75,10 +75,10 @@ class PostLikeQueryServiceTest {
     @Test
     @DisplayName("마지막 페이지면 hasNext=false")
     void getLikedPosts_lastPage() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 20L, 10)).willReturn(List.of());
-        given(assembler.assembleLikedPosts(any())).willReturn(List.of());
-        given(repository.countLikedPosts(MEMBER_ID)).willReturn(25L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postLikeRepository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 20L, 10)).willReturn(List.of());
+        given(likedPostResponseAssembler.assembleLikedPosts(any())).willReturn(List.of());
+        given(postLikeRepository.countLikedPosts(MEMBER_ID)).willReturn(25L);
 
         // page=2 → totalPages=3, 2+1<3 == false
         LikedPostListResponse response = postLikeQueryService.getLikedPosts(PUBLIC_ID, LikedPostSort.LATEST, 2, 10);
@@ -89,41 +89,41 @@ class PostLikeQueryServiceTest {
     @Test
     @DisplayName("page/size가 null이면 기본값(page=0, size=10)을 적용한다")
     void getLikedPosts_defaults() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 0L, 10)).willReturn(List.of());
-        given(assembler.assembleLikedPosts(any())).willReturn(List.of());
-        given(repository.countLikedPosts(MEMBER_ID)).willReturn(0L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postLikeRepository.findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 0L, 10)).willReturn(List.of());
+        given(likedPostResponseAssembler.assembleLikedPosts(any())).willReturn(List.of());
+        given(postLikeRepository.countLikedPosts(MEMBER_ID)).willReturn(0L);
 
         LikedPostListResponse response = postLikeQueryService.getLikedPosts(PUBLIC_ID, LikedPostSort.LATEST, null, null);
 
         assertThat(response.page()).isEqualTo(0);
         assertThat(response.size()).isEqualTo(10);
-        verify(repository).findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 0L, 10);
+        verify(postLikeRepository).findLikedPosts(MEMBER_ID, LikedPostSort.LATEST, 0L, 10);
     }
 
     @Test
     @DisplayName("page가 음수면 PAGE_INVALID 예외를 던진다")
     void getLikedPosts_negativePage() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> postLikeQueryService.getLikedPosts(PUBLIC_ID, LikedPostSort.LATEST, -1, 10))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_INVALID);
 
-        verify(repository, never()).findLikedPosts(anyLong(), eq(LikedPostSort.LATEST), anyLong(), anyInt());
+        verify(postLikeRepository, never()).findLikedPosts(anyLong(), eq(LikedPostSort.LATEST), anyLong(), anyInt());
     }
 
     @Test
     @DisplayName("size가 범위(1~30)를 벗어나면 PAGE_SIZE_INVALID 예외를 던진다")
     void getLikedPosts_invalidSize() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> postLikeQueryService.getLikedPosts(PUBLIC_ID, LikedPostSort.LATEST, 0, 31))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_SIZE_INVALID);
 
-        verify(repository, never()).findLikedPosts(anyLong(), eq(LikedPostSort.LATEST), anyLong(), anyInt());
+        verify(postLikeRepository, never()).findLikedPosts(anyLong(), eq(LikedPostSort.LATEST), anyLong(), anyInt());
     }
 }

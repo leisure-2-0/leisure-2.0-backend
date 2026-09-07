@@ -23,13 +23,13 @@ import static org.mockito.BDDMockito.given;
 class RegionServiceTest {
 
     @Mock
-    private TourApiClient client;
+    private TourApiClient tourApiClient;
 
     @Mock
-    private RegionWriter writer;
+    private RegionWriter regionWriter;
 
     @InjectMocks
-    private RegionService service;
+    private RegionService regionService;
 
     @Captor
     private ArgumentCaptor<List<RegionData>> dataCaptor;
@@ -41,15 +41,15 @@ class RegionServiceTest {
     }
 
     @Test
-    @DisplayName("광역×시군구를 조합해 RegionData 목록을 만들어 writer에 넘긴다")
+    @DisplayName("광역×시군구를 조합해 RegionData 목록을 만들어 regionWriter에 넘긴다")
     void buildsCartesian() {
-        given(client.fetchRegions()).willReturn(response(new LdongCodeResponse.Item("51", "강원특별자치도")));
-        given(client.fetchSigungus("51")).willReturn(response(
+        given(tourApiClient.fetchRegions()).willReturn(response(new LdongCodeResponse.Item("51", "강원특별자치도")));
+        given(tourApiClient.fetchSigungus("51")).willReturn(response(
                 new LdongCodeResponse.Item("150", "강릉시"),
                 new LdongCodeResponse.Item("210", "원주시")));
-        given(writer.updates(dataCaptor.capture())).willReturn(new RegionSyncResult(2, 0, 2));
+        given(regionWriter.updates(dataCaptor.capture())).willReturn(new RegionSyncResult(2, 0, 2));
 
-        service.syncRegions();
+        regionService.syncRegions();
 
         List<RegionData> passed = dataCaptor.getValue();
         assertThat(passed).containsExactly(

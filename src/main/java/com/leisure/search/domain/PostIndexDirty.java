@@ -26,6 +26,6 @@ public class PostIndexDirty {
     @Column(name = "dirtied_at", nullable = false, columnDefinition = "DATETIME(6)", comment = "마지막 더티 시각 (처리 순서/관측용)")
     private LocalDateTime dirtiedAt;
 
-    @Column(name = "next_retry_time", nullable = false, columnDefinition = "DATETIME(6)", comment = "다음 처리 가능 시각 (백오프; 배치는 이 시각 지난 행만 처리)")
-    private LocalDateTime nextRetryTime;
+    @Column(name = "next_retry_at", columnDefinition = "DATETIME(6)", comment = "다음 처리 가능 시각 (백오프; 배치는 이 시각 지난 행만 처리)")
+    private LocalDateTime nextRetryAt;
 }

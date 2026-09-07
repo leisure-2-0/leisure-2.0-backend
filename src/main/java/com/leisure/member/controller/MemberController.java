@@ -32,9 +32,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MemberController {
 
-    private final MemberService service;
+    private final MemberService memberService;
 
-    private final CookieProvider provider;
+    private final CookieProvider cookieProvider;
 
     @Operation(
                 summary = "회원 가입",
@@ -43,7 +43,7 @@ public class MemberController {
     @PostMapping("/members")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@Valid @RequestBody SignUpRequest request) {
 
-        SignUpResponse response = service.signUp(request);
+        SignUpResponse response = memberService.signUp(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("회원가입이 완료되었습니다.", response));
@@ -56,9 +56,9 @@ public class MemberController {
     @DeleteMapping("/members")
     public ResponseEntity<Void> withdraw(@CurrentMember String publicId, HttpServletResponse response) {
 
-        service.withdraw(publicId);
+        memberService.withdraw(publicId);
 
-        ResponseCookie cookie = provider.createClearRefreshTokenCookie();
+        ResponseCookie cookie = cookieProvider.createClearRefreshTokenCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
     }
@@ -71,7 +71,7 @@ public class MemberController {
     @GetMapping("/members/me")
     public ResponseEntity<ApiResponse<MemberProfileResponse>> getMyProfile(@CurrentMember String publicId) {
 
-        MemberProfileResponse response = service.getMyProfile(publicId);
+        MemberProfileResponse response = memberService.getMyProfile(publicId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -87,7 +87,7 @@ public class MemberController {
     @PatchMapping("/members/me")
     public ResponseEntity<ApiResponse<ProfileChangeResponse>> changeProfile(@CurrentMember String publicId, @Valid @RequestBody ProfileChangeRequest request) {
 
-        ProfileChangeResponse response = service.changeProfile(publicId, request);
+        ProfileChangeResponse response = memberService.changeProfile(publicId, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -105,9 +105,9 @@ public class MemberController {
             @Valid @RequestBody PasswordChangeRequest request,
             HttpServletResponse response) {
 
-        ReissueResult result = service.changePassword(publicId, request);
+        ReissueResult result = memberService.changePassword(publicId, request);
 
-        ResponseCookie refreshInCookie = provider.createRefreshTokenCookie(result.refreshToken());
+        ResponseCookie refreshInCookie = cookieProvider.createRefreshTokenCookie(result.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshInCookie.toString());
 
         ReissueResponse reissueResponse = new ReissueResponse(result.accessToken());
@@ -124,7 +124,7 @@ public class MemberController {
     @GetMapping("/members/email/check")
     public ResponseEntity<ApiResponse<Void>> checkEmail(@RequestParam String email) {
 
-        service.checkEmail(email);
+        memberService.checkEmail(email);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -138,7 +138,7 @@ public class MemberController {
     @GetMapping("/members/nickname/check")
     public ResponseEntity<ApiResponse<Void>> checkNickname(@RequestParam String nickname) {
 
-        service.checkNickname(nickname);
+        memberService.checkNickname(nickname);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

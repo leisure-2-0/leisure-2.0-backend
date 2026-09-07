@@ -38,13 +38,13 @@ import static org.mockito.Mockito.verify;
 class AuthServiceTest {
 
     @Mock
-    private MemberRepository repository;
+    private MemberRepository memberRepository;
 
     @Mock
-    private PasswordEncoder encoder;
+    private PasswordEncoder passwordEncoder;
 
     @Mock
-    private JwtTokenProvider provider;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Mock
     private RedisTokenStatusStore tokenStatusStore;
@@ -81,12 +81,12 @@ class AuthServiceTest {
     void login_success() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
-        given(encoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(true);
+        given(memberRepository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(true);
         given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(0L);
-        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("access-token");
-        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("refresh-token");
-        given(provider.getRefreshTokenTtl()).willReturn(1000L);
+        given(jwtTokenProvider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("access-token");
+        given(jwtTokenProvider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("refresh-token");
+        given(jwtTokenProvider.getRefreshTokenTtl()).willReturn(1000L);
 
         // when
         LoginResult result = authService.login(request);
@@ -102,7 +102,7 @@ class AuthServiceTest {
     void login_emailNotFound() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.empty());
+        given(memberRepository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> authService.login(request))
@@ -110,7 +110,7 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.LOGIN_FAILED);
 
-        verify(provider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
+        verify(jwtTokenProvider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
         verify(refreshTokenStore, never()).save(anyString(), anyString(), anyLong());
     }
 
@@ -119,8 +119,8 @@ class AuthServiceTest {
     void login_passwordMismatch() {
         // given
         LoginRequest request = request(EMAIL, RAW_PASSWORD);
-        given(repository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
-        given(encoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(false);
+        given(memberRepository.findByEmailAndDeletedAtIsNull(EMAIL)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> authService.login(request))
@@ -128,7 +128,7 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.LOGIN_FAILED);
 
-        verify(provider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
+        verify(jwtTokenProvider, never()).issueAccessToken(anyString(), anyString(), any(MemberRole.class), anyLong());
         verify(refreshTokenStore, never()).save(anyString(), anyString(), anyLong());
     }
 
@@ -138,13 +138,13 @@ class AuthServiceTest {
 
     /** reissue 성공 경로에서 rotate 직전까지 필요한 공통 스텁 */
     private void givenReissueUntilRotate() {
-        given(provider.getPublicId(REFRESH_TOKEN)).willReturn(PUBLIC_ID);
-        given(provider.getEmail(REFRESH_TOKEN)).willReturn(EMAIL);
-        given(provider.getRefreshTokenTtl()).willReturn(1000L);
+        given(jwtTokenProvider.getPublicId(REFRESH_TOKEN)).willReturn(PUBLIC_ID);
+        given(jwtTokenProvider.getEmail(REFRESH_TOKEN)).willReturn(EMAIL);
+        given(jwtTokenProvider.getRefreshTokenTtl()).willReturn(1000L);
         given(tokenStatusStore.getCurrentInvalidationVersion(PUBLIC_ID)).willReturn(0L);
-        given(provider.getRole(REFRESH_TOKEN)).willReturn(MemberRole.MEMBER);
-        given(provider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-access-token");
-        given(provider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-refresh-token");
+        given(jwtTokenProvider.getRole(REFRESH_TOKEN)).willReturn(MemberRole.MEMBER);
+        given(jwtTokenProvider.issueAccessToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-access-token");
+        given(jwtTokenProvider.issueRefreshToken(PUBLIC_ID, EMAIL, MemberRole.MEMBER, 0L)).willReturn("new-refresh-token");
     }
 
     @Test
@@ -243,7 +243,7 @@ class AuthServiceTest {
     @DisplayName("access 토큰을 남은 TTL만큼 블랙리스트에 등록하고 refresh 토큰을 제거한다")
     void logout_success() {
         // given
-        given(provider.getRemainingAccessTokenTtl(ACCESS_TOKEN)).willReturn(1000L);
+        given(jwtTokenProvider.getRemainingAccessTokenTtl(ACCESS_TOKEN)).willReturn(1000L);
 
         // when
         authService.logout(PUBLIC_ID, ACCESS_TOKEN);

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BookmarkQueryController {
 
-    private final BookmarkQueryService service;
+    private final BookmarkQueryService bookmarkQueryService;
 
     @Operation(summary = "내 북마크 목록 조회", description = "본인이 북마크한 게시글을 오프셋 기반으로 조회한다.")
     @SecurityRequirement(name = "BearerAuth")
@@ -39,7 +39,7 @@ public class BookmarkQueryController {
             @RequestParam(required = false) Integer size
     ) {
 
-        BookmarkedPostListResponse response = service.getBookmarkedPosts(publicId, sort, page, size);
+        BookmarkedPostListResponse response = bookmarkQueryService.getBookmarkedPosts(publicId, sort, page, size);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

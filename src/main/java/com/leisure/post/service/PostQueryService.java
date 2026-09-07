@@ -27,28 +27,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostQueryService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
-    private final PostRepository repository;
+    private final PostRepository postRepository;
 
     private final ObjectMapper objectMapper;
 
-    private final PostResponseAssembler assembler;
+    private final PostResponseAssembler postResponseAssembler;
 
     @Transactional(readOnly = true)
     public MyPostListResponse getMyPosts(String publicId, MyPostSort sort, Integer page, Integer size) {
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
         int pageNumber = validatePage(page);
         int pageSize = validateSize(size);
 
         long offset = (long) pageNumber * pageSize;
 
-        List<MyPostResult> results = repository.findMyPosts(memberId, sort, offset, pageSize);
+        List<MyPostResult> results = postRepository.findMyPosts(memberId, sort, offset, pageSize);
 
-        List<MyPostResponse> myPosts = assembler.assembleMyPosts(results);
+        List<MyPostResponse> myPosts = postResponseAssembler.assembleMyPosts(results);
 
-        long totalElements = repository.countMyPosts(memberId);
+        long totalElements = postRepository.countMyPosts(memberId);
 
         int totalPages = calculateTotalPages(totalElements, pageSize);
 
@@ -91,14 +91,14 @@ public class PostQueryService {
 
         Long memberId = null;
         if (publicId != null) {
-            memberId = reader.getMemberByPublicId(publicId).getMemberId();
+            memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
         }
 
         int validLimit = validateLimit(limit);
 
         PostCursor postCursor = decodeCursor(sort, cursor);
 
-        List<PostResult> results = repository.findPosts(memberId, category, sort, postCursor, validLimit + 1);
+        List<PostResult> results = postRepository.findPosts(memberId, category, sort, postCursor, validLimit + 1);
 
         boolean hasNext = results.size() > validLimit;
 
@@ -108,7 +108,7 @@ public class PostQueryService {
 
         String nextCursor = createNextCursor(results, hasNext, sort);
 
-        List<PostResponse> posts = assembler.assemblePosts(results);
+        List<PostResponse> posts = postResponseAssembler.assemblePosts(results);
 
         return new PostListResponse(posts, nextCursor, hasNext);
     }
@@ -190,12 +190,12 @@ public class PostQueryService {
         Long memberId = null;
 
         if (publicId != null) {
-            memberId = reader.getMemberByPublicId(publicId).getMemberId();
+            memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
         }
 
-        List<MainFeedPostResult> results = repository.findMainFeedPosts(memberId, category, sort, 18);
+        List<MainFeedPostResult> results = postRepository.findMainFeedPosts(memberId, category, sort, 18);
 
-        return assembler.assembleMainFeed(results);
+        return postResponseAssembler.assembleMainFeed(results);
     }
 
 
@@ -205,34 +205,34 @@ public class PostQueryService {
         Long memberId = null;
 
         if (publicId != null) {
-            memberId = reader.getMemberByPublicId(publicId).getMemberId();
+            memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
         }
 
-        PostDetailResult result = repository.findPostDetail(memberId, postId)
+        PostDetailResult result = postRepository.findPostDetail(memberId, postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         // TODO: 부하 테스트 후 Redis 조회수 INCR
-        repository.increaseViewCount(result.postId());
+        postRepository.increaseViewCount(result.postId());
 
-        return assembler.assembleDetail(result);
+        return postResponseAssembler.assembleDetail(result);
     }
 
     @Transactional(readOnly = true)
     public List<DraftListResponse> getMyDrafts(String publicId) {
 
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
-        return repository.findMyDrafts(memberId);
+        return postRepository.findMyDrafts(memberId);
     }
 
     @Transactional(readOnly = true)
     public DraftDetailResponse getMyDraftDetail(String publicId, Long postId) {
 
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
-        DraftDetailResult result = repository.findMyDraftsDetail(memberId, postId)
+        DraftDetailResult result = postRepository.findMyDraftsDetail(memberId, postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        return assembler.assembleDraftDetail(result);
+        return postResponseAssembler.assembleDraftDetail(result);
     }
 }
