@@ -53,6 +53,9 @@ spring:
           #       재시도가 필요하면 AUTO ack + 예외 전파 방식으로 바꿔야 한다. earn은 멱등이라 재시도 자체는 안전.
           enabled: false
 
+  elasticsearch:
+    uris: http://localhost:9200   # ES 접속 주소 (로컬 도커, 기본 포트 9200). 로컬은 보안 off라 계정 없음
+
   jpa:
     hibernate:
       # DDL(테이블 생성/수정) 자동화 전략
@@ -69,6 +72,19 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      logging: slf4j
+      multiline: true
+      log-format: "%(currentTime) | took %(executionTime)ms | %(category) | connection %(connectionId) | %(sqlSingleLine)"
+
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace
+
 jwt:
   secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
   access-token-expiration: 3600000 # 1 hour
@@ -82,11 +98,6 @@ cookie:
     same-site: Lax
     max-age: 1209600 # 14 days
 
-#logging:
-#  level:
-#    org.hibernate.SQL: debug
-#    org.hibernate.orm.jdbc.bind: trace
-
 springdoc:
   enable-data-rest: false
   swagger-ui:
@@ -99,14 +110,6 @@ swagger:
   description: 프로젝트 Y 로컬 테스트용 문서
   version: 1.0.0-local
 
-decorator:
-  datasource:
-    p6spy:
-      enable-logging: true
-      logging: slf4j
-      multiline: true
-      log-format: "%(currentTime) | took %(executionTime)ms | %(category) | connection %(connectionId) | %(sqlSingleLine)"
-
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
   service-key: ${TOUR_API_SERVICE_KEY}   # .env의 TOUR_API_SERVICE_KEY
@@ -114,3 +117,21 @@ tour-api:
   retry-initial-delay-ms: 1000
   retry-max-delay-ms: 10000
   retry-backoff-multiplier: 2.0
+
+
+search:
+  enabled: true                # 검색, 색인 기능 on/off (off면 색인 배치, 검색 비활성)
+  sync:
+    fixed-delay-ms: 300000     # 더티 재색인 배치 주기(ms). 300000=5분
+    batch-size: 500            # 한 회차 처리할 더티 행 수 (ES bulk 크기). 문서 크기, 힙 보고 튜닝
+  initial-index:
+    enabled: false             # 기동 시 전체 재색인 여부 (기본 off; 최초 구축, 매핑 변경 때만 on)
+  boost:                       # 검색 필드별 가중치 (비우면 미적용; 예: title > tags > region)
+    title:
+    tags:
+    category:
+    region:
+  fuzziness: auto              # 오타 허용 편집거리. auto=용어 길이별 자동(0~2)
+  fuzz:
+    max-expansions: 25         # fuzzy가 확장할 최대 term 수 (ES 기본 50). 낮출수록 빠르고 recall↓
+    prefix-length: 0           # 앞 N글자는 오타 불허(정확 일치). 0 = 첫 글자부터 오타 허용(한글 대응), 늘리면 정확도·속도↑ recall↓
