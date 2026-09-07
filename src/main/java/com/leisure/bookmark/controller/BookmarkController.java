@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BookmarkController {
 
-    private final BookmarkService service;
+    private final BookmarkService bookmarkService;
 
     @Operation(summary = "북마크 등록", description = "게시글을 북마크하고 최신 북마크 수를 반환한다. 이미 했으면 409.")
     @SecurityRequirement(name = "BearerAuth")
@@ -32,7 +32,7 @@ public class BookmarkController {
             @CurrentMember String publicId,
             @PathVariable Long postId
     ) {
-        BookmarkResponse response = service.bookmark(publicId, postId);
+        BookmarkResponse response = bookmarkService.bookmark(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -46,7 +46,7 @@ public class BookmarkController {
             @CurrentMember String publicId,
             @PathVariable Long postId
     ) {
-        BookmarkResponse response = service.unbookmark(publicId, postId);
+        BookmarkResponse response = bookmarkService.unbookmark(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

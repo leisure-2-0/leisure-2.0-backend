@@ -30,7 +30,7 @@ class PointHistoryServiceTest {
     private PointHistoryRepository pointHistoryRepository;
 
     @InjectMocks
-    private PointHistoryService service;
+    private PointHistoryService pointHistoryService;
 
     private static final Long MEMBER_ID = 1L;   // 수령자(작성자)
     private static final Long ACTOR_ID = 2L;    // 행위자
@@ -44,7 +44,7 @@ class PointHistoryServiceTest {
                 .willReturn(1);
         given(memberRepository.addPoint(MEMBER_ID, TYPE.getAmount())).willReturn(1);
 
-        service.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE);
+        pointHistoryService.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE);
 
         verify(memberRepository).addPoint(MEMBER_ID, TYPE.getAmount());
     }
@@ -55,7 +55,7 @@ class PointHistoryServiceTest {
         given(pointHistoryRepository.insertIfAbsent(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE.name(), TYPE.getAmount()))
                 .willReturn(0);
 
-        service.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE);
+        pointHistoryService.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE);
 
         verify(memberRepository, never()).addPoint(anyLong(), anyInt());
     }
@@ -67,7 +67,7 @@ class PointHistoryServiceTest {
                 .willReturn(1);
         given(memberRepository.addPoint(MEMBER_ID, TYPE.getAmount())).willReturn(0);
 
-        assertThatThrownBy(() -> service.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE))
+        assertThatThrownBy(() -> pointHistoryService.earn(MEMBER_ID, ACTOR_ID, SOURCE_ID, TYPE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);

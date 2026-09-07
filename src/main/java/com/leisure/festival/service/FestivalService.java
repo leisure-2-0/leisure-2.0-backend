@@ -31,11 +31,11 @@ public class FestivalService {
 
     private static final Pattern HREF_PATTERN = Pattern.compile("href=\"([^\"]+)\"");
 
-    private final FestivalRepository repository;
+    private final FestivalRepository festivalRepository;
 
-    private final TourApiClient client;
+    private final TourApiClient tourApiClient;
 
-    private final FestivalWriter writer;
+    private final FestivalWriter festivalWriter;
 
     public void syncFestivalList() {
 
@@ -43,13 +43,13 @@ public class FestivalService {
                 .withDayOfYear(1)
                 .format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        List<Item> items = client.fetchFestivals(eventStartDate);
+        List<Item> items = tourApiClient.fetchFestivals(eventStartDate);
 
         List<FestivalData> dataList = items.stream()
                 .map(item -> toData(item))
                 .toList();
 
-        FestivalSyncResult result = writer.updates(dataList);
+        FestivalSyncResult result = festivalWriter.updates(dataList);
 
         log.info("[festival-sync] 목록 완료 inserted={} updated={} total={}",
                 result.inserted(), result.updated(), result.total());
@@ -57,7 +57,7 @@ public class FestivalService {
 
     public void syncOverviewAndHomepage() {
 
-        List<Festival> festivals = repository.findByOverviewIsNull();
+        List<Festival> festivals = festivalRepository.findByOverviewIsNull();
 
         int success = 0, failed = 0;
 
@@ -65,7 +65,7 @@ public class FestivalService {
             throttle();
             String contentId = festival.getTourContentId();
             try {
-                FestivalDetailCommonResponse detail = client.fetchDetailCommon(contentId);
+                FestivalDetailCommonResponse detail = tourApiClient.fetchDetailCommon(contentId);
 
                 FestivalDetailCommonResponse.Response response = detail.response();
                 if (response == null || response.body() == null || response.body().items() == null
@@ -75,7 +75,7 @@ public class FestivalService {
                 }
 
                 FestivalDetailCommonResponse.Item item = response.body().items().item().get(0);
-                writer.updateDetailCommon(contentId, blankToNull(item.overview()), normalizeHomepage(item.homepage()));
+                festivalWriter.updateDetailCommon(contentId, blankToNull(item.overview()), normalizeHomepage(item.homepage()));
                 success++;
             } catch (Exception e) {
                 log.warn("[festival-detail] 소개글 보강 실패 contentId={}", contentId, e);
@@ -88,7 +88,7 @@ public class FestivalService {
 
     public void syncEventTime() {
 
-        List<Festival> festivals = repository.findByEventTimeIsNull();
+        List<Festival> festivals = festivalRepository.findByEventTimeIsNull();
 
         int success = 0, failed = 0;
 
@@ -96,7 +96,7 @@ public class FestivalService {
             throttle();
             String contentId = festival.getTourContentId();
             try {
-                FestivalDetailIntroResponse detail = client.fetchDetailIntro(contentId);
+                FestivalDetailIntroResponse detail = tourApiClient.fetchDetailIntro(contentId);
 
                 FestivalDetailIntroResponse.Response response = detail.response();
                 if (response == null || response.body() == null || response.body().items() == null
@@ -106,7 +106,7 @@ public class FestivalService {
                 }
 
                 FestivalDetailIntroResponse.Item item = response.body().items().item().get(0);
-                writer.updateDetailIntro(contentId, blankToNull(item.playtime()));
+                festivalWriter.updateDetailIntro(contentId, blankToNull(item.playtime()));
                 success++;
             } catch (Exception e) {
                 log.warn("[festival-detail] 운영시간 보강 실패 contentId={}", contentId, e);

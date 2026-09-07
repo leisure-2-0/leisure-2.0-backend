@@ -17,6 +17,7 @@ import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
 import com.leisure.post.repository.PostRepository;
 
+import com.leisure.search.repository.PostIndexDirtyRepository;
 import com.leisure.tag.domain.PostTag;
 import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,22 +31,24 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PostService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
-    private final PostRepository repository;
+    private final PostRepository postRepository;
 
     private final TagRepository tagRepository;
+
+    private final PostIndexDirtyRepository postIndexDirtyRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
     public PostStartResponse startPosting(String publicId) {
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
         Post post = Post.startWriting(memberId);
 
-        repository.save(post);
+        postRepository.save(post);
 
         return new PostStartResponse(post.getPostId(), post.getStatus());
     }
@@ -78,6 +81,8 @@ public class PostService {
 
         post.publish();
 
+        postIndexDirtyRepository.markDirty(post.getPostId());
+
         eventPublisher.publishEvent(new PostPublishedEvent(post.getMemberId(), post.getPostId()));
 
         return new PostPublishResponse(post.getPostId(), post.getStatus(), post.getPublishedAt());
@@ -95,6 +100,8 @@ public class PostService {
             replaceTags(post.getPostId(), request.tags());
         }
 
+        postIndexDirtyRepository.markDirty(post.getPostId());
+
         return new PostEditResponse(post.getPostId());
     }
 
@@ -108,12 +115,14 @@ public class PostService {
             // 초안(WRITING/DRAFT): 게시된 적 없어 좋아요/북마크 참조가 없으므로 즉시 하드 삭제한다.
             // 자식인 태그만 정리한 뒤 글을 물리 삭제 (같은 트랜잭션이라 원자적)
             tagRepository.deleteByPostId(postId);
-            repository.delete(post);
+            postRepository.delete(post);
         } else {
             // 게시글(PUBLISHED): 소프트 삭제로 즉시 숨긴다 (deleted_at 기록, 각 조회 쿼리의 명시 필터로 제외)
             // TODO: 소프트 삭제된 게시글은 배치로 일괄 하드 삭제하고,
             //       태그, 좋아요, 북마크도 같은 생명주기로 함께 배치 삭제한다.
             post.delete();
+
+            postIndexDirtyRepository.markDirty(post.getPostId());
         }
 
         return new PostDeleteResponse(post.getPostId());
@@ -121,9 +130,9 @@ public class PostService {
 
 
     private Post getOwnedPost(String publicId, Long postId) {
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
-        Post post = repository.findByPostIdAndDeletedAtIsNull(postId)
+        Post post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isWrittenBy(memberId)) {

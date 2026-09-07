@@ -37,7 +37,7 @@ class DashboardServiceTest {
     private FestivalRepository festivalRepository;
 
     @InjectMocks
-    private DashboardService service;
+    private DashboardService dashboardService;
 
     @Test
     @DisplayName("각 도메인 count를 올바른 필드에 매핑해 조립한다")
@@ -47,7 +47,7 @@ class DashboardServiceTest {
         given(memberRepository.countJoinedBetween(any(), any())).willReturn(3L);
         given(festivalRepository.countFestivalsInProgress(any(), any())).willReturn(7L);
 
-        DashboardStatsResponse response = service.getDashboardStats();
+        DashboardStatsResponse response = dashboardService.getDashboardStats();
 
         assertThat(response.certifiedRegionCount()).isEqualTo(5L);
         assertThat(response.certifiedPostCount()).isEqualTo(10L);
@@ -60,7 +60,7 @@ class DashboardServiceTest {
     void passesCurrentMonthRange() {
         YearMonth ym = YearMonth.now();
 
-        service.getDashboardStats();
+        dashboardService.getDashboardStats();
 
         ArgumentCaptor<LocalDateTime> memberStart = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> memberEnd = ArgumentCaptor.forClass(LocalDateTime.class);

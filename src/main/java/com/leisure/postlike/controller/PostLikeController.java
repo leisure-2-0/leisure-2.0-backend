@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PostLikeController {
 
-    private final PostLikeService service;
+    private final PostLikeService postLikeService;
 
     @Operation(summary = "좋아요 등록", description = "게시글에 좋아요를 누르고 최신 좋아요 수를 반환한다. 이미 눌렀으면 409.")
     @SecurityRequirement(name = "BearerAuth")
@@ -32,7 +32,7 @@ public class PostLikeController {
             @CurrentMember String publicId,
             @PathVariable Long postId
     ) {
-        PostLikeResponse response = service.like(publicId, postId);
+        PostLikeResponse response = postLikeService.like(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -46,7 +46,7 @@ public class PostLikeController {
             @CurrentMember String publicId,
             @PathVariable Long postId
     ) {
-        PostLikeResponse response = service.unlike(publicId, postId);
+        PostLikeResponse response = postLikeService.unlike(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -12,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberReader {
 
-    private final MemberRepository repository;
+    private final MemberRepository memberRepository;
 
     public Member getMemberByPublicId(String publicId) {
-        return repository.findByPublicIdAndDeletedAtIsNull(publicId)
+        return memberRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

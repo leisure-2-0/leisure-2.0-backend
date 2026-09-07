@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PostLikeQueryController {
 
-    private final PostLikeQueryService service;
+    private final PostLikeQueryService postLikeQueryService;
 
     @Operation(summary = "내 좋아요 목록 조회", description = "본인이 좋아요한 게시글을 오프셋 기반으로 조회한다.")
     @SecurityRequirement(name = "BearerAuth")
@@ -39,7 +39,7 @@ public class PostLikeQueryController {
             @RequestParam(required = false) Integer size
     ) {
 
-        LikedPostListResponse response = service.getLikedPosts(publicId, sort, page, size);
+        LikedPostListResponse response = postLikeQueryService.getLikedPosts(publicId, sort, page, size);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

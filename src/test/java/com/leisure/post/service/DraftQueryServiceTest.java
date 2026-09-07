@@ -32,16 +32,16 @@ import static org.mockito.BDDMockito.given;
 class DraftQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostRepository repository;
+    private PostRepository postRepository;
 
     @Mock
     private ObjectMapper objectMapper;
 
     @Mock
-    private PostResponseAssembler assembler;
+    private PostResponseAssembler postResponseAssembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -67,8 +67,8 @@ class DraftQueryServiceTest {
     @DisplayName("초안 목록은 memberId로 조회한 결과를 그대로 반환한다")
     void getMyDrafts_success() {
         DraftListResponse draft = new DraftListResponse(POST_ID, "제목", PostCategory.RESTAURANT, LocalDateTime.now());
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyDrafts(MEMBER_ID)).willReturn(List.of(draft));
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMyDrafts(MEMBER_ID)).willReturn(List.of(draft));
 
         List<DraftListResponse> response = postQueryService.getMyDrafts(PUBLIC_ID);
 
@@ -80,9 +80,9 @@ class DraftQueryServiceTest {
     @DisplayName("초안 상세는 조회 후 어셈블러로 태그를 병합해 반환한다")
     void getMyDraftDetail_success() {
         DraftDetailResult result = result();
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyDraftsDetail(MEMBER_ID, POST_ID)).willReturn(Optional.of(result));
-        given(assembler.assembleDraftDetail(result)).willReturn(DraftDetailResponse.from(result, List.of("강릉")));
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMyDraftsDetail(MEMBER_ID, POST_ID)).willReturn(Optional.of(result));
+        given(postResponseAssembler.assembleDraftDetail(result)).willReturn(DraftDetailResponse.from(result, List.of("강릉")));
 
         DraftDetailResponse response = postQueryService.getMyDraftDetail(PUBLIC_ID, POST_ID);
 
@@ -93,8 +93,8 @@ class DraftQueryServiceTest {
     @Test
     @DisplayName("초안이 없으면(없거나 남의 것) POST_NOT_FOUND 예외를 던진다")
     void getMyDraftDetail_notFound() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyDraftsDetail(MEMBER_ID, POST_ID)).willReturn(Optional.empty());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMyDraftsDetail(MEMBER_ID, POST_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> postQueryService.getMyDraftDetail(PUBLIC_ID, POST_ID))
                 .isInstanceOf(BusinessException.class)

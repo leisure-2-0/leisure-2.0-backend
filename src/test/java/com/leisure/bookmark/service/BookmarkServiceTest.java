@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 class BookmarkServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
     private PostRepository postRepository;
@@ -78,7 +78,7 @@ class BookmarkServiceTest {
         @Test
         @DisplayName("북마크를 저장하고 카운트를 증가시킨 뒤 isBookmarked=true로 응답한다")
         void success() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(bookmarkRepository.existsByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(false);
             given(postRepository.findBookmarkCountByPostId(POST_ID)).willReturn(1);
@@ -94,7 +94,7 @@ class BookmarkServiceTest {
         @Test
         @DisplayName("이미 북마크한 글이면 POST_BOOKMARK_ALREADY_BOOKMARKED 예외를 던지고 카운트를 올리지 않는다")
         void alreadyBookmarked() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(bookmarkRepository.existsByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(true);
 
@@ -110,7 +110,7 @@ class BookmarkServiceTest {
         @Test
         @DisplayName("게시되지 않은 글이면 POST_NOT_FOUND 예외를 던진다")
         void notPublished() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(writingPost()));
 
             assertThatThrownBy(() -> bookmarkService.bookmark(PUBLIC_ID, POST_ID))
@@ -127,7 +127,7 @@ class BookmarkServiceTest {
         @Test
         @DisplayName("북마크를 삭제하고 카운트를 감소시킨 뒤 isBookmarked=false로 응답한다")
         void success() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(bookmarkRepository.deleteByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(1);
             given(postRepository.findBookmarkCountByPostId(POST_ID)).willReturn(0);
@@ -142,7 +142,7 @@ class BookmarkServiceTest {
         @Test
         @DisplayName("북마크하지 않은 글이면 POST_BOOKMARK_NOT_BOOKMARKED_YET 예외를 던지고 카운트를 내리지 않는다")
         void notBookmarkedYet() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(bookmarkRepository.deleteByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(0);
 

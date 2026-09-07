@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostQueryController {
 
-    private final PostQueryService service;
+    private final PostQueryService postQueryService;
 
     @Operation(summary = "내 게시글 목록 조회", description = "본인이 게시(PUBLISHED)한 글을 오프셋 기반으로 조회한다.")
     @SecurityRequirement(name = "BearerAuth")
@@ -45,7 +45,7 @@ public class PostQueryController {
             @RequestParam(required = false) Integer size
     ) {
 
-        MyPostListResponse response = service.getMyPosts(publicId, sort, page, size);
+        MyPostListResponse response = postQueryService.getMyPosts(publicId, sort, page, size);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -64,7 +64,7 @@ public class PostQueryController {
             @Parameter(description = "페이지 크기(1~30, 기본 15)")
             @RequestParam(required = false) Integer limit) {
 
-        PostListResponse response = service.getPosts(publicId, category, sort, cursor, limit);
+        PostListResponse response = postQueryService.getPosts(publicId, category, sort, cursor, limit);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -80,7 +80,7 @@ public class PostQueryController {
             @Parameter(description = "정렬 기준. LATEST=최신순, POPULAR=인기순")
             @RequestParam(defaultValue = "LATEST") PostSort sort) {
 
-        List<MainFeedPostResponse> response = service.getMainFeedPosts(publicId, category, sort);
+        List<MainFeedPostResponse> response = postQueryService.getMainFeedPosts(publicId, category, sort);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -92,7 +92,7 @@ public class PostQueryController {
     @GetMapping("/posts/{postId:\\d+}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@CurrentMember(required = false) String publicId, @PathVariable Long postId) {
 
-        PostDetailResponse response = service.getPostDetail(publicId, postId);
+        PostDetailResponse response = postQueryService.getPostDetail(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -105,7 +105,7 @@ public class PostQueryController {
     @GetMapping("/members/me/drafts")
     public ResponseEntity<ApiResponse<List<DraftListResponse>>> getMyDrafts(@CurrentMember String publicId) {
 
-        List<DraftListResponse> response = service.getMyDrafts(publicId);
+        List<DraftListResponse> response = postQueryService.getMyDrafts(publicId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -117,7 +117,7 @@ public class PostQueryController {
     @GetMapping("/members/me/drafts/{postId}")
     public ResponseEntity<ApiResponse<DraftDetailResponse>> getMyDraftDetail(@CurrentMember String publicId, @PathVariable Long postId) {
 
-        DraftDetailResponse response = service.getMyDraftDetail(publicId, postId);
+        DraftDetailResponse response = postQueryService.getMyDraftDetail(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

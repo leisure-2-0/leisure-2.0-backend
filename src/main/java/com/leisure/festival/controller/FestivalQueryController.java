@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FestivalQueryController {
 
-    private final FestivalQueryService service;
+    private final FestivalQueryService festivalQueryService;
 
     @Operation(
             summary = "월별 축제 목록 조회",
@@ -47,7 +47,7 @@ public class FestivalQueryController {
             @RequestParam @Min(1) @Max(12) int month,
             @RequestParam(required = false) FestivalCategory category) {
 
-        List<MonthlyFestivalResponse> responses = service.getMonthlyFestivals(year, month, category);
+        List<MonthlyFestivalResponse> responses = festivalQueryService.getMonthlyFestivals(year, month, category);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success("월별 축제 목록 조회에 성공했습니다.", responses));
@@ -67,7 +67,7 @@ public class FestivalQueryController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(required = false) FestivalCategory category) {
 
-        List<DailyFestivalResponse> responses = service.getDailyFestivals(date, category);
+        List<DailyFestivalResponse> responses = festivalQueryService.getDailyFestivals(date, category);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -85,7 +85,7 @@ public class FestivalQueryController {
     @GetMapping("/festivals/upcoming")
     public ResponseEntity<ApiResponse<List<UpcomingFestivalResponse>>> getUpcomingFestivals() {
 
-        List<UpcomingFestivalResponse> responses = service.getUpcomingFestivals();
+        List<UpcomingFestivalResponse> responses = festivalQueryService.getUpcomingFestivals();
 
         return ResponseEntity
                 .status(HttpStatus.OK)

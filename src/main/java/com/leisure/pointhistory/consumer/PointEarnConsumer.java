@@ -20,7 +20,7 @@ public class PointEarnConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(PointEarnConsumer.class);
 
-    private final PointHistoryService service;
+    private final PointHistoryService pointHistoryService;
 
     @RabbitListener(queues = "${rabbitmq.api-queue}", containerFactory = "simpleRabbitListenerContainerFactory")
     public void onMessage(EventEnvelope<PointEarnMessage> envelope, Message message, Channel channel) throws IOException {
@@ -34,7 +34,7 @@ public class PointEarnConsumer {
             log.debug("[point-consumer] 수신 eventId={} correlationId={} eventType={} pointType={}",
                     envelope.eventId(), envelope.correlationId(), envelope.eventType(), msg.pointType());
 
-            service.earn(msg.memberId(), msg.actorId(), msg.sourceId(), msg.pointType());
+            pointHistoryService.earn(msg.memberId(), msg.actorId(), msg.sourceId(), msg.pointType());
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
             log.error("[point-consumer] 실패 → DLQ eventId={} correlationId={} redelivered={} tag={}",

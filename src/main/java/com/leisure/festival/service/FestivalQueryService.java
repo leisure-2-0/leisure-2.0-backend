@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FestivalQueryService {
 
-    private final FestivalRepository repository;
+    private final FestivalRepository festivalRepository;
 
     @Transactional(readOnly = true)
     public List<MonthlyFestivalResponse> getMonthlyFestivals(int year, int month, FestivalCategory category) {
@@ -31,7 +31,7 @@ public class FestivalQueryService {
 
         String code = (category != null) ? category.getCode() : null;
 
-        return repository.findMonthlyFestivals(monthStart, monthEnd, code);
+        return festivalRepository.findMonthlyFestivals(monthStart, monthEnd, code);
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +39,7 @@ public class FestivalQueryService {
 
         String code = (category != null) ? category.getCode() : null;
 
-        List<DailyFestivalResult> results = repository.findDailyFestivals(date, code);
+        List<DailyFestivalResult> results = festivalRepository.findDailyFestivals(date, code);
 
         List<DailyFestivalResponse> responses = new ArrayList<>();
 
@@ -77,7 +77,7 @@ public class FestivalQueryService {
     public List<UpcomingFestivalResponse> getUpcomingFestivals() {
         LocalDate today = LocalDate.now();
 
-        List<UpcomingFestivalResult> results = repository.findUpcomingFestivals(today);
+        List<UpcomingFestivalResult> results = festivalRepository.findUpcomingFestivals(today);
 
         List<UpcomingFestivalResponse> responses = new ArrayList<>();
 

@@ -1,0 +1,35 @@
+{
+  "analysis": {
+    "tokenizer": {
+      "nori_mixed_true_tokenizer": {
+        "type": "nori_tokenizer",
+        "decompound_mode": "mixed",
+        "discard_punctuation": "true"
+      }
+    },
+    "filter": {
+      "nori_speech_filter": {
+        "type": "nori_part_of_speech",
+        "stoptags": [
+          "EP", "EF", "EC", "ETN", "ETM",
+          "IC",
+          "JKS", "JKC", "JKG", "JKO", "JKB", "JKV", "JKQ", "JX",
+          "JC",
+          "MAG", "MAJ", "MM",
+          "SP", "SSC", "SSO", "SC", "SE",
+          "XPN", "XSA", "XSN", "XSV", "UNA", "NA", "VSV"
+        ]
+      },
+      "nori_readingform_filter": {
+        "type": "nori_readingform"
+      }
+    },
+    "analyzer": {
+      "korean": {
+        "type": "custom",
+        "tokenizer": "nori_mixed_true_tokenizer",
+        "filter": ["nori_speech_filter", "nori_readingform_filter", "lowercase"]
+      }
+    }
+  }
+}
