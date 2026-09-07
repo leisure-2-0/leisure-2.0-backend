@@ -1,4 +1,4 @@
-package com.leisure.search.domain;
+package com.leisure.search.engine;
 
 import lombok.AccessLevel;
 import lombok.Getter;

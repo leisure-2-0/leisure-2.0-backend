@@ -1,4 +1,4 @@
-package com.leisure.search.domain;
+package com.leisure.search.index;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

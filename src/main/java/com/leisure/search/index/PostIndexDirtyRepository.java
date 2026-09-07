@@ -1,6 +1,6 @@
-package com.leisure.search.repository;
+package com.leisure.search.index;
 
-import com.leisure.search.domain.PostIndexDirty;
+import com.leisure.search.index.PostIndexDirty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
