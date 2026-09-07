@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BookmarkService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
     private final PostRepository postRepository;
 
@@ -31,7 +31,7 @@ public class BookmarkService {
     @Transactional
     public BookmarkResponse bookmark(String publicId, Long postId) {
 
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
         Post post = getPublishedPost(postId);
 
         boolean isBookmarked = bookmarkRepository.existsByMemberIdAndPostId(memberId, post.getPostId());
@@ -61,7 +61,7 @@ public class BookmarkService {
     @Transactional
     public BookmarkResponse unbookmark(String publicId, Long postId) {
 
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
         Post post = getPublishedPost(postId);
 
         int deleted = bookmarkRepository.deleteByMemberIdAndPostId(memberId, post.getPostId());

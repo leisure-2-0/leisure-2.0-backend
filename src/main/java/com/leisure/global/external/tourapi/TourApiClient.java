@@ -30,12 +30,12 @@ public class TourApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(TourApiClient.class);
 
-    private final RestClient client;
+    private final RestClient restClient;
 
     private final TourApiProperties properties;
 
     public TourApiClient(RestClient client, TourApiProperties properties) {
-        this.client = client;
+        this.restClient = client;
         this.properties = properties;
     }
 
@@ -157,7 +157,7 @@ public class TourApiClient {
 
         for (int attempt = 1; attempt <= properties.maxAttempts(); attempt++) {
             try {
-                T body = client.get()
+                T body = restClient.get()
                         .uri(uri)
                         .accept(MediaType.APPLICATION_JSON, MediaType.ALL)
                         .retrieve()

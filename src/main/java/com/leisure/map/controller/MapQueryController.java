@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MapQueryController {
 
-    private final MapQueryService service;
+    private final MapQueryService mapQueryService;
 
 
     @Operation(
@@ -35,7 +35,7 @@ public class MapQueryController {
     public ResponseEntity<ApiResponse<List<RegionPinCountResponse>>> getRegionPinCounts(
             @RequestParam(required = false) PostCategory category // 선택적 카테고리 필터
     ) {
-        List<RegionPinCountResponse> response = service.getRegionPinCounts(category);
+        List<RegionPinCountResponse> response = mapQueryService.getRegionPinCounts(category);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -55,7 +55,7 @@ public class MapQueryController {
             @RequestParam double maxLng, // 최대 경도
             @RequestParam(required = false) PostCategory category // 선택적 카테고리 필터
     ) {
-        List<MapPinResponse> response = service.getPostPins(minLat, maxLat, minLng, maxLng, category);
+        List<MapPinResponse> response = mapQueryService.getPostPins(minLat, maxLat, minLng, maxLng, category);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

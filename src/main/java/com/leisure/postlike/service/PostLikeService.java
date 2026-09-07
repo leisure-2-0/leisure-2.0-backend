@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PostLikeService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
     private final PostRepository postRepository;
 
@@ -32,7 +32,7 @@ public class PostLikeService {
     @Transactional
     public PostLikeResponse like(String publicId, Long postId) {
 
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
         Post post = getPublishedPost(postId);
 
         boolean isLiked = likeRepository.existsByMemberIdAndPostId(member.getMemberId(), post.getPostId());
@@ -62,7 +62,7 @@ public class PostLikeService {
     @Transactional
     public PostLikeResponse unlike(String publicId, Long postId) {
 
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
         Post post = getPublishedPost(postId);
 
 //        PostLike postLike = likeRepository.findByMemberIdAndPostId(member.getMemberId(), post.getPostId())

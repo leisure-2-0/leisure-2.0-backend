@@ -35,9 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService service;
+    private final AuthService authService;
 
-    private final CookieProvider provider;
+    private final CookieProvider cookieProvider;
 
     private final AccessTokenResolver accessResolver;
 
@@ -46,9 +46,9 @@ public class AuthController {
     @Operation(summary = "로그인", description = "이메일, 비밀번호로 로그인한다. access 토큰은 body로, refresh 토큰은 쿠키로 반환된다.")
     @PostMapping("/auth")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        LoginResult result = service.login(request);
+        LoginResult result = authService.login(request);
 
-        ResponseCookie refreshInCookie = provider.createRefreshTokenCookie(result.refreshToken());
+        ResponseCookie refreshInCookie = cookieProvider.createRefreshTokenCookie(result.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshInCookie.toString());
 
         LoginResponse loginResponse = new LoginResponse(result.accessToken());
@@ -64,9 +64,9 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout(@CurrentMember String publicId, HttpServletRequest request, HttpServletResponse response)  {
 
         String accessToken = accessResolver.resolve(request);
-        service.logout(publicId, accessToken);
+        authService.logout(publicId, accessToken);
 
-        ResponseCookie clearedCookie = provider.createClearRefreshTokenCookie();
+        ResponseCookie clearedCookie = cookieProvider.createClearRefreshTokenCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, clearedCookie.toString());
 
         return ResponseEntity.noContent().build();
@@ -77,9 +77,9 @@ public class AuthController {
     public ResponseEntity<ApiResponse<ReissueResponse>> reissue(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = refreshResolver.resolve(request);
 
-        ReissueResult result = service.reissue(refreshToken);
+        ReissueResult result = authService.reissue(refreshToken);
 
-        ResponseCookie refreshInCookie = provider.createRefreshTokenCookie(result.refreshToken());
+        ResponseCookie refreshInCookie = cookieProvider.createRefreshTokenCookie(result.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshInCookie.toString());
 
         ReissueResponse reissueResponse = new ReissueResponse(result.accessToken());

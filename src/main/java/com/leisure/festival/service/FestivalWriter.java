@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FestivalWriter {
 
-    private final FestivalRepository repository;
+    private final FestivalRepository festivalRepository;
 
     @Transactional
     public FestivalSyncResult updates(List<FestivalData> list) {
@@ -23,10 +23,10 @@ public class FestivalWriter {
         int inserted = 0, updated = 0;
 
         for (FestivalData festivalData : list) {
-            Festival festival = repository.findByTourContentId(festivalData.tourContentId()).orElse(null);
+            Festival festival = festivalRepository.findByTourContentId(festivalData.tourContentId()).orElse(null);
 
             if (festival == null) {
-                repository.save(Festival.create(festivalData));
+                festivalRepository.save(Festival.create(festivalData));
                 inserted++;
             } else {
                 festival.updateFromList(festivalData);
@@ -39,13 +39,13 @@ public class FestivalWriter {
 
     @Transactional
     public void updateDetailCommon(String tourContentId, String overview, String homepageUrl) {
-        repository.findByTourContentId(tourContentId)
+        festivalRepository.findByTourContentId(tourContentId)
                 .ifPresent(festival -> festival.updateFromDetailCommon(overview, homepageUrl));
     }
 
     @Transactional
     public void updateDetailIntro(String tourContentId, String eventTime) {
-        repository.findByTourContentId(tourContentId)
+        festivalRepository.findByTourContentId(tourContentId)
                 .ifPresent(festival -> festival.updateFromDetailIntro(eventTime));
     }
 }

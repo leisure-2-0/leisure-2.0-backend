@@ -26,21 +26,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider provider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    private final AccessTokenResolver resolver;
+    private final AccessTokenResolver accessTokenResolver;
 
     private final RedisBlacklistTokenStore blacklistTokenStore;
 
     private final RedisTokenStatusStore tokenStatusStore;
 
-    private final SecurityErrorResponseWriter writer;
+    private final SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            String pureToken = resolver.resolve(request);
+            String pureToken = accessTokenResolver.resolve(request);
 
             if (pureToken == null) {
                 filterChain.doFilter(request, response);
@@ -49,19 +49,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
             if (blacklistTokenStore.exists(pureToken)) {
-                writer.write(response, ErrorCode.TOKEN_BLACKLISTED);
+                securityErrorResponseWriter.write(response, ErrorCode.TOKEN_BLACKLISTED);
                 return;
             }
 
-            String publicId = provider.getPublicId(pureToken);
-            String email = provider.getEmail(pureToken);
-            MemberRole role = provider.getRole(pureToken);
+            String publicId = jwtTokenProvider.getPublicId(pureToken);
+            String email = jwtTokenProvider.getEmail(pureToken);
+            MemberRole role = jwtTokenProvider.getRole(pureToken);
 
-            long claimVersion = provider.extractInvalidationVersion(pureToken);
+            long claimVersion = jwtTokenProvider.extractInvalidationVersion(pureToken);
             long storedVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
             if (claimVersion != storedVersion) {
-                writer.write(response, ErrorCode.TOKEN_INVALID);
+                securityErrorResponseWriter.write(response, ErrorCode.TOKEN_INVALID);
                 return;
             }
 
@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (BusinessException e) {
             SecurityContextHolder.clearContext();
-            writer.write(response, e.getErrorCode());
+            securityErrorResponseWriter.write(response, e.getErrorCode());
         }
     }
 }

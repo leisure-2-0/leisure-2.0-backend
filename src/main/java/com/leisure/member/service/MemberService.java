@@ -28,11 +28,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberRepository repository;
+    private final MemberRepository memberRepository;
 
-    private final PasswordEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -51,7 +51,7 @@ public class MemberService {
 
         validateMemberUniqueness(email, request.nickname());
 
-        String encodedPassword = encoder.encode(request.password());
+        String encodedPassword = passwordEncoder.encode(request.password());
 
         Member member = Member.create(
                 email,
@@ -59,8 +59,8 @@ public class MemberService {
                 request.nickname());
 
         try {
-            repository.save(member);
-            repository.flush();
+            memberRepository.save(member);
+            memberRepository.flush();
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
@@ -70,7 +70,7 @@ public class MemberService {
 
     @Transactional
     public void withdraw(String publicId) {
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
 
 //        if (member.getDeletedAt() != null) {
 //            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
@@ -83,7 +83,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public MemberProfileResponse getMyProfile(String publicId) {
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
 
         return new MemberProfileResponse(member.getPublicId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl());
     }
@@ -91,13 +91,13 @@ public class MemberService {
     @Transactional
     public ProfileChangeResponse changeProfile(String publicId, ProfileChangeRequest request) {
 
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
 
         String nickname = request.nickname();
         String profileImageUrl = request.profileImageUrl();
 
         if (nickname != null && !Objects.equals(member.getNickname(), nickname)) {
-            if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
+            if (memberRepository.existsByNicknameAndDeletedAtIsNull(nickname)) {
                 throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
             }
             member.changeNickname(nickname);
@@ -118,13 +118,13 @@ public class MemberService {
 
         validatePasswordMatch(request.newPassword(), request.newPasswordConfirm());
 
-        Member member = reader.getMemberByPublicId(publicId);
+        Member member = memberReader.getMemberByPublicId(publicId);
 
-        if (!member.matchesPassword(request.currentPassword(), encoder)) {
+        if (!member.matchesPassword(request.currentPassword(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        member.changePassword(encoder.encode(request.newPassword()));
+        member.changePassword(passwordEncoder.encode(request.newPassword()));
 
         tokenStatusStore.increaseInvalidationVersion(publicId);
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
@@ -139,24 +139,24 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public void checkEmail(String email) {
-        if (repository.existsByEmailAndDeletedAtIsNull(Member.normalizeEmail(email))) {
+        if (memberRepository.existsByEmailAndDeletedAtIsNull(Member.normalizeEmail(email))) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
     }
 
     @Transactional(readOnly = true)
     public void checkNickname(String nickname) {
-        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
+        if (memberRepository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }
 
     private void validateMemberUniqueness(String email, String nickname) {
-        if (repository.existsByEmailAndDeletedAtIsNull(email)) {
+        if (memberRepository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
 
-        if (repository.existsByNicknameAndDeletedAtIsNull(nickname)) {
+        if (memberRepository.existsByNicknameAndDeletedAtIsNull(nickname)) {
             throw new BusinessException(ErrorCode.NICKNAME_DUPLICATE);
         }
     }

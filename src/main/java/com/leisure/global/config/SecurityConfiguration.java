@@ -24,7 +24,7 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter filter;
 
-    private final SecurityErrorResponseWriter writer;
+    private final SecurityErrorResponseWriter securityErrorResponseWriter;
     
     private final CorsConfigurationSource configuration;
 
@@ -39,8 +39,8 @@ public class SecurityConfiguration {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) -> writer.write(response, ErrorCode.AUTHENTICATION_REQUIRED))
-                        .accessDeniedHandler((request, response, authException) -> writer.write(response, ErrorCode.ACCESS_DENIED)))
+                        .authenticationEntryPoint((request, response, authException) -> securityErrorResponseWriter.write(response, ErrorCode.AUTHENTICATION_REQUIRED))
+                        .accessDeniedHandler((request, response, authException) -> securityErrorResponseWriter.write(response, ErrorCode.ACCESS_DENIED)))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/members").permitAll()

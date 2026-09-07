@@ -22,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final MemberRepository repository;
+    private final MemberRepository memberRepository;
 
-    private final PasswordEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
 
-    private final JwtTokenProvider provider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     private final RedisTokenStatusStore tokenStatusStore;
 
@@ -38,21 +38,21 @@ public class AuthService {
     @Transactional(readOnly = true)
     public LoginResult login(LoginRequest request) {
 
-        Member member = repository.findByEmailAndDeletedAtIsNull(Member.normalizeEmail(request.email()))
+        Member member = memberRepository.findByEmailAndDeletedAtIsNull(Member.normalizeEmail(request.email()))
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
 
-        if (!member.matchesPassword(request.password(), encoder)) {
+        if (!member.matchesPassword(request.password(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
 
         String publicId = member.getPublicId();
         String email = member.getEmail();
         MemberRole role = member.getRole();
-        long ttl = provider.getRefreshTokenTtl();
+        long ttl = jwtTokenProvider.getRefreshTokenTtl();
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
-        String accessToken = provider.issueAccessToken(publicId, email, role, invalidationVersion);
-        String refreshToken = provider.issueRefreshToken(publicId, email, role, invalidationVersion);
+        String accessToken = jwtTokenProvider.issueAccessToken(publicId, email, role, invalidationVersion);
+        String refreshToken = jwtTokenProvider.issueRefreshToken(publicId, email, role, invalidationVersion);
 
         refreshTokenStore.save(publicId, refreshToken, ttl);
 
@@ -66,7 +66,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.TOKEN_INVALID);
         }
 
-        long ttl = provider.getRemainingAccessTokenTtl(accessToken);
+        long ttl = jwtTokenProvider.getRemainingAccessTokenTtl(accessToken);
 
         blacklistTokenStore.save(accessToken, ttl);
         refreshTokenStore.remove(publicId);
@@ -78,16 +78,16 @@ public class AuthService {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
-        provider.verifyRefreshToken(refreshToken);
-        String publicId = provider.getPublicId(refreshToken);
-        String email = provider.getEmail(refreshToken);
-        MemberRole role = provider.getRole(refreshToken);
-        long ttl = provider.getRefreshTokenTtl();
+        jwtTokenProvider.verifyRefreshToken(refreshToken);
+        String publicId = jwtTokenProvider.getPublicId(refreshToken);
+        String email = jwtTokenProvider.getEmail(refreshToken);
+        MemberRole role = jwtTokenProvider.getRole(refreshToken);
+        long ttl = jwtTokenProvider.getRefreshTokenTtl();
 
         long invalidationVersion = tokenStatusStore.getCurrentInvalidationVersion(publicId);
 
-        String newAccessToken = provider.issueAccessToken(publicId, email, role, invalidationVersion);
-        String newRefreshToken = provider.issueRefreshToken(publicId, email, role, invalidationVersion);
+        String newAccessToken = jwtTokenProvider.issueAccessToken(publicId, email, role, invalidationVersion);
+        String newRefreshToken = jwtTokenProvider.issueRefreshToken(publicId, email, role, invalidationVersion);
 
         TokenRotationContext context = new TokenRotationContext(publicId, refreshToken, newRefreshToken, ttl);
 

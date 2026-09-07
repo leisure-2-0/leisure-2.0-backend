@@ -33,13 +33,13 @@ import static org.mockito.Mockito.verify;
 class MyPostQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostRepository repository;
+    private PostRepository postRepository;
 
     @Mock
-    private PostResponseAssembler assembler;
+    private PostResponseAssembler postResponseAssembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -57,10 +57,10 @@ class MyPostQueryServiceTest {
     @DisplayName("page/size로 offset을 계산해 조회하고 totalPages·hasNext를 산출한다")
     void getMyPosts_success() {
         // 총 25개, size=10, page=1 → offset=10, totalPages=3, hasNext=true
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 10L, 10)).willReturn(List.of());
-        given(assembler.assembleMyPosts(any())).willReturn(List.of());
-        given(repository.countMyPosts(MEMBER_ID)).willReturn(25L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 10L, 10)).willReturn(List.of());
+        given(postResponseAssembler.assembleMyPosts(any())).willReturn(List.of());
+        given(postRepository.countMyPosts(MEMBER_ID)).willReturn(25L);
 
         MyPostListResponse response = postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, 1, 10);
 
@@ -73,41 +73,41 @@ class MyPostQueryServiceTest {
     @Test
     @DisplayName("page/size가 null이면 기본값(page=0, size=10)을 적용한다")
     void getMyPosts_defaults() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15)).willReturn(List.of());
-        given(assembler.assembleMyPosts(any())).willReturn(List.of());
-        given(repository.countMyPosts(MEMBER_ID)).willReturn(0L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15)).willReturn(List.of());
+        given(postResponseAssembler.assembleMyPosts(any())).willReturn(List.of());
+        given(postRepository.countMyPosts(MEMBER_ID)).willReturn(0L);
 
         MyPostListResponse response = postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, null, null);
 
         assertThat(response.page()).isEqualTo(0);
         assertThat(response.size()).isEqualTo(15);
-        verify(repository).findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15);
+        verify(postRepository).findMyPosts(MEMBER_ID, MyPostSort.LATEST, 0L, 15);
     }
 
     @Test
     @DisplayName("page가 음수면 PAGE_INVALID 예외를 던진다")
     void getMyPosts_negativePage() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, -1, 10))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_INVALID);
 
-        verify(repository, never()).findMyPosts(anyLong(), eq(MyPostSort.LATEST), anyLong(), anyInt());
+        verify(postRepository, never()).findMyPosts(anyLong(), eq(MyPostSort.LATEST), anyLong(), anyInt());
     }
 
     @Test
     @DisplayName("size가 범위(1~30)를 벗어나면 PAGE_SIZE_INVALID 예외를 던진다")
     void getMyPosts_invalidSize() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> postQueryService.getMyPosts(PUBLIC_ID, MyPostSort.LATEST, 0, 100))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_SIZE_INVALID);
 
-        verify(repository, never()).findMyPosts(anyLong(), eq(MyPostSort.LATEST), anyLong(), anyInt());
+        verify(postRepository, never()).findMyPosts(anyLong(), eq(MyPostSort.LATEST), anyLong(), anyInt());
     }
 }

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 class PostLikeServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
     private PostRepository postRepository;
@@ -79,7 +79,7 @@ class PostLikeServiceTest {
         @DisplayName("좋아요를 저장하고 카운트를 증가시킨 뒤 isLiked=true로 응답한다")
         void success() {
             // given
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(likeRepository.existsByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(false);
             given(postRepository.findLikeCountByPostId(POST_ID)).willReturn(1);
@@ -97,7 +97,7 @@ class PostLikeServiceTest {
         @Test
         @DisplayName("이미 좋아요한 글이면 POST_LIKE_ALREADY_LIKED 예외를 던지고 카운트를 올리지 않는다")
         void alreadyLiked() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(likeRepository.existsByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(true);
 
@@ -113,7 +113,7 @@ class PostLikeServiceTest {
         @Test
         @DisplayName("게시되지 않은 글이면 POST_NOT_FOUND 예외를 던진다")
         void notPublished() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(writingPost()));
 
             assertThatThrownBy(() -> postLikeService.like(PUBLIC_ID, POST_ID))
@@ -125,7 +125,7 @@ class PostLikeServiceTest {
         @Test
         @DisplayName("존재하지 않는 글이면 POST_NOT_FOUND 예외를 던진다")
         void notFound() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> postLikeService.like(PUBLIC_ID, POST_ID))
@@ -142,7 +142,7 @@ class PostLikeServiceTest {
         @Test
         @DisplayName("좋아요를 삭제하고 카운트를 감소시킨 뒤 isLiked=false로 응답한다")
         void success() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(likeRepository.deleteByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(1);
             given(postRepository.findLikeCountByPostId(POST_ID)).willReturn(0);
@@ -157,7 +157,7 @@ class PostLikeServiceTest {
         @Test
         @DisplayName("좋아요하지 않은 글이면 POST_LIKE_NOT_LIKED_YET 예외를 던지고 카운트를 내리지 않는다")
         void notLikedYet() {
-            given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+            given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
             given(postRepository.findByPostIdAndDeletedAtIsNull(POST_ID)).willReturn(Optional.of(publishedPost()));
             given(likeRepository.deleteByMemberIdAndPostId(MEMBER_ID, POST_ID)).willReturn(0);
 

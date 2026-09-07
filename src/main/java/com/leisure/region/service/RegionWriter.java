@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RegionWriter {
 
-    private final RegionRepository repository;
+    private final RegionRepository regionRepository;
 
     @Transactional
     public RegionSyncResult updates(List<RegionData> list) {
@@ -23,13 +23,13 @@ public class RegionWriter {
         int inserted = 0, updated = 0;
 
         for (RegionData regionData : list) {
-            Optional<Region> region = repository.findByLdongRegnCdAndLdongSignguCd(regionData.ldongRegnCd(), regionData.ldongSignguCd());
+            Optional<Region> region = regionRepository.findByLdongRegnCdAndLdongSignguCd(regionData.ldongRegnCd(), regionData.ldongSignguCd());
 
             if (region.isPresent()) {
                 region.get().updateNames(regionData.regnName(), regionData.signguName());
                 updated++;
             } else {
-                repository.save(Region.create(regionData.ldongRegnCd(), regionData.ldongSignguCd(), regionData.regnName(), regionData.signguName()));
+                regionRepository.save(Region.create(regionData.ldongRegnCd(), regionData.ldongSignguCd(), regionData.regnName(), regionData.signguName()));
                 inserted++;
             }
         }

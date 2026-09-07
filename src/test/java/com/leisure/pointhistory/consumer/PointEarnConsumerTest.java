@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 class PointEarnConsumerTest {
 
     @Mock
-    private PointHistoryService service;
+    private PointHistoryService pointHistoryService;
 
     @Mock
     private Channel channel;
@@ -51,7 +51,7 @@ class PointEarnConsumerTest {
     void onMessage_success_acks() throws Exception {
         consumer.onMessage(envelope(), messageWithTag(), channel);
 
-        verify(service).earn(1L, 2L, 10L, PointType.LIKE_RECEIVED);
+        verify(pointHistoryService).earn(1L, 2L, 10L, PointType.LIKE_RECEIVED);
         verify(channel).basicAck(DELIVERY_TAG, false);
     }
 
@@ -59,7 +59,7 @@ class PointEarnConsumerTest {
     @DisplayName("처리 실패 시 basicNack(requeue=false)로 DLQ로 보낸다")
     void onMessage_failure_nacksToDlq() throws Exception {
         doThrow(new RuntimeException("boom"))
-                .when(service).earn(any(), any(), any(), any());
+                .when(pointHistoryService).earn(any(), any(), any(), any());
 
         consumer.onMessage(envelope(), messageWithTag(), channel);
 

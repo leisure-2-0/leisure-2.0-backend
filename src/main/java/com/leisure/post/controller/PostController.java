@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
 
-    private final PostService service;
+    private final PostService postService;
 
     @Operation(
             summary = "게시글 컨테이너 생성",
@@ -34,7 +34,7 @@ public class PostController {
     @PostMapping("/posts")
     public ResponseEntity<ApiResponse<PostStartResponse>> startPosting(@CurrentMember String publicId) {
 
-        PostStartResponse response = service.startPosting(publicId);
+        PostStartResponse response = postService.startPosting(publicId);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -51,7 +51,7 @@ public class PostController {
     @PatchMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<PostSaveResponse>> saveDraft(@CurrentMember String publicId, @PathVariable Long postId, @Valid @RequestBody PostSaveRequest request) {
 
-        PostSaveResponse response = service.saveDraft(publicId, postId, request);
+        PostSaveResponse response = postService.saveDraft(publicId, postId, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -68,7 +68,7 @@ public class PostController {
     @PatchMapping("/posts/{postId}/publish")
     public ResponseEntity<ApiResponse<PostPublishResponse>> publish(@CurrentMember String publicId, @PathVariable Long postId, @Valid @RequestBody PostPublishRequest request) {
 
-        PostPublishResponse response = service.publish(publicId, postId, request);
+        PostPublishResponse response = postService.publish(publicId, postId, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -85,7 +85,7 @@ public class PostController {
     @PatchMapping("/posts/{postId}/content")
     public ResponseEntity<ApiResponse<PostEditResponse>> editPost(@CurrentMember String publicId, @PathVariable Long postId, @Valid @RequestBody PostEditRequest request) {
 
-        PostEditResponse response = service.editPost(publicId, postId, request);
+        PostEditResponse response = postService.editPost(publicId, postId, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -101,7 +101,7 @@ public class PostController {
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(@CurrentMember String publicId, @PathVariable Long postId) {
 
-        PostDeleteResponse response = service.deletePost(publicId, postId);
+        PostDeleteResponse response = postService.deletePost(publicId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

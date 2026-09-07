@@ -34,16 +34,16 @@ import static org.mockito.Mockito.verify;
 class PostDetailQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private PostRepository repository;
+    private PostRepository postRepository;
 
     @Mock
     private ObjectMapper objectMapper;
 
     @Mock
-    private PostResponseAssembler assembler;
+    private PostResponseAssembler postResponseAssembler;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -69,46 +69,46 @@ class PostDetailQueryServiceTest {
 
     // 어셈블러는 조회 결과(PostDetailResult)를 그대로 응답으로 넘겨준다고 가정 (태그 병합은 어셈블러 테스트에서 검증)
     private void stubAssembler() {
-        given(assembler.assembleDetail(any()))
+        given(postResponseAssembler.assembleDetail(any()))
                 .willAnswer(invocation -> PostDetailResponse.from(invocation.getArgument(0), List.of()));
     }
 
     @Test
     @DisplayName("로그인 상태면 memberId로 상세를 조회해 반환한다")
     void success_loggedIn() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findPostDetail(MEMBER_ID, POST_ID)).willReturn(Optional.of(result()));
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(postRepository.findPostDetail(MEMBER_ID, POST_ID)).willReturn(Optional.of(result()));
         stubAssembler();
 
         PostDetailResponse response = postQueryService.getPostDetail(PUBLIC_ID, POST_ID);
 
         assertThat(response.postId()).isEqualTo(POST_ID);
         assertThat(response.isMine()).isTrue();
-        verify(repository).increaseViewCount(POST_ID);
+        verify(postRepository).increaseViewCount(POST_ID);
     }
 
     @Test
     @DisplayName("비로그인(publicId=null)이면 memberId=null로 조회하고 회원 조회를 하지 않는다")
     void success_anonymous() {
-        given(repository.findPostDetail(null, POST_ID)).willReturn(Optional.of(result()));
+        given(postRepository.findPostDetail(null, POST_ID)).willReturn(Optional.of(result()));
         stubAssembler();
 
         PostDetailResponse response = postQueryService.getPostDetail(null, POST_ID);
 
         assertThat(response.postId()).isEqualTo(POST_ID);
-        verify(reader, never()).getMemberByPublicId(any());
+        verify(memberReader, never()).getMemberByPublicId(any());
     }
 
     @Test
     @DisplayName("존재하지 않는(또는 비공개/삭제) 글이면 POST_NOT_FOUND 예외를 던진다")
     void notFound() {
-        given(repository.findPostDetail(null, POST_ID)).willReturn(Optional.empty());
+        given(postRepository.findPostDetail(null, POST_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> postQueryService.getPostDetail(null, POST_ID))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.POST_NOT_FOUND);
 
-        verify(repository, never()).increaseViewCount(anyLong());
+        verify(postRepository, never()).increaseViewCount(anyLong());
     }
 }

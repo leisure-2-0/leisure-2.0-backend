@@ -115,7 +115,16 @@ JWT 기반 인증이며 관련 코드는 전부 `global/auth` 아래에 있다.
   - **태그 조회 공유(`tag.service.TagReader`)** — "태그 조회 + postId별 그룹핑"을 tag 도메인 리프에 모아 세 어셈블러가 공유한다. `findTags(postId)`(단건, 그룹핑 불필요) / `findTagMap(postIds)`(다건, `IN` 1쿼리 → `Map<postId, List<String>>`로 그룹핑, N+1 회피). 모든 어셈블러가 tag에만 의존해 **의존 방향이 건강**하다(post↔like 결합 없음).
   - **병합 규약** — 각 카드는 `tagMap.getOrDefault(postId, List.of())`로 태그를 꺼낸다. **태그 없는 글은 null이 아니라 빈 리스트**로 나가 프론트에 안전(항상 배열 보장).
 - **태그 병합 테스트** — `TagReader`의 그룹핑(`findTagMap`/`findTags`)과 `PostTag.createAll` 정규화(trim→distinct, null postId 예외)는 `TagReaderTest`/`PostTagTest`로 검증한다. 어셈블러(병합 조립) 전용 테스트는 아직 없다(쿼리서비스 테스트가 어셈블러를 목으로 두므로, 향후 보강 대상).
-- **미정** — 태그 **개별 길이 제한**(요청은 `@Size(max=5)`로 개수만 제한)과 DB 컬럼 length는 아직 안 정함. ES 색인 연동도 향후.
+- **미정** — 태그 **개별 길이 제한**(요청은 `@Size(max=5)`로 개수만 제한)과 DB 컬럼 length는 아직 안 정함. ES 색인 연동은 아래 "검색 (Elasticsearch)" 참고.
+
+## 검색 (Elasticsearch)
+
+`src/main/resources/elasticsearch`. MySQL이 못 하는 **전문 검색(full-text)·자동완성**을 ES가 담당한다(**개발 착수 단계** — 현재 인덱스 setting/mapping 정의만, 클라이언트·색인 파이프라인·검색 API는 미구현).
+
+- **ES는 검색 "매칭" 전용, 원본(source of truth) 아님** — 검색은 **`postId`만 매칭해 반환**하고, 카드/상세 표시 데이터는 **RDB(MySQL)가 조회(hydrate)**. ES-RDB 정합성 부담을 줄이고 매핑을 얇게 유지하려는 결정.
+- **색인 필드(post 인덱스)** — `postId`(long), `title`(text/`korean`), `tags`(keyword + `.text` text/`korean`), `region`(keyword + `.text`), `category`(keyword). **본문 `content`는 색인하지 않는다**(의도적 — 검색 대상을 제목/태그/지역으로 한정, 본문 전문검색은 비용 대비 후순위). 매칭 전용이라 정렬·표시용 필드(likeCount/publishedAt/thumbnailUrl 등)도 넣지 않는다(그건 RDB 몫).
+- **한글 분석기(nori)** — 커스텀 `korean` analyzer: `nori_tokenizer`(decompound_mode mixed, discard_punctuation) + `nori_part_of_speech`(조사/어미/기호 등 불용 품사 제거) + `nori_readingform`(한자→한글 독음) + `lowercase`. 정의는 `post-setting.json`(analysis)/`post-mapping.json`(properties). ⚠️ **nori는 ES 플러그인**이라 도커 이미지에 설치가 필요(공식 이미지 기본 미포함).
+- **키워드 멀티필드 규약** — `tags`/`region`은 `keyword`(정확 필터·집계)에 `.text`(분석 검색) 서브필드를 얹는다. ⚠️ **`keyword` 타입엔 `analyzer`를 직접 달 수 없다**(생성 시 `unsupported parameters: [analyzer]`로 거부) — 분석은 반드시 `.text` 서브필드에만 건다.
 
 ## 여가 포인트 (pointhistory) & 도메인 이벤트 파이프라인
 

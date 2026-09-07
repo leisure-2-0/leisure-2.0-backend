@@ -32,13 +32,13 @@ import static org.mockito.Mockito.verify;
 class BookmarkQueryServiceTest {
 
     @Mock
-    private MemberReader reader;
+    private MemberReader memberReader;
 
     @Mock
-    private BookmarkRepository repository;
+    private BookmarkRepository bookmarkRepository;
 
     @Mock
-    private BookmarkedPostResponseAssembler assembler;
+    private BookmarkedPostResponseAssembler bookmarkedPostResponseAssembler;
 
     @InjectMocks
     private BookmarkQueryService bookmarkQueryService;
@@ -56,10 +56,10 @@ class BookmarkQueryServiceTest {
     @DisplayName("page/size로 offset을 계산해 조회하고 totalPages·hasNext를 산출한다")
     void getBookmarkedPosts_success() {
         // 총 25개, size=10, page=1 → offset=10, totalPages=3, hasNext=true
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 10L, 10)).willReturn(List.of());
-        given(assembler.assembleBookmarkedPosts(any())).willReturn(List.of());
-        given(repository.countBookmarkedPosts(MEMBER_ID)).willReturn(25L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(bookmarkRepository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 10L, 10)).willReturn(List.of());
+        given(bookmarkedPostResponseAssembler.assembleBookmarkedPosts(any())).willReturn(List.of());
+        given(bookmarkRepository.countBookmarkedPosts(MEMBER_ID)).willReturn(25L);
 
         BookmarkedPostListResponse response =
                 bookmarkQueryService.getBookmarkedPosts(PUBLIC_ID, BookmarkedPostSort.LATEST, 1, 10);
@@ -72,10 +72,10 @@ class BookmarkQueryServiceTest {
     @Test
     @DisplayName("page/size가 null이면 기본값(page=0, size=10)을 적용한다")
     void getBookmarkedPosts_defaults() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(repository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 0L, 10)).willReturn(List.of());
-        given(assembler.assembleBookmarkedPosts(any())).willReturn(List.of());
-        given(repository.countBookmarkedPosts(MEMBER_ID)).willReturn(0L);
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(bookmarkRepository.findBookmarkedPosts(MEMBER_ID, BookmarkedPostSort.LATEST, 0L, 10)).willReturn(List.of());
+        given(bookmarkedPostResponseAssembler.assembleBookmarkedPosts(any())).willReturn(List.of());
+        given(bookmarkRepository.countBookmarkedPosts(MEMBER_ID)).willReturn(0L);
 
         BookmarkedPostListResponse response =
                 bookmarkQueryService.getBookmarkedPosts(PUBLIC_ID, BookmarkedPostSort.LATEST, null, null);
@@ -87,26 +87,26 @@ class BookmarkQueryServiceTest {
     @Test
     @DisplayName("page가 음수면 PAGE_INVALID 예외를 던진다")
     void getBookmarkedPosts_negativePage() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> bookmarkQueryService.getBookmarkedPosts(PUBLIC_ID, BookmarkedPostSort.LATEST, -1, 10))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_INVALID);
 
-        verify(repository, never()).findBookmarkedPosts(anyLong(), eq(BookmarkedPostSort.LATEST), anyLong(), anyInt());
+        verify(bookmarkRepository, never()).findBookmarkedPosts(anyLong(), eq(BookmarkedPostSort.LATEST), anyLong(), anyInt());
     }
 
     @Test
     @DisplayName("size가 범위(1~30)를 벗어나면 PAGE_SIZE_INVALID 예외를 던진다")
     void getBookmarkedPosts_invalidSize() {
-        given(reader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
+        given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
 
         assertThatThrownBy(() -> bookmarkQueryService.getBookmarkedPosts(PUBLIC_ID, BookmarkedPostSort.LATEST, 0, 0))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PAGE_SIZE_INVALID);
 
-        verify(repository, never()).findBookmarkedPosts(anyLong(), eq(BookmarkedPostSort.LATEST), anyLong(), anyInt());
+        verify(bookmarkRepository, never()).findBookmarkedPosts(anyLong(), eq(BookmarkedPostSort.LATEST), anyLong(), anyInt());
     }
 }

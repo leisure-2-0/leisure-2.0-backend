@@ -19,26 +19,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookmarkQueryService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
-    private final BookmarkRepository repository;
+    private final BookmarkRepository bookmarkRepository;
 
-    private final BookmarkedPostResponseAssembler assembler;
+    private final BookmarkedPostResponseAssembler bookmarkedPostResponseAssembler;
 
     @Transactional(readOnly = true)
     public BookmarkedPostListResponse getBookmarkedPosts(String publicId, BookmarkedPostSort sort, Integer page, Integer size) {
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
         int pageNumber = validatePage(page);
         int pageSize = validateSize(size);
 
         long offset = (long) pageNumber * pageSize;
 
-        List<BookmarkedPostResult> results = repository.findBookmarkedPosts(memberId, sort, offset, pageSize);
+        List<BookmarkedPostResult> results = bookmarkRepository.findBookmarkedPosts(memberId, sort, offset, pageSize);
 
-        List<BookmarkedPostResponse> bookmarkedPosts = assembler.assembleBookmarkedPosts(results);
+        List<BookmarkedPostResponse> bookmarkedPosts = bookmarkedPostResponseAssembler.assembleBookmarkedPosts(results);
 
-        long totalElements = repository.countBookmarkedPosts(memberId);
+        long totalElements = bookmarkRepository.countBookmarkedPosts(memberId);
 
         int totalPages = calculateTotalPages(totalElements, pageSize);
 

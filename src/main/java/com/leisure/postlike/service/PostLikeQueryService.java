@@ -19,26 +19,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostLikeQueryService {
 
-    private final MemberReader reader;
+    private final MemberReader memberReader;
 
-    private final PostLikeRepository repository;
+    private final PostLikeRepository postLikeRepository;
 
-    private final LikedPostResponseAssembler assembler;
+    private final LikedPostResponseAssembler likedPostResponseAssembler;
 
     @Transactional(readOnly = true)
     public LikedPostListResponse getLikedPosts(String publicId, LikedPostSort sort, Integer page, Integer size) {
-        Long memberId = reader.getMemberByPublicId(publicId).getMemberId();
+        Long memberId = memberReader.getMemberByPublicId(publicId).getMemberId();
 
         int pageNumber = validatePage(page);
         int pageSize = validateSize(size);
 
         long offset = (long) pageNumber * pageSize;
 
-        List<LikedPostResult> results = repository.findLikedPosts(memberId, sort, offset, pageSize);
+        List<LikedPostResult> results = postLikeRepository.findLikedPosts(memberId, sort, offset, pageSize);
 
-        List<LikedPostResponse> likedPosts = assembler.assembleLikedPosts(results);
+        List<LikedPostResponse> likedPosts = likedPostResponseAssembler.assembleLikedPosts(results);
 
-        long totalElements = repository.countLikedPosts(memberId);
+        long totalElements = postLikeRepository.countLikedPosts(memberId);
 
         int totalPages = calculateTotalPages(totalElements, pageSize);
 
