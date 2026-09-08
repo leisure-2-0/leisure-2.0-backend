@@ -4,9 +4,12 @@ import com.leisure.post.domain.Post;
 import com.leisure.post.domain.PostStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.lang.annotation.Native;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -42,6 +45,9 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     long countMyPosts(Long memberId);
 
     long countByStatusAndDeletedAtIsNull(PostStatus status);
+
+    @Query(value = "select * from posts where post_id > :cursor and status = 'PUBLISHED' and deleted_at is null order by post_id asc limit :size", nativeQuery = true)
+    List<Post> findPostWithCursor(int size, Long cursor);
 
     @Query("""
             select count(distinct p.location.region)
