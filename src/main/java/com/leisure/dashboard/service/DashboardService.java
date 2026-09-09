@@ -2,7 +2,6 @@ package com.leisure.dashboard.service;
 
 import com.leisure.dashboard.dto.response.DashboardStatsResponse;
 import com.leisure.festival.repository.FestivalRepository;
-import com.leisure.member.repository.MemberRepository;
 import com.leisure.post.domain.PostStatus;
 import com.leisure.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +15,6 @@ import java.time.YearMonth;
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
-
-    private final MemberRepository memberRepository;
 
     private final PostRepository postRepository;
 
@@ -39,14 +36,14 @@ public class DashboardService {
 
         long certifiedPostCount = postRepository.countByStatusAndDeletedAtIsNull(PostStatus.PUBLISHED);
 
-        long monthlyNewMemberCount = memberRepository.countJoinedBetween(start, end);
+        long monthlyPostCount = postRepository.countPublishedBetween(start, end);
 
         long inProgressFestivalCount = festivalRepository.countFestivalsInProgress(monthStart, monthEnd);
 
         return new DashboardStatsResponse(
                 certifiedRegionCount,
                 certifiedPostCount,
-                monthlyNewMemberCount,
+                monthlyPostCount,
                 inProgressFestivalCount);
     }
 }
