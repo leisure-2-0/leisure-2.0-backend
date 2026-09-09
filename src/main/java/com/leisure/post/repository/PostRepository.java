@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.lang.annotation.Native;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +56,16 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
             """)
     long countCertifiedRegions();
+
+    @Query("""
+            select count(p)
+            from Post p
+            where p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            and p.publishedAt >= :start
+            and p.publishedAt < :end
+            """)
+    long countPublishedBetween(LocalDateTime start, LocalDateTime end);
 
     // TODO: 부하 테스트 후 Redis 조회수 INCR
     @Modifying(clearAutomatically = true)
