@@ -24,6 +24,7 @@ ext {
     set('p6spyVersion','2.0.1')
     set('queryDslVersion', '5.1.0')
     set('swaggerVersion', '3.0.2')
+    set('elasticsearch-client.version', '9.2.9')
 }
 
 dependencies {

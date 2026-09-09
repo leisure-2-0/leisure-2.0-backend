@@ -89,6 +89,10 @@ public enum ErrorCode {
 
     PAGE_SIZE_INVALID(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상 30 이하이어야 합니다."),
 
+    SEARCH_KEYWORD_REQUIRED(HttpStatus.BAD_REQUEST, "검색어를 입력해주세요."),
+
+    SEARCH_PAGE_TOO_DEEP(HttpStatus.BAD_REQUEST, "검색 결과 페이지가 너무 깊습니다."),
+
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 요청 형식입니다."),
 
     VALIDATION_FAILED(HttpStatus.UNPROCESSABLE_CONTENT, "입력값 검증에 실패했습니다."),

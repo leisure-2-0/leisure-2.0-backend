@@ -1,10 +1,10 @@
-package com.leisure.search.repository;
+package com.leisure.search.index;
 
-import com.leisure.search.domain.PostIndexDirty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,11 +27,13 @@ public interface PostIndexDirtyRepository extends JpaRepository<PostIndexDirty, 
     @Query(value = "select * from post_index_dirties where next_retry_at is null or next_retry_at <= :now order by dirtied_at asc limit :size", nativeQuery = true)
     List<PostIndexDirty> findProcessable(LocalDateTime now, int size);
 
+    @Transactional
     @Modifying
     @Query("delete from PostIndexDirty d where d.postId = :postId and d.version = :version")
     int deleteIfVersionMatches(Long postId, long version);
 
+    @Transactional
     @Modifying
-    @Query("update PostIndexDirty d set d.retryCount = d.retryCount + 1, d.nextRetryAt = :nextRetryAt where d.postId = :postId and d.version =: version")
+    @Query("update PostIndexDirty d set d.retryCount = d.retryCount + 1, d.nextRetryAt = :nextRetryAt where d.postId = :postId and d.version = :version")
     int markFailure(Long postId, long version, LocalDateTime nextRetryAt);
 }

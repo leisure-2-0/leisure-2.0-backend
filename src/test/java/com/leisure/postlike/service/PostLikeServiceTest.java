@@ -10,6 +10,7 @@ import com.leisure.post.repository.PostRepository;
 import com.leisure.postlike.domain.PostLike;
 import com.leisure.postlike.dto.response.PostLikeResponse;
 import com.leisure.postlike.repository.PostLikeRepository;
+import com.leisure.search.index.PostIndexDirtyRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class PostLikeServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private PostIndexDirtyRepository postIndexDirtyRepository;
 
     @InjectMocks
     private PostLikeService postLikeService;
