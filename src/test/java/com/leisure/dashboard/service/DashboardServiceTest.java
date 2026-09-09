@@ -2,14 +2,12 @@ package com.leisure.dashboard.service;
 
 import com.leisure.dashboard.dto.response.DashboardStatsResponse;
 import com.leisure.festival.repository.FestivalRepository;
-import com.leisure.member.repository.MemberRepository;
 import com.leisure.post.domain.PostStatus;
 import com.leisure.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,9 +26,6 @@ import static org.mockito.Mockito.verify;
 class DashboardServiceTest {
 
     @Mock
-    private MemberRepository memberRepository;
-
-    @Mock
     private PostRepository postRepository;
 
     @Mock
@@ -44,29 +39,29 @@ class DashboardServiceTest {
     void assemblesStats() {
         given(postRepository.countCertifiedRegions()).willReturn(5L);
         given(postRepository.countByStatusAndDeletedAtIsNull(PostStatus.PUBLISHED)).willReturn(10L);
-        given(memberRepository.countJoinedBetween(any(), any())).willReturn(3L);
+        given(postRepository.countPublishedBetween(any(), any())).willReturn(3L);
         given(festivalRepository.countFestivalsInProgress(any(), any())).willReturn(7L);
 
         DashboardStatsResponse response = dashboardService.getDashboardStats();
 
         assertThat(response.certifiedRegionCount()).isEqualTo(5L);
         assertThat(response.certifiedPostCount()).isEqualTo(10L);
-        assertThat(response.monthlyNewMemberCount()).isEqualTo(3L);
+        assertThat(response.monthlyPostCount()).isEqualTo(3L);
         assertThat(response.inProgressFestivalCount()).isEqualTo(7L);
     }
 
     @Test
-    @DisplayName("이번 달 범위를 회원(시각)과 축제(날짜) 형태로 각각 도출해 넘긴다")
+    @DisplayName("이번 달 범위를 게시글(시각)과 축제(날짜) 형태로 각각 도출해 넘긴다")
     void passesCurrentMonthRange() {
         YearMonth ym = YearMonth.now();
 
         dashboardService.getDashboardStats();
 
-        ArgumentCaptor<LocalDateTime> memberStart = ArgumentCaptor.forClass(LocalDateTime.class);
-        ArgumentCaptor<LocalDateTime> memberEnd = ArgumentCaptor.forClass(LocalDateTime.class);
-        verify(memberRepository).countJoinedBetween(memberStart.capture(), memberEnd.capture());
-        assertThat(memberStart.getValue()).isEqualTo(ym.atDay(1).atStartOfDay());
-        assertThat(memberEnd.getValue()).isEqualTo(ym.plusMonths(1).atDay(1).atStartOfDay());
+        ArgumentCaptor<LocalDateTime> postStart = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> postEnd = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(postRepository).countPublishedBetween(postStart.capture(), postEnd.capture());
+        assertThat(postStart.getValue()).isEqualTo(ym.atDay(1).atStartOfDay());
+        assertThat(postEnd.getValue()).isEqualTo(ym.plusMonths(1).atDay(1).atStartOfDay());
 
         ArgumentCaptor<LocalDate> festStart = ArgumentCaptor.forClass(LocalDate.class);
         ArgumentCaptor<LocalDate> festEnd = ArgumentCaptor.forClass(LocalDate.class);

@@ -17,7 +17,7 @@ import com.leisure.post.dto.response.PostSaveResponse;
 import com.leisure.post.dto.response.PostStartResponse;
 import com.leisure.post.repository.PostRepository;
 
-import com.leisure.search.repository.PostIndexDirtyRepository;
+import com.leisure.search.index.PostIndexDirtyRepository;
 import com.leisure.tag.domain.PostTag;
 import com.leisure.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;

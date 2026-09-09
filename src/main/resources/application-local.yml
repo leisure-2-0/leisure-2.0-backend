@@ -56,6 +56,9 @@ spring:
   elasticsearch:
     uris: http://localhost:9200   # ES 접속 주소 (로컬 도커, 기본 포트 9200). 로컬은 보안 off라 계정 없음
 
+  kibana:
+    uris: http://localhost:5601
+
   jpa:
     hibernate:
       # DDL(테이블 생성/수정) 자동화 전략
@@ -125,12 +128,12 @@ search:
     fixed-delay-ms: 300000     # 더티 재색인 배치 주기(ms). 300000=5분
     batch-size: 500            # 한 회차 처리할 더티 행 수 (ES bulk 크기). 문서 크기, 힙 보고 튜닝
   initial-index:
-    enabled: false             # 기동 시 전체 재색인 여부 (기본 off; 최초 구축, 매핑 변경 때만 on)
+    enabled: true              # 기동 시 전체 재색인 여부 (기본 off; 최초 구축, 매핑 변경 때만 on)
   boost:                       # 검색 필드별 가중치 (비우면 미적용; 예: title > tags > region)
-    title:
-    tags:
-    category:
-    region:
+    title: 4.0
+    tags: 3.0
+    category: 2.0
+    region: 1.0
   fuzziness: auto              # 오타 허용 편집거리. auto=용어 길이별 자동(0~2)
   fuzz:
     max-expansions: 25         # fuzzy가 확장할 최대 term 수 (ES 기본 50). 낮출수록 빠르고 recall↓

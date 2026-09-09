@@ -4,9 +4,12 @@ import com.leisure.post.domain.Post;
 import com.leisure.post.domain.PostStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,6 +46,9 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
 
     long countByStatusAndDeletedAtIsNull(PostStatus status);
 
+    @Query(value = "select * from posts where post_id > :cursor and status = 'PUBLISHED' and deleted_at is null order by post_id asc limit :size", nativeQuery = true)
+    List<Post> findPostWithCursor(int size, Long cursor);
+
     @Query("""
             select count(distinct p.location.region)
             from Post p
@@ -50,6 +56,16 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
             """)
     long countCertifiedRegions();
+
+    @Query("""
+            select count(p)
+            from Post p
+            where p.deletedAt is null
+            and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
+            and p.publishedAt >= :start
+            and p.publishedAt < :end
+            """)
+    long countPublishedBetween(LocalDateTime start, LocalDateTime end);
 
     // TODO: 부하 테스트 후 Redis 조회수 INCR
     @Modifying(clearAutomatically = true)
