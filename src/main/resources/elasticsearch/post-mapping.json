@@ -1,4 +1,5 @@
 {
+  "dynamic": "strict",
   "properties": {
     "postId": {
       "type": "long"
@@ -21,7 +22,14 @@
     },
     "region": {
       "type": "keyword",
-      "fields": { "text": { "type":  "text", "analyzer": "korean"} }
+      "fields": { "text": { "type":  "text", "analyzer": "korean"}
+      }
+    },
+    "likeCount": {
+      "type": "integer"
+    },
+    "publishedAt": {
+      "type": "date"
     }
   }
 }

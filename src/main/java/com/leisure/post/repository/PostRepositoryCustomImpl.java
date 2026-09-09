@@ -126,6 +126,51 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public List<PostResult> findByPostIds(Long memberId, List<Long> postIds) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                PostResult.class,
+                                post.postId,
+                                post.title,
+                                post.category,
+                                post.viewCount,
+                                post.likeCount,
+                                post.bookmarkCount,
+                                postLike.postLikeId.isNotNull(),
+                                postBookmark.postBookmarkId.isNotNull(),
+                                post.location.region,
+                                post.publishedAt,
+                                Projections.constructor(
+                                        PostResult.AuthorResult.class,
+                                        member.memberId,
+                                        member.nickname,
+                                        member.profileImageUrl
+                                )
+                        )
+                )
+                .from(post)
+                .join(member)
+                .on(post.memberId.eq(member.memberId))
+                .leftJoin(postLike)
+                .on(
+                        post.postId.eq(postLike.postId),
+                        memberIdEq(postLike.memberId, memberId)
+                )
+                .leftJoin(postBookmark)
+                .on(
+                        post.postId.eq(postBookmark.postId),
+                        memberIdEq(postBookmark.memberId, memberId)
+                )
+                .where(
+                        post.postId.in(postIds),
+                        post.deletedAt.isNull(),
+                        member.deletedAt.isNull(),
+                        post.status.eq(PostStatus.PUBLISHED)
+                )
+                .fetch();
+    }
+
     // MainFeed 조회 ==============================================================
     @Override
     public List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit) {

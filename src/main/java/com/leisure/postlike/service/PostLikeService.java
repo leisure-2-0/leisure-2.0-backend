@@ -11,6 +11,7 @@ import com.leisure.postlike.repository.PostLikeRepository;
 import com.leisure.postlike.domain.PostLike;
 import com.leisure.postlike.dto.response.PostLikeResponse;
 import com.leisure.postlike.event.PostLikedEvent;
+import com.leisure.search.index.PostIndexDirtyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,6 +29,8 @@ public class PostLikeService {
     private final PostLikeRepository likeRepository;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final PostIndexDirtyRepository postIndexDirtyRepository;
 
     @Transactional
     public PostLikeResponse like(String publicId, Long postId) {
@@ -51,6 +54,8 @@ public class PostLikeService {
         }
 
         postRepository.increaseLikeCount(post.getPostId());
+
+        postIndexDirtyRepository.markDirty(post.getPostId());
 
         int likeCount = postRepository.findLikeCountByPostId(post.getPostId());
 
@@ -77,6 +82,8 @@ public class PostLikeService {
         }
 
         postRepository.decreaseLikeCount(post.getPostId());
+
+        postIndexDirtyRepository.markDirty(post.getPostId());
 
         int likeCount = postRepository.findLikeCountByPostId(post.getPostId());
 

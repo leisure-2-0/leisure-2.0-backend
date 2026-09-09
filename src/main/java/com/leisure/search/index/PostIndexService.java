@@ -14,7 +14,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -130,20 +132,27 @@ public class PostIndexService {
         }
     }
 
-    /** 글 + 태그 → ES 문서. category/location은 없을 수 있어 null 방어. */
+    /**
+     * 글 + 태그 → ES 문서. category/location은 없을 수 있어 null 방어.
+     */
     private PostSearchDocument toDocument(Post post) {
         String category = post.getCategory() != null ? post.getCategory().name() : null;
         String region = post.getLocation() != null ? post.getLocation().getRegion() : null;
+        Instant publishedAt = post.getPublishedAt() != null ? post.getPublishedAt().atZone(ZoneId.systemDefault()).toInstant() : null;
 
         return PostSearchDocument.of(
                 post.getPostId(),
                 post.getTitle(),
                 tagReader.findTags(post.getPostId()),
                 category,
-                region);
+                region,
+                post.getLikeCount(),
+                publishedAt);
     }
 
-    /** 지수 백오프: 실패 횟수가 늘수록 다음 재시도를 뒤로 민다(상한 있음). */
+    /**
+     * 지수 백오프: 실패 횟수가 늘수록 다음 재시도를 뒤로 민다(상한 있음).
+     */
     private LocalDateTime nextRetryAt(int retryCount) {
         long delay = Math.min(30 * (1L << Math.min(retryCount, 20)), 600);
         return LocalDateTime.now().plusSeconds(delay);

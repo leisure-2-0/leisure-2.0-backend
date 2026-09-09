@@ -15,6 +15,8 @@ public interface PostRepositoryCustom {
 
     List<PostResult> findPosts(Long memberId, PostCategory category, PostSort sort, PostCursor cursor, int size);
 
+    List<PostResult> findByPostIds(Long memberId, List<Long> postIds);
+
     List<MainFeedPostResult> findMainFeedPosts(Long memberId, PostCategory category, PostSort sort, int limit);
 
     Optional<PostDetailResult> findPostDetail(Long memberId, Long postId);
