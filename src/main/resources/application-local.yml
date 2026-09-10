@@ -115,7 +115,7 @@ swagger:
 
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
-  service-key: ${TOUR_API_SERVICE_KEY}   # .env의 TOUR_API_SERVICE_KEY
+  service-key: ${TOUR_API_SERVICE_KEY}
   max-attempts: 3
   retry-initial-delay-ms: 1000
   retry-max-delay-ms: 10000
@@ -128,7 +128,7 @@ search:
     fixed-delay-ms: 300000     # 더티 재색인 배치 주기(ms). 300000=5분
     batch-size: 500            # 한 회차 처리할 더티 행 수 (ES bulk 크기). 문서 크기, 힙 보고 튜닝
   initial-index:
-    enabled: true              # 기동 시 전체 재색인 여부 (기본 off; 최초 구축, 매핑 변경 때만 on)
+    enabled: false              # 기동 시 전체 재색인 여부 (기본 off; 최초 구축, 매핑 변경 때만 on)
   boost:                       # 검색 필드별 가중치 (비우면 미적용; 예: title > tags > region)
     title: 4.0
     tags: 3.0

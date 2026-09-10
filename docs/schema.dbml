@@ -139,3 +139,25 @@ Table post_index_dirties {
   dirtied_at timestamp [not null, note: '마지막 더티 시각 (처리 순서/관측용)']
   next_retry_at timestamp [null, note: '다음 재시도 가능 시각 (NULL=즉시 처리 대상, 값=백오프 대기)']
 }
+
+// Flyway가 생성/관리하는 마이그레이션 이력 테이블 (앱 엔티티 아님) — baseline-on-migrate, ddl-auto=validate
+Table flyway_schema_history {
+  installed_rank int [pk, note: '적용 순서(PK)']
+  version varchar(50) [note: '마이그레이션 버전(V1, V2...). baseline/repeatable은 null']
+  description varchar(200) [not null]
+  type varchar(20) [not null, note: 'SQL / BASELINE 등']
+  script varchar(1000) [not null, note: '마이그레이션 파일명']
+  checksum int [note: '스크립트 체크섬 — 적용 후 변경 감지(변경 시 validate 실패)']
+  installed_by varchar(100) [not null]
+  installed_on timestamp [not null, default: `now()`]
+  execution_time int [not null, note: '실행 시간(ms)']
+  success boolean [not null, note: '성공 여부']
+
+  indexes {
+    success [name: 'flyway_schema_history_s_idx']
+  }
+}
+
+// id-only 연관관계 (DB FK 없음, 앱 레벨 조인) — dbdiagram 시각화용 명시 Ref
+// festivals ↔ regions : 법정동 복합키(광역+시군구)로 조인 (LEFT JOIN, 매칭 없어도 축제는 노출)
+Ref: festivals.(ldong_regn_cd, ldong_signgu_cd) > regions.(ldong_regn_cd, ldong_signgu_cd)
