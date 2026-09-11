@@ -29,3 +29,12 @@ rabbitmq:
 swagger:
   servers:
     local: http://localhost:8080
+
+server:
+  port: 8080
+
+ai:
+  server:
+    base-url: http://localhost:8081
+    connect-timeout-ms: 3000 # 3 초
+    read-timeout-seconds: 60 # 1 분
