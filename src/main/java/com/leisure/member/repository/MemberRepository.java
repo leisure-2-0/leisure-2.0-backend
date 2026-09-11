@@ -23,6 +23,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmailAndDeletedAtIsNull(String email);
 
+    @Query("select m.point from Member m where m.publicId = :publicId and m.deletedAt is null")
+    Optional<Integer> findPointByPublicId(String publicId);
+
     @Query("""
            select count(m.memberId)
            from Member m
