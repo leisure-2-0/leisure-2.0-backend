@@ -11,6 +11,7 @@ import com.leisure.member.domain.MemberRole;
 import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
+import com.leisure.member.dto.response.PointBalanceResponse;
 import com.leisure.member.dto.response.ProfileChangeResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
@@ -26,6 +27,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -401,6 +404,32 @@ class MemberServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.NICKNAME_DUPLICATE);
+        }
+    }
+
+    @Nested
+    @DisplayName("포인트 잔액 조회 (getMemberPoints)")
+    class GetMemberPoints {
+
+        @Test
+        @DisplayName("회원의 포인트 잔액을 반환한다")
+        void success() {
+            given(memberRepository.findPointByPublicId("public-id")).willReturn(Optional.of(1240));
+
+            PointBalanceResponse response = memberService.getMemberPoints("public-id");
+
+            assertThat(response.point()).isEqualTo(1240);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는(또는 탈퇴) 회원이면 MEMBER_NOT_FOUND 예외를 던진다")
+        void notFound() {
+            given(memberRepository.findPointByPublicId("unknown")).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> memberService.getMemberPoints("unknown"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);
         }
     }
 }

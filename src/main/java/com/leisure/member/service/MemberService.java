@@ -11,6 +11,7 @@ import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.MemberProfileResponse;
+import com.leisure.member.dto.response.PointBalanceResponse;
 import com.leisure.member.dto.response.ProfileChangeResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.event.MemberWithdrawnEvent;
@@ -165,6 +166,15 @@ public class MemberService {
         if (!password.equals(passwordCheck)) {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public PointBalanceResponse getMemberPoints(String publicId) {
+
+        int point = memberRepository.findPointByPublicId(publicId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return new PointBalanceResponse(point);
     }
 }
 
