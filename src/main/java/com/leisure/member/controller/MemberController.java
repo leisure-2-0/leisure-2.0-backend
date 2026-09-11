@@ -9,6 +9,7 @@ import com.leisure.member.dto.request.PasswordChangeRequest;
 import com.leisure.member.dto.request.ProfileChangeRequest;
 import com.leisure.member.dto.request.SignUpRequest;
 import com.leisure.member.dto.response.MemberProfileResponse;
+import com.leisure.member.dto.response.PointBalanceResponse;
 import com.leisure.member.dto.response.ProfileChangeResponse;
 import com.leisure.member.dto.response.SignUpResponse;
 import com.leisure.member.service.MemberService;
@@ -143,5 +144,19 @@ public class MemberController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("사용 가능한 이름입니다.", null));
+    }
+
+    @Operation(
+                summary = "내 포인트 잔액 조회",
+                description = "현재 로그인한 회원의 보유 여가 포인트 잔액을 반환합니다(members.point 비정규화 합계).")
+    @SecurityRequirement(name = "BearerAuth")
+    @GetMapping("/members/me/points")
+    public ResponseEntity<ApiResponse<PointBalanceResponse>> getMemberPoints(@CurrentMember String publicId) {
+
+        PointBalanceResponse memberPoints = memberService.getMemberPoints(publicId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("포인트 잔액 조회 성공", memberPoints));
     }
 }
