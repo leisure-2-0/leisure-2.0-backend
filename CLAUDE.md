@@ -189,6 +189,23 @@ springdoc-openapi(webmvc-ui)로 문서를 생성한다. Swagger UI는 `/swagger-
 - **엔드포인트 문서** — 컨트롤러에 `@Tag`(도메인 그룹), 메서드에 `@Operation(summary, description)`. description은 "이름으로 모르는 계약"만(상태 전이 조건, null 계약, 세션 무효화 등) — 뻔한 반복은 넣지 않는다.
 - **파라미터/바디** — 쿼리·경로 파라미터는 `@Parameter`(의미 있는 것만: `sort`/`cursor`/`page`·`size`. required/default/enum값은 자동 노출이라 반복 금지), 요청 바디 필드는 `@Schema`(이름으로 모르는 **계약**만: `tags`의 null=유지/빈배열=제거, `location`의 null 계약 등). 응답 DTO·자명한 필드는 생략.
 
-## Git & CI 워크플로우
+## Git & CI/CD 워크플로우
 
-브랜치 흐름은 `feature/*` → `dev` (→ `main`). `dev`로의 PR은 CI 워크플로우를 트리거한다: 단위 테스트 실행 후, 자동 Claude Sonnet 코드 리뷰가 한국어 리뷰 댓글을 남긴다. 커밋 메시지는 `[브랜치][타입]: 설명` 형식을 따른다(예: `[feature/ci][feat]: ...`), 타입은 `feat` / `fix` / `chore` 등, 설명은 한국어로.
+브랜치 흐름은 `feature/*` → `dev` (→ `main`). 커밋 메시지는 `[브랜치][타입]: 설명` 형식(예: `[feature/cd][chore]: ...`), 타입은 `feat` / `fix` / `chore` 등, 설명은 한국어. `.github/workflows`에 워크플로우 3개.
+
+- **PR CI(`leisure-backend-pr-ci.yml`)** — `dev` 대상 PR에서 `./gradlew test`(단위 테스트)만. (자동 Claude 코드 리뷰 잡은 주석 처리돼 **비활성**.) AWS 자격 없음.
+- **Merge CI(`leisure-backend-merge.ci.yml`)** — `dev` push에서 **통합 테스트**. `docker/docker-compose-ci.yaml`로 MySQL/Redis/RabbitMQ/ES(nori) 4개를 healthcheck와 함께 띄우고(`--wait`), `prod` 프로파일 + 더미 env로 `./gradlew integrationTest`. 현재 `@Tag("integration")`은 사실상 컨텍스트 로드라 **"앱이 4개 인프라에 다 붙어 부팅되나" 스모크**가 된다. 이미지 빌드 검증(push 없음)도 포함. AWS 자격 없음.
+- **CD(`leisure-backend-cd.yml`)** — `main` push에서 2 job(관심사·권한 분리):
+  - `build-and-push`: **배포 이미지 빌드** → **Trivy 스캔(HIGH/CRITICAL 게이트, 통과분만 push)** → OIDC로 AWS 인증 → **ECR push** `leisure/backend:<short-sha>`.
+  - `deploy`(`needs: build-and-push`): OIDC → EC2 조회(태그 `Role=backend`,`Environment=prod`) → **SSM Run Command**로 EC2에서 `deploy.sh <tag>` 실행.
+  - ⚠️ **AWS 자격(OIDC)은 CD에만** — PR/Merge CI엔 클라우드 자격 없음.
+
+### 배포 인프라 (컨테이너 + ECR pull, k8s 아님) — 설계 상세 `docs/cicd-infrastructure-design.md`
+- **build-once = 이미지**: 빌드한 이미지를 ECR에 올리고 EC2가 pull. 레지스트리가 아티팩트 저장소(GH 아티팩트로 이미지 나르는 방식은 폐기).
+- **`deploy.sh`(EC2에서 SSM으로 실행) = 블루그린 무중단 배포**: 현재 라이브의 반대 색(`leisure_blue`/`leisure_green`)에 새 버전 기동 → 헬스체크(`--wait`) 통과 시 **nginx upstream 스왑 + reload(무중단)** → 직전 색 stop(삭제 X, 빠른 롤백). 헬스체크·reload 실패 시 이전 색 유지/롤백.
+- **시크릿 = SSM Parameter Store(`/leisure/prod/`, SecureString)**: `deploy.sh`가 **EC2 인스턴스 역할**로 직접 fetch해 `.env` 생성 → 시크릿이 CI/CD 파이프라인·GH Secrets를 안 거친다(인스턴스 역할: ECR pull + `ssm:GetParametersByPath` + `kms:Decrypt`).
+- **진입점 = nginx**(리버스프록시 + TLS 종단 + 블루그린 스위치). TLS 도메인은 `deploy.sh`에 하드코딩(`api.leisure.com` — 고정값이라 env 아님). 프론트 CORS 오리진은 `CorsConfiguration`.
+- **규모 판단(공모전=확장성·안정성 시연, 실 트래픽 소규모)**: 앱 이중화·오토스케일링 YAGNI(EC2 단일), MySQL은 RDS 아닌 **셀프호스트 + 복제(읽기/쓰기 분리)로 확장성 시연**(자동 페일오버 보류), 관리형/셀프 혼합(핀옵스).
+- **prod 프로파일(`application-prod.yml`)**: 시크릿 `${ENV}` 주입, `ddl-auto: validate`(Flyway가 스키마), p6spy off, `cookie.secure: true`, swagger off.
+- **compose(`docker/docker-compose.yaml`)**: `leisure_blue`/`leisure_green`(anchor 공유, image `ACCOUNT_ID.dkr.ecr...:${IMAGE_TAG}` 하드코딩, `env_file: ${APP_ENV_FILE}`, TCP 8080 healthcheck, read-only + non-root 하드닝) + `portainer` + `nginx`. ⚠️ nginx는 **portainer만** `depends_on` — 색을 걸면 `up nginx`가 두 색을 다 띄워 블루그린이 깨진다.
+- ⚠️ **미완**: nginx conf(`docker/nginx/default.conf` — compose 마운트 + CD가 base64→SSM으로 ship 예정) · **ECR 생성 후 compose image `ACCOUNT_ID` → 실제 계정 ID 교체** · deploy.sh에 **EC2 ECR 로그인**(`docker compose pull` 인증) 추가 · IAM(OIDC 공급자 + ECR push/SSM 배포 역할 + 인스턴스 역할) · SSM `/leisure/prod/*` 파라미터 · readiness(actuator, 현재 TCP 8080 체크) · EC2 준비물(docker/compose/jq/aws-cli/SSM 에이전트).
