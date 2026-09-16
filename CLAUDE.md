@@ -200,11 +200,12 @@ springdoc-openapi(webmvc-ui)로 문서를 생성한다. Swagger UI는 `/swagger-
   - `deploy`(`needs: build-and-push`): OIDC → EC2 조회(태그 `Role=backend`,`Environment=prod`) → **SSM Run Command**로 EC2에서 `deploy.sh <tag>` 실행.
   - ⚠️ **AWS 자격(OIDC)은 CD에만** — PR/Merge CI엔 클라우드 자격 없음.
 
-### 배포 인프라 (컨테이너 + ECR pull, k8s 아님)
+### 배포 인프라 (컨테이너 + ECR pull, k8s 아님) — 설계 상세 `docs/cicd-infrastructure-design.md`
 - **build-once = 이미지**: 빌드한 이미지를 ECR에 올리고 EC2가 pull. 레지스트리가 아티팩트 저장소(GH 아티팩트로 이미지 나르는 방식은 폐기).
 - **`deploy.sh`(EC2에서 SSM으로 실행) = 블루그린 무중단 배포**: 현재 라이브의 반대 색(`leisure_blue`/`leisure_green`)에 새 버전 기동 → 헬스체크(`--wait`) 통과 시 **nginx upstream 스왑 + reload(무중단)** → 직전 색 stop(삭제 X, 빠른 롤백). 헬스체크·reload 실패 시 이전 색 유지/롤백.
 - **시크릿 = SSM Parameter Store(`/leisure/prod/`, SecureString)**: `deploy.sh`가 **EC2 인스턴스 역할**로 직접 fetch해 `.env` 생성 → 시크릿이 CI/CD 파이프라인·GH Secrets를 안 거친다(인스턴스 역할: ECR pull + `ssm:GetParametersByPath` + `kms:Decrypt`).
 - **진입점 = nginx**(리버스프록시 + TLS 종단 + 블루그린 스위치). TLS 도메인은 `deploy.sh`에 하드코딩(`api.leisure.com` — 고정값이라 env 아님). 프론트 CORS 오리진은 `CorsConfiguration`.
 - **규모 판단(공모전=확장성·안정성 시연, 실 트래픽 소규모)**: 앱 이중화·오토스케일링 YAGNI(EC2 단일), MySQL은 RDS 아닌 **셀프호스트 + 복제(읽기/쓰기 분리)로 확장성 시연**(자동 페일오버 보류), 관리형/셀프 혼합(핀옵스).
 - **prod 프로파일(`application-prod.yml`)**: 시크릿 `${ENV}` 주입, `ddl-auto: validate`(Flyway가 스키마), p6spy off, `cookie.secure: true`, swagger off.
-- ⚠️ **미완**: prod `docker/docker-compose.yaml`(leisure_blue/green + nginx, `${IMAGE_TAG}`/`${APP_ENV_FILE}` 사용) · IAM(OIDC 공급자 + ECR push/SSM 배포 역할 + 인스턴스 역할) · SSM 파라미터 등록 · readiness(actuator) 게이트 · EC2 준비물(docker/compose/jq/aws-cli/SSM 에이전트).
+- **compose(`docker/docker-compose.yaml`)**: `leisure_blue`/`leisure_green`(anchor 공유, image `ACCOUNT_ID.dkr.ecr...:${IMAGE_TAG}` 하드코딩, `env_file: ${APP_ENV_FILE}`, TCP 8080 healthcheck, read-only + non-root 하드닝) + `portainer` + `nginx`. ⚠️ nginx는 **portainer만** `depends_on` — 색을 걸면 `up nginx`가 두 색을 다 띄워 블루그린이 깨진다.
+- ⚠️ **미완**: nginx conf(`docker/nginx/default.conf` — compose 마운트 + CD가 base64→SSM으로 ship 예정) · **ECR 생성 후 compose image `ACCOUNT_ID` → 실제 계정 ID 교체** · deploy.sh에 **EC2 ECR 로그인**(`docker compose pull` 인증) 추가 · IAM(OIDC 공급자 + ECR push/SSM 배포 역할 + 인스턴스 역할) · SSM `/leisure/prod/*` 파라미터 · readiness(actuator, 현재 TCP 8080 체크) · EC2 준비물(docker/compose/jq/aws-cli/SSM 에이전트).
