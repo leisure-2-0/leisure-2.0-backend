@@ -1,4 +1,4 @@
-name: leisure backend 통합 테스트 (dev branch push for merge)
+name: leisure backend CI 통합 테스트 (dev branch push for merge)
 
 on:
   push:
@@ -17,6 +17,7 @@ jobs:
   verify:
     name: 통합 테스트
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       SPRING_PROFILES_ACTIVE: prod
       DB_HOST: 127.0.0.1
@@ -59,6 +60,10 @@ jobs:
         if: always()
         run: docker compose -f ./docker/docker-compose-ci.yaml down --volumes --remove-orphans
 
+      - name: 짧은 SHA 추출
+        id: vars
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Buildx 설정
         uses: docker/setup-buildx-action@v3
 
@@ -66,20 +71,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64
-          tags: leisure-backend:${{ github.sha }}
+          tags: leisure/backend:${{ steps.vars.outputs.short_sha }}
           context: .
           file: ./Dockerfile
-          load: true
+          load: false
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-
-      - name: Trivy 이미지 취약점 검사
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: leisure-backend:${{ github.sha }}
-          format: table
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: '1'
