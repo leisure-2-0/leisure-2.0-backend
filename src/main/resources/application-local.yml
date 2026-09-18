@@ -3,7 +3,7 @@
 
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.local[.properties]
 
   datasource:
     # DB 접속 주소
@@ -93,7 +93,7 @@ decorator:
 #    org.hibernate.orm.jdbc.bind: trace
 
 jwt:
-  secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
+  secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit / openssl rand -base64 32
   access-token-expiration: 3600000 # 1 hour
   refresh-token-expiration: 1209600000 # 14 days
 

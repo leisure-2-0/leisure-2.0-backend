@@ -115,6 +115,10 @@ ENV_FILE=$(fetch_secrets_to_env "$IMAGE_TAG")
 #    실패하면 여기서 종료 → 현재 라이브는 그대로라 사용자 영향 없음(무중단)
 export IMAGE_TAG                              # compose가 ${IMAGE_TAG}로 이미지 태그 치환
 export APP_ENV_FILE="$ENV_FILE"              # compose가 env_file로 컨테이너에 주입
+# ECR 로그인 (프라이빗 ECR pull 인증; 계정 ID는 인스턴스 역할로 런타임 조회)
+ECR_REGISTRY="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${AWS_REGION}.amazonaws.com"
+aws ecr get-login-password --region "$AWS_REGION" \
+  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 docker compose pull "$STANDBY_SERVICE"
 if ! docker compose up -d --wait --wait-timeout 60 --remove-orphans "$STANDBY_SERVICE"; then
   echo "새 버전 헬스체크 실패: $STANDBY_SERVICE" >&2
