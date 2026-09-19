@@ -37,6 +37,6 @@ USER spring
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=65.0", "org.springframework.boot.loader.launch.JarLauncher"]
 
 CMD ["--spring.profiles.active=prod"]

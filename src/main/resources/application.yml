@@ -39,3 +39,9 @@ ai:
     base-url: http://localhost:8081
     connect-timeout-ms: 3000 # 3 초
     read-timeout-seconds: 60 # 1 분
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

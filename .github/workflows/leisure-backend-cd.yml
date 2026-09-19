@@ -90,7 +90,7 @@ jobs:
         run: |
           EC2_INSTANCE_ID=$(aws ec2 describe-instances \
             --filters \
-              "Name=tag:Role,Values=backend" \
+              "Name=tag:Name,Values=leisure-api" \
               "Name=tag:Environment,Values=prod" \
               "Name=instance-state-name,Values=running" \
             --query "Reservations[].Instances[].InstanceId" \
@@ -106,12 +106,14 @@ jobs:
       - name: EC2 배포 (SSM 사용)
         run: |
           EC2_INSTANCE_ID="${{ steps.instance.outputs.EC2_INSTANCE_ID }}"
+          NGINX_DEFAULT_CONF_B64=$(base64 -w 0 default.conf)
           DEPLOY_SH_B64=$(base64 -w 0 deploy.sh)
           DOCKER_COMPOSE_B64=$(base64 -w 0 ./docker/docker-compose.yaml)
 
           jq -n \
             --arg deploy "$DEPLOY_SH_B64" \
-            --arg docker_compose "$DOCKER_COMPOSE_B64" \
+            --arg docker "$DOCKER_COMPOSE_B64" \
+            --arg nginx  "$NGINX_DEFAULT_CONF_B64" \
             --arg tag "${{ needs.build-and-push.outputs.short_sha }}" \
             '{
               commands: [
@@ -119,7 +121,9 @@ jobs:
                   "mkdir -p /home/ubuntu/leisure",
                   "cd /home/ubuntu/leisure",
                   ("printf %s " + ($deploy | @sh) + " | base64 -d > deploy.sh"),
-                  ("printf %s " + ($docker_compose | @sh) + " | base64 -d > docker-compose.yaml"),
+                  ("printf %s " + ($docker | @sh) + " | base64 -d > docker-compose.yaml"),
+                  "mkdir -p /home/ubuntu/leisure/nginx",
+                  ("printf %s " + ($nginx | @sh) + " | base64 -d > nginx/default.conf"),
                   "chmod +x deploy.sh",
                   ("./deploy.sh " + ($tag | @sh))
                 ]
