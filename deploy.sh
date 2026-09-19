@@ -7,8 +7,8 @@ IMAGE_TAG=$1
 # 고정 설정값 (환경/배포마다 안 바뀌어 하드코딩)
 AWS_REGION="ap-northeast-2"
 SSM_SECRET_PATH="/leisure/prod/"           # 앱 시크릿이 저장된 SSM Parameter Store 경로(SecureString)
-SERVER_NAME="api.leisure.com"              # 백엔드 API 도메인 (TLS 인증서 경로 조회용, 고정값)
 APP_DIR="${APP_DIR:-/home/ubuntu/leisure}" # 배포 작업 디렉터리 (미지정 시 기본값)
+# TLS는 ALB(ACM)가 종단하므로 nginx/deploy.sh에서 인증서를 다루지 않는다.
 
 # 배포 상태/설정 파일 경로 (.deploy 아래에 모아둔다)
 STATE_DIR=".deploy"
@@ -83,22 +83,9 @@ point_nginx_to() {
   chmod 600 "$UPSTREAM_FILE"
 }
 
-# require_tls_cert <server_name>  →  해당 도메인 TLS 인증서가 없으면 실패(return 1)
-#   HTTPS 배포에서 인증서 없이 HTTP로 조용히 폴백하는 사고를 막는다.
-require_tls_cert() {
-  local server_name="$1"
-  local cert="/etc/letsencrypt/live/${server_name}/fullchain.pem"
-  local key="/etc/letsencrypt/live/${server_name}/privkey.pem"
-  if [ ! -f "$cert" ] || [ ! -f "$key" ]; then
-    echo "tls 인증서를 찾을 수 없습니다: $server_name" >&2
-    return 1
-  fi
-}
-
-# reload_nginx <server_name>  →  인증서 확인 후 nginx 무중단 리로드
+# reload_nginx  →  nginx 무중단 리로드 (TLS는 ALB가 종단하므로 인증서 확인 없음)
 #   nginx -s reload: 기존 연결을 끊지 않고 설정만 다시 읽는다.
 reload_nginx() {
-  require_tls_cert "$1"
   docker compose up -d nginx
   docker compose exec -T nginx nginx -s reload
 }
@@ -129,11 +116,11 @@ fi
 
 # 4. nginx 트래픽을 대기 색으로 전환 (리로드 실패 시 이전 색으로 롤백)
 point_nginx_to "$STANDBY"
-if ! reload_nginx "$SERVER_NAME"; then
+if ! reload_nginx; then
   echo "nginx 트래픽 전환 실패, 롤백: $LIVE" >&2
   if [ -n "$LIVE" ]; then                     # 첫 배포가 아니면(이전 색 존재) 되돌린다
     point_nginx_to "$LIVE"
-    reload_nginx "$SERVER_NAME" || true
+    reload_nginx || true
   fi
   exit 2
 fi
