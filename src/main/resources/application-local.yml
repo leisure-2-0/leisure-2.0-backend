@@ -3,7 +3,7 @@
 
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.local[.properties]
 
   datasource:
     # DB 접속 주소
@@ -69,6 +69,10 @@ spring:
       #   - create-drop : create + 앱 종료 시 테이블 삭제
       ddl-auto: validate
     show-sql: false       # 실행되는 SQL 쿼리를 콘솔에 출력
+    properties:
+      hibernate:
+        format_sql: false
+        highlight_sql: false
 
   flyway:
     enabled: true
@@ -89,7 +93,7 @@ decorator:
 #    org.hibernate.orm.jdbc.bind: trace
 
 jwt:
-  secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit
+  secret: 'rDWUWrSEvHJy9scyrKlQykuBLeASH2a6ZfFegS2GkiA=' # No meaning value, base64, 256bit / openssl rand -base64 32
   access-token-expiration: 3600000 # 1 hour
   refresh-token-expiration: 1209600000 # 14 days
 
@@ -120,7 +124,6 @@ tour-api:
   retry-initial-delay-ms: 1000
   retry-max-delay-ms: 10000
   retry-backoff-multiplier: 2.0
-
 
 search:
   enabled: true                # 검색, 색인 기능 on/off (off면 색인 배치, 검색 비활성)

@@ -37,7 +37,9 @@ out/
 .vscode/
 
 ### secrets ###
-.env
+.env.local
+.env.prod
+!.env.example
 
 ### OS ###
 .DS_Store

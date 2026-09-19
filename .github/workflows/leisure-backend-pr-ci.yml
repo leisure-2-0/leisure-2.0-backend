@@ -1,9 +1,13 @@
-name: leisure backend 단위 테스트 (dev branch PR)
+name: leisure backend CI 단위 테스트 (dev branch PR)
 
 on:
   pull_request:
     branches:
       - dev
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -16,6 +20,7 @@ jobs:
   unit-test:
     name: 단위 테스트
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: 코드 가져오기

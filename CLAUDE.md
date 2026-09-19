@@ -189,6 +189,25 @@ springdoc-openapi(webmvc-ui)로 문서를 생성한다. Swagger UI는 `/swagger-
 - **엔드포인트 문서** — 컨트롤러에 `@Tag`(도메인 그룹), 메서드에 `@Operation(summary, description)`. description은 "이름으로 모르는 계약"만(상태 전이 조건, null 계약, 세션 무효화 등) — 뻔한 반복은 넣지 않는다.
 - **파라미터/바디** — 쿼리·경로 파라미터는 `@Parameter`(의미 있는 것만: `sort`/`cursor`/`page`·`size`. required/default/enum값은 자동 노출이라 반복 금지), 요청 바디 필드는 `@Schema`(이름으로 모르는 **계약**만: `tags`의 null=유지/빈배열=제거, `location`의 null 계약 등). 응답 DTO·자명한 필드는 생략.
 
-## Git & CI 워크플로우
+## Git & CI/CD 워크플로우
 
-브랜치 흐름은 `feature/*` → `dev` (→ `main`). `dev`로의 PR은 CI 워크플로우를 트리거한다: 단위 테스트 실행 후, 자동 Claude Sonnet 코드 리뷰가 한국어 리뷰 댓글을 남긴다. 커밋 메시지는 `[브랜치][타입]: 설명` 형식을 따른다(예: `[feature/ci][feat]: ...`), 타입은 `feat` / `fix` / `chore` 등, 설명은 한국어로.
+브랜치 흐름은 `feature/*` → `dev` (→ `main`). 커밋 메시지는 `[브랜치][타입]: 설명` 형식(예: `[feature/cd][chore]: ...`), 타입은 `feat` / `fix` / `chore` 등, 설명은 한국어. `.github/workflows`에 워크플로우 3개.
+
+- **PR CI(`leisure-backend-pr-ci.yml`)** — `dev` 대상 PR에서 `./gradlew test`(단위 테스트)만. (자동 Claude 코드 리뷰 잡은 주석 처리돼 **비활성**.) AWS 자격 없음.
+- **Merge CI(`leisure-backend-merge.ci.yml`)** — `dev` push에서 **통합 테스트**. `docker/docker-compose-ci.yaml`로 MySQL/Redis/RabbitMQ/ES(nori) 4개를 healthcheck와 함께 띄우고(`--wait`), `prod` 프로파일 + 더미 env로 `./gradlew integrationTest`. 현재 `@Tag("integration")`은 사실상 컨텍스트 로드라 **"앱이 4개 인프라에 다 붙어 부팅되나" 스모크**가 된다. 이미지 빌드 검증(push 없음)도 포함. AWS 자격 없음.
+- **CD(`leisure-backend-cd.yml`)** — `main` push에서 2 job(관심사·권한 분리):
+  - `build-and-push`: **배포 이미지 빌드** → **Trivy 스캔(HIGH/CRITICAL 게이트, 통과분만 push)** → OIDC로 AWS 인증 → **ECR push** `leisure/backend:<short-sha>`.
+  - `deploy`(`needs: build-and-push`): OIDC → EC2 조회(태그 `Role=backend`,`Environment=prod`) → **SSM Run Command**로 EC2에서 `deploy.sh <tag>` 실행.
+  - ⚠️ **AWS 자격(OIDC)은 CD에만** — PR/Merge CI엔 클라우드 자격 없음.
+
+### 배포 인프라 (컨테이너 + ECR pull, k8s 아님) — 네트워크/컴퓨트/비용 설계 상세 `docs/aws-network-and-compute.md`
+- **build-once = 이미지**: 빌드한 이미지를 ECR에 올리고 EC2가 pull. 레지스트리가 아티팩트 저장소(GH 아티팩트로 이미지 나르는 방식은 폐기).
+- **`deploy.sh`(EC2에서 SSM으로 실행) = 블루그린 무중단 배포**: 현재 라이브의 반대 색(`leisure_blue`/`leisure_green`)에 새 버전 기동 → 헬스체크(`--wait`) 통과 시 **nginx upstream 스왑 + reload(무중단)** → 직전 색 stop(삭제 X, 빠른 롤백). 헬스체크·reload 실패 시 이전 색 유지/롤백.
+- **시크릿 = SSM Parameter Store(`/leisure/prod/`, SecureString)**: `deploy.sh`가 **EC2 인스턴스 역할**로 직접 fetch해 `.env` 생성 → 시크릿이 CI/CD 파이프라인·GH Secrets를 안 거친다(인스턴스 역할: ECR pull + `ssm:GetParametersByPath` + `kms:Decrypt`).
+- **진입점 = ALB → nginx → blue/green** (확정, `docs/aws-network-and-compute.md` §1). **TLS는 ALB(퍼블릭)가 ACM 인증서로 종단**하고, ALB→nginx 구간은 평문 HTTP(80). nginx는 리버스프록시 + 블루그린 스위치만(종단 안 함). 이유: API를 private 서브넷에 두려면 퍼블릭 진입점(ALB)이 필요하고, ALB(L7)는 반드시 TLS를 복호화하므로 nginx 단독 종단 불가. ACM은 무료·자동갱신이라 certbot 운영 부담이 사라지는 게 이점. ⚠️ 그래서 **compose nginx의 443·letsencrypt·certbot 마운트, `deploy.sh`의 `require_tls_cert`는 제거 예정**(인프라 확정 후 일괄). ALB는 최소 2 AZ 퍼블릭 서브넷 필수. 도메인은 가비아(CNAME으로 ALB 가리킴 + ACM 검증 CNAME). 프론트 CORS 오리진은 `CorsConfiguration`.
+- **네트워크(생성 완료)**: `leisure-vpc`(10.0.0.0/16) + 퍼블릭 서브넷 2개(2a/2c, ALB·bastion) + 프라이빗 서브넷 1개(2a, API·백엔드) + IGW + 퍼블릭/프라이빗 RT + **SG 7개**(alb/api/bastion/mysql/es/mq/redis-nat, **소스=다른 SG 체이닝**이 원칙). **egress DNS(53)는 SG에 안 넣는다** — 인스턴스가 AWS VPC 리졸버를 써 53 질의가 SG/NAT를 안 거치므로(밖으로 나갈 땐 443만 필요). 상세 §2~4.
+- **NAT = 전용 인스턴스(t3.nano)**, NAT Gateway 아님(관리형은 월 ~58,000원으로 8배·가성비 최악). TourAPI 외부호출 때문에 egress는 필요. 필수 세팅: 소스/대상 확인 중지 + IP포워딩/iptables MASQUERADE + 프라이빗 RT `0.0.0.0/0`→NAT ENI. §4.
+- **규모 판단(공모전=확장성·안정성 시연, 실 트래픽 소규모)**: 앱 이중화·오토스케일링 YAGNI, **MySQL은 RDS 아닌 셀프호스트 master/slave 복제(읽기/쓰기 분리)로 확장성 시연** — **호스트 분리(t3.micro ×2)** 가 정석(같은 박스 컨테이너 복제는 호스트 죽으면 둘 다 죽어 HA 상실 → 학습/CI 전용). **복제 정합성은 실시간 자동**(binlog 스트리밍) — 배치 쉘로 데이터 맞추는 게 아니고(안티패턴), read/write 분기는 앱 `AbstractRoutingDataSource`, 쉘은 "복제 헬스체크/재시작"용. 인스턴스 사이징 근거(T/M/C/R 비교 + 워크로드 매핑 + 설정 역산→부하테스트→ASG 로드맵)와 최종 비용 영수증(셀프 ~193,000원/월 vs 관리형 ~267,000~350,000원, 혼합=RDS만 관리형 ~225,000원)은 `docs/aws-network-and-compute.md` §5~7. ⚠️ CD 이미지 arch=amd64(GitHub 러너)라 **API는 x86(t3) 고정**.
+- **prod 프로파일(`application-prod.yml`)**: 시크릿 `${ENV}` 주입, `ddl-auto: validate`(Flyway가 스키마), p6spy off, `cookie.secure: true`, swagger off.
+- **compose(`docker/docker-compose.yaml`)**: `leisure_blue`/`leisure_green`(anchor 공유, image `ACCOUNT_ID.dkr.ecr...:${IMAGE_TAG}` 하드코딩, `env_file: ${APP_ENV_FILE}`, TCP 8080 healthcheck, read-only + non-root 하드닝) + `portainer` + `nginx`. ⚠️ nginx는 **portainer만** `depends_on` — 색을 걸면 `up nginx`가 두 색을 다 띄워 블루그린이 깨진다.
+- ⚠️ **미완** (AWS IAM/OIDC/역할·비용알림·ECR·**네트워크[VPC/서브넷/IGW/RT/SG 7개]**·**인스턴스 사이징/복제/비용 설계**는 **완료**. 인스턴스 생성 상태: **NAT·bastion·API·MySQL master·MQ 완료**, **ES·ElastiCache·MySQL slave 남음**): 나머지 인스턴스 생성(**ES** t3.medium+nori · **ElastiCache** cache.t3.micro · MySQL **slave**+복제) · **S3 Gateway Endpoint**(무료) · **ALB**(퍼블릭 2AZ + ACM + 타깃 nginx:80 + 가비아 CNAME) · SSM `/leisure/prod/*` 파라미터(호스트 다 채운 뒤 — 현재 `.env.prod`에 DB_HOST=10.0.10.103, RABBITMQ_HOST=10.0.10.6 반영, REDIS/ES 대기) · **A안 반영 코드**(compose nginx 443·certbot 마운트 제거·80만 / `deploy.sh` `require_tls_cert` 제거 / `docker/nginx/default.conf` `listen 80` + upstream include, CD가 base64/SSM ship / compose `mem_limit` 색깔별 + portainer를 API 박스서 분리 + 스왑) · MySQL routing datasource + 복제 헬스체크 쉘 · readiness(actuator). 🔴 프로덕션 전 **TourAPI serviceKey 재발급**(git 히스토리 노출). (deploy.sh EC2 ECR 로그인·API 인스턴스 준비물[docker/compose/jq/aws-cli+스왑]·ec2-runtime 인스턴스 프로파일은 **완료**.) 인프라 구축 상세·트러블슈팅은 `docs/aws-*.md`(네트워크/컴퓨트·인스턴스 런북·NAT 영구화·MySQL master·RabbitMQ).
