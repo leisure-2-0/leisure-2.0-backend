@@ -21,5 +21,9 @@ public record PostEditRequest(
 
         @Schema(description = "위치 정보. null이면 기존 위치 유지. 값이 오면 통째로 교체되며 내부 필드는 일부 null이어도 그대로 저장된다(전 필드가 null이면 무시되어 유지).")
         @Valid
-        LocationRequest location
+        LocationRequest location,
+
+        @Schema(description = "대표이미지 URL. null이면 기존 유지, 빈 문자열이면 제거.")
+        @Size(max = 512)
+        String thumbnailUrl
 ) {}

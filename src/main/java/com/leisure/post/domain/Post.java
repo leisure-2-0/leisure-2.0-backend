@@ -53,6 +53,9 @@ public class Post extends BaseSoftDeleteEntity {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
+    @Column(name = "thumbnail_url", length = 512)
+    private String thumbnailUrl;
+
     private Post(Long memberId) {
         this.memberId = memberId;
         this.status = PostStatus.WRITING;
@@ -62,7 +65,7 @@ public class Post extends BaseSoftDeleteEntity {
         return new Post(memberId);
     }
 
-    public void applyContent(String title, String content, PostCategory category, PostLocation location) {
+    public void applyContent(String title, String content, PostCategory category, PostLocation location, String thumbnailUrl) {
 
         if (!isEditable()) {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
@@ -80,6 +83,10 @@ public class Post extends BaseSoftDeleteEntity {
 
         if (location != null) {
             this.location = location;
+        }
+
+        if (thumbnailUrl != null) {                          // null=유지, ""·공백=제거, 값=저장
+            this.thumbnailUrl = thumbnailUrl.isBlank() ? null : thumbnailUrl.trim();
         }
     }
 
@@ -140,7 +147,7 @@ public class Post extends BaseSoftDeleteEntity {
         return status == PostStatus.WRITING || status == PostStatus.DRAFT || status == PostStatus.REJECTED;
     }
 
-    public void editPublished(String title, String content, PostCategory category, PostLocation location) {
+    public void editPublished(String title, String content, PostCategory category, PostLocation location, String thumbnailUrl) {
         if (this.status != PostStatus.PUBLISHED) {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
         }
@@ -163,6 +170,10 @@ public class Post extends BaseSoftDeleteEntity {
 
         if (location != null) {
             this.location = location;
+        }
+
+        if (thumbnailUrl != null) {                          // null=유지, ""·공백=제거, 값=저장
+            this.thumbnailUrl = thumbnailUrl.isBlank() ? null : thumbnailUrl.trim();
         }
     }
 

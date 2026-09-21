@@ -13,6 +13,8 @@ public record DraftDetailResult(
 
         PostCategory category,
 
+        String thumbnailUrl,
+
         LocalDateTime updatedAt,
 
         LocationResult location

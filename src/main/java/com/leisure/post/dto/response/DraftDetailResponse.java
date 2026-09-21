@@ -15,6 +15,8 @@ public record DraftDetailResponse(
 
         PostCategory category,
 
+        String thumbnailUrl,
+
         LocalDateTime updatedAt,
 
         Location location,
@@ -57,6 +59,7 @@ public record DraftDetailResponse(
                 r.title(),
                 r.content(),
                 r.category(),
+                r.thumbnailUrl(),
                 r.updatedAt(),
                 location,
                 tags

@@ -60,7 +60,7 @@ class PostSearchServiceTest {
 
     private PostResult post(long postId) {
         return new PostResult(
-                postId, "제목", null, 0, 0, 0, false, false, "강릉", null,
+                postId, "제목", null, 0, 0, 0, false, false, "강릉", null, null,
                 new PostResult.AuthorResult(1L, "nick", null)
         );
     }

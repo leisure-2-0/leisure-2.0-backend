@@ -42,6 +42,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 post.createdAt,
                                 post.updatedAt,
@@ -92,6 +93,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 Projections.constructor(
                                         PostResult.AuthorResult.class,
@@ -140,6 +142,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 Projections.constructor(
                                         PostResult.AuthorResult.class,
@@ -186,6 +189,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 Projections.constructor(
                                         MainFeedPostResult.AuthorResult.class,
@@ -285,6 +289,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 memberId == null ? Expressions.FALSE : post.memberId.eq(memberId),
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.postBookmarkId.isNotNull(),
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 Projections.constructor(
                                         PostDetailResult.AuthorResult.class,
@@ -367,6 +372,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                                 post.title,
                                 post.content,
                                 post.category,
+                                post.thumbnailUrl,
                                 post.updatedAt,
                                 Projections.constructor(
                                         DraftDetailResult.LocationResult.class,

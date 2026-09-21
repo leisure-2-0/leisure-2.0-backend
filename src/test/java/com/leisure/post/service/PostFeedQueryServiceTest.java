@@ -46,7 +46,7 @@ class PostFeedQueryServiceTest {
 
     private PostResult post(long postId, int likeCount) {
         return new PostResult(
-                postId, "제목", null, 0, likeCount, 0, false, false, "강릉", null,
+                postId, "제목", null, 0, likeCount, 0, false, false, "강릉", null, null,
                 new PostResult.AuthorResult(1L, "nick", null)
         );
     }

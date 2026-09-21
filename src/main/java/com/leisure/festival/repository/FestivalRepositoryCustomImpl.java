@@ -69,7 +69,7 @@ public class FestivalRepositoryCustomImpl implements FestivalRepositoryCustom {
                         festival.eventStartDate.asc(),
                         festival.festivalId.asc()
                 )
-                .limit(10)
+                .limit(7)
                 .fetch();
     }
 }

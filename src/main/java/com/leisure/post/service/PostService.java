@@ -57,7 +57,7 @@ public class PostService {
     public PostSaveResponse saveDraft(String publicId, Long postId, PostSaveRequest request) {
         Post post = getOwnedPost(publicId, postId);
 
-        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()), request.thumbnailUrl());
 
         if (request.tags() != null) {
             replaceTags(post.getPostId(), request.tags());
@@ -73,7 +73,7 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()));
+        post.applyContent(request.title(), request.content(), request.category(), toLocation(request.location()), request.thumbnailUrl());
 
         if (request.tags() != null) {
             replaceTags(post.getPostId(), request.tags());
@@ -94,7 +94,7 @@ public class PostService {
 
         Post post = getOwnedPost(publicId, postId);
 
-        post.editPublished(request.title(), request.content(), request.category(), toLocation(request.location()));
+        post.editPublished(request.title(), request.content(), request.category(), toLocation(request.location()), request.thumbnailUrl());
 
         if (request.tags() != null) {
             replaceTags(post.getPostId(), request.tags());

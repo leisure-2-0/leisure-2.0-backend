@@ -27,6 +27,8 @@ public record BookmarkedPostResponse(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         LocalDateTime bookmarkedAt,
@@ -60,6 +62,7 @@ public record BookmarkedPostResponse(
                 r.isLiked(),
                 r.isBookmarked(),
                 r.region(),
+                r.thumbnailUrl(),
                 r.publishedAt(),
                 r.bookmarkedAt(),
                 author,
