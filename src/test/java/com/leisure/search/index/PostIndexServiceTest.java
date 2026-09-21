@@ -64,7 +64,7 @@ class PostIndexServiceTest {
     private Post publishedPost(long postId) {
         Post post = Post.startWriting(1L);
         ReflectionTestUtils.setField(post, "postId", postId);
-        post.applyContent("제목", "본문", null, null);   // category/location 없음(null 방어 확인)
+        post.applyContent("제목", "본문", null, null, null);   // category/location 없음(null 방어 확인)
         post.publish();
         return post;
     }

@@ -55,7 +55,7 @@ class MainFeedQueryServiceTest {
 
     private MainFeedPostResult post(long postId) {
         return new MainFeedPostResult(
-                postId, "제목", PostCategory.RESTAURANT, 0, 0, 0, false, false, "강릉", null,
+                postId, "제목", PostCategory.RESTAURANT, 0, 0, 0, false, false, "강릉", null, null,
                 new MainFeedPostResult.AuthorResult(MEMBER_ID, "nick", null)
         );
     }
@@ -72,15 +72,15 @@ class MainFeedQueryServiceTest {
     @DisplayName("로그인 상태면 memberId로 상위 18개를 조회한다")
     void loggedIn() {
         given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member());
-        given(postRepository.findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18))
+        given(postRepository.findMainFeedPosts(MEMBER_ID, PostCategory.ACCOMMODATION, PostSort.POPULAR, 18))
                 .willReturn(List.of(post(1), post(2)));
         stubAssembler();
 
         List<MainFeedPostResponse> response =
-                postQueryService.getMainFeedPosts(PUBLIC_ID, PostCategory.HOTEL, PostSort.POPULAR);
+                postQueryService.getMainFeedPosts(PUBLIC_ID, PostCategory.ACCOMMODATION, PostSort.POPULAR);
 
         assertThat(response).hasSize(2);
-        verify(postRepository).findMainFeedPosts(MEMBER_ID, PostCategory.HOTEL, PostSort.POPULAR, 18);
+        verify(postRepository).findMainFeedPosts(MEMBER_ID, PostCategory.ACCOMMODATION, PostSort.POPULAR, 18);
     }
 
     @Test

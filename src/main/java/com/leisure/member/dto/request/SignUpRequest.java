@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 public record SignUpRequest(
 
         @NotBlank(message = ValidationMessageConstants.EMAIL_REQUIRED)
+        @Size(max = 50, message = ValidationMessageConstants.EMAIL_MAX_LENGTH)
         @Email(message = ValidationMessageConstants.EMAIL_INVALID_FORMAT)
         String email,
 

@@ -114,3 +114,14 @@ search:
   fuzz:
     max-expansions: 25
     prefix-length: 0
+
+aws:
+  s3:
+    bucket: leisure-images-prod
+    region: ap-northeast-2
+    public-base-url: https://d2zlszgdfmp2oq.cloudfront.net
+    presign-expiration: 5m
+
+image:
+  cleanup:
+    enabled: true

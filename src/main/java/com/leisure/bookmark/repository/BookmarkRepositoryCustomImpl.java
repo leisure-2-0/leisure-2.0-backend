@@ -38,6 +38,7 @@ public class BookmarkRepositoryCustomImpl implements BookmarkRepositoryCustom {
                                 postLike.postLikeId.isNotNull(),
                                 postBookmark.memberId.eq(memberId),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 postBookmark.createdAt,
                                 Projections.constructor(

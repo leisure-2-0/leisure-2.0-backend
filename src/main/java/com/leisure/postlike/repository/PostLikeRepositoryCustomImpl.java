@@ -38,6 +38,7 @@ public class PostLikeRepositoryCustomImpl implements PostLikeRepositoryCustom {
                                 postLike.memberId.eq(memberId),
                                 postBookmark.postBookmarkId.isNotNull(),
                                 post.location.region,
+                                post.thumbnailUrl,
                                 post.publishedAt,
                                 postLike.createdAt,
                                 Projections.constructor(

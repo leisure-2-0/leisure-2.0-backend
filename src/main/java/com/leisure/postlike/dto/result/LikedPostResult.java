@@ -25,6 +25,8 @@ public record LikedPostResult(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         LocalDateTime likedAt,

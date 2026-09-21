@@ -73,8 +73,8 @@ class MapQueryServiceTest {
     void regionPinCounts_passthrough() {
         given(mapRepositoryCustom.findRegionPinCounts(any())).willReturn(List.of());
 
-        assertThat(mapQueryService.getRegionPinCounts(PostCategory.HOTEL)).isEmpty();
-        verify(mapRepositoryCustom).findRegionPinCounts(PostCategory.HOTEL);
+        assertThat(mapQueryService.getRegionPinCounts(PostCategory.ACCOMMODATION)).isEmpty();
+        verify(mapRepositoryCustom).findRegionPinCounts(PostCategory.ACCOMMODATION);
     }
 
     private void assertInvalid(Runnable call) {

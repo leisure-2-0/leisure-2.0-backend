@@ -8,6 +8,8 @@ public final class ValidationMessageConstants {
 
     public static final String EMAIL_INVALID_FORMAT = "올바른 이메일 형식이 아닙니다. (예: example@example.com)";
 
+    public static final String EMAIL_MAX_LENGTH = "이메일은 최대 50자까지 입력할 수 있습니다.";
+
     public static final String PASSWORD_REQUIRED = "비밀번호를 입력해 주세요.";
 
     public static final String PASSWORD_CONFIRM_REQUIRED = "비밀번호 확인을 입력해 주세요.";
@@ -19,4 +21,8 @@ public final class ValidationMessageConstants {
     public static final String NICKNAME_MAX_LENGTH = "닉네임은 최대 50자까지 입력할 수 있습니다.";
 
     public static final String NICKNAME_NO_SPACE = "닉네임에 공백을 포함할 수 없습니다.";
+
+    public static final String IMAGE_CONTENT_TYPE_REQUIRED = "contentType은 필수입니다.";
+
+    public static final String IMAGE_PURPOSE_REQUIRED = "purpose는 필수입니다.";
 }

@@ -27,6 +27,8 @@ public record MyPostResponse(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         LocalDateTime createdAt,
@@ -62,6 +64,7 @@ public record MyPostResponse(
                 r.isLiked(),
                 r.isBookmarked(),
                 r.region(),
+                r.thumbnailUrl(),
                 r.publishedAt(),
                 r.createdAt(),
                 r.updatedAt(),

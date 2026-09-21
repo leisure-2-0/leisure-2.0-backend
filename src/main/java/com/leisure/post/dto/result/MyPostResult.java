@@ -25,6 +25,8 @@ public record MyPostResult(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         LocalDateTime createdAt,

@@ -18,6 +18,7 @@ public record PostDetailResult(
         boolean isMine,
         boolean isLiked,
         boolean isBookmarked,
+        String thumbnailUrl,
         LocalDateTime publishedAt,
         AuthorResult author,
         LocationResult location

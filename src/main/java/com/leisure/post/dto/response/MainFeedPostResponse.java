@@ -25,6 +25,8 @@ public record MainFeedPostResponse(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         AuthorResponse author,
@@ -55,6 +57,7 @@ public record MainFeedPostResponse(
                 r.isLiked(),
                 r.isBookmarked(),
                 r.region(),
+                r.thumbnailUrl(),
                 r.publishedAt(),
                 author,
                 tags

@@ -97,7 +97,6 @@ public class PostQueryController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(response.postId() + "번 게시글 조회에 성공했습니다", response));
-
     }
 
     @Operation(summary = "내 임시저장 목록 조회", description = "본인이 임시 저장(DRAFT)한 글을 최근 저장 순으로 조회한다.")
