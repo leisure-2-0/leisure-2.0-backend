@@ -23,6 +23,8 @@ public record MainFeedPostResult(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         AuthorResult author

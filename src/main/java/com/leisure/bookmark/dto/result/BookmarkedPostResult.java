@@ -25,6 +25,8 @@ public record BookmarkedPostResult(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         LocalDateTime bookmarkedAt,

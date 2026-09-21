@@ -114,6 +114,9 @@ public enum ErrorCode {
     // ===== 여가 포인트 =====
     POINT_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 포인트 값입니다."),
 
+    // ===== 이미지 =====
+    IMAGE_CONTENT_TYPE_UNSUPPORTED(HttpStatus.UNPROCESSABLE_CONTENT, "지원하지 않는 이미지 형식입니다. (jpeg, png, webp, gif)"),
+
     ;
 
     private final HttpStatus status;

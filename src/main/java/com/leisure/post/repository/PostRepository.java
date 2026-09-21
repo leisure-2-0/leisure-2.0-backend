@@ -122,4 +122,10 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             and p.bookmarkCount > 0
             """)
     void decreaseBookmarkCount(Long postId);
+
+    @Query("select p.thumbnailUrl from Post p where p.thumbnailUrl is not null")
+    List<String> findAllThumbnailUrls();
+
+    @Query("select p.content from Post p where p.content is not null")
+    List<String> findAllContents();
 }

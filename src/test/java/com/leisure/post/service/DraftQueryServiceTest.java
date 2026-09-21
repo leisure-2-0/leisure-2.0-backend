@@ -58,7 +58,7 @@ class DraftQueryServiceTest {
 
     private DraftDetailResult result() {
         return new DraftDetailResult(
-                POST_ID, "제목", "본문", PostCategory.RESTAURANT, LocalDateTime.now(),
+                POST_ID, "제목", "본문", PostCategory.RESTAURANT, null, LocalDateTime.now(),
                 new DraftDetailResult.LocationResult("강릉", "장소명", "주소", 37.5, 127.0)
         );
     }

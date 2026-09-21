@@ -141,3 +141,14 @@ search:
   fuzz:
     max-expansions: 25         # fuzzy가 확장할 최대 term 수 (ES 기본 50). 낮출수록 빠르고 recall↓
     prefix-length: 0           # 앞 N글자는 오타 불허(정확 일치). 0 = 첫 글자부터 오타 허용(한글 대응), 늘리면 정확도·속도↑ recall↓
+
+aws:
+  s3:
+    bucket: leisure-images-local
+    region: ap-northeast-2
+    public-base-url: http://localhost
+    presign-expiration: 5m
+
+image:
+  cleanup:
+    enabled: false

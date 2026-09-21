@@ -25,6 +25,8 @@ public record PostResponse(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         AuthorResponse author,
@@ -55,6 +57,7 @@ public record PostResponse(
                 r.isLiked(),
                 r.isBookmarked(),
                 r.region(),
+                r.thumbnailUrl(),
                 r.publishedAt(),
                 author,
                 tags

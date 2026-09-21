@@ -23,6 +23,8 @@ public record PostResult(
 
         String region,
 
+        String thumbnailUrl,
+
         LocalDateTime publishedAt,
 
         AuthorResult author

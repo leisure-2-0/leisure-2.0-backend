@@ -38,4 +38,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Modifying
     @Query("update Member m set m.point = m.point + :amount where m.memberId = :memberId and m.deletedAt is null")
     int addPoint(Long memberId, int amount);
+
+    @Query("select m.profileImageUrl from Member m where m.profileImageUrl is not null")
+    List<String> findAllProfileImageUrls();
 }

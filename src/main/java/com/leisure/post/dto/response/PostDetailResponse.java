@@ -27,6 +27,8 @@ public record PostDetailResponse(
 
     boolean isBookmarked,
 
+    String thumbnailUrl,
+
     LocalDateTime publishedAt,
 
     Author author,
@@ -64,6 +66,7 @@ public record PostDetailResponse(
                 r.isMine(),
                 r.isLiked(),
                 r.isBookmarked(),
+                r.thumbnailUrl(),
                 r.publishedAt(),
                 author,
                 location,
