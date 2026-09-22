@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,4 +42,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("select m.profileImageUrl from Member m where m.profileImageUrl is not null")
     List<String> findAllProfileImageUrls();
+
+    @Query("select m.memberId from Member m where m.deletedAt < :threshold")
+    List<Long> findMemberIdsByDeletedAtBefore(LocalDateTime threshold);
+
+    @Modifying
+    @Query("delete from Member m where m.memberId in :memberIds")
+    void deleteByMemberIdIn(Collection<Long> memberIds);
 }

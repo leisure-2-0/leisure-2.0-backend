@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+
 @Repository
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
 
@@ -16,4 +18,8 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
             values (:memberId, :actorId, :sourceId, :pointType, :amount, now())
             """, nativeQuery = true)
     int insertIfAbsent(Long memberId, Long actorId, Long sourceId, String pointType, int amount);
+
+    @Modifying
+    @Query("delete from PointHistory ph where ph.memberId in :memberIds")
+    void deleteByMemberIdIn(Collection<Long> memberIds);
 }

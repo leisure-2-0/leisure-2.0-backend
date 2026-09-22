@@ -4,7 +4,7 @@ public enum ImagePurpose {
 
     PROFILE("profiles"),
 
-    POST("posts"),
+    THUMBNAIL("thumbnails"),
 
     CONTENT("contents");
 

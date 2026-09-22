@@ -62,26 +62,26 @@ class ImageCleanupSchedulerTest {
         Instant recent = Instant.now().minus(Duration.ofHours(1));
 
         ListObjectsV2Iterable postsPage = paginatorOf(List.of(
-                object("posts/ref.jpg", old),
-                object("posts/orphan-old.jpg", old),
-                object("posts/orphan-new.jpg", recent)
+                object("thumbnails/ref.jpg", old),
+                object("thumbnails/orphan-old.jpg", old),
+                object("thumbnails/orphan-new.jpg", recent)
         ));
         ListObjectsV2Iterable profilesPage = paginatorOf(List.of(
                 object("profiles/ref.png", old),
                 object("profiles/orphan-old.png", old)
         ));
         ListObjectsV2Iterable contentsPage = paginatorOf(List.of());
-        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("posts/")))).willReturn(postsPage);
+        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("thumbnails/")))).willReturn(postsPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("profiles/")))).willReturn(profilesPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("contents/")))).willReturn(contentsPage);
 
-        given(postRepository.findAllThumbnailUrls()).willReturn(List.of(BASE_URL + "/posts/ref.jpg"));
+        given(postRepository.findAllThumbnailUrls()).willReturn(List.of(BASE_URL + "/thumbnails/ref.jpg"));
         given(memberRepository.findAllProfileImageUrls()).willReturn(List.of(BASE_URL + "/profiles/ref.png"));
 
         scheduler.cleanupOrphans();
 
         assertThat(capturedDeletedKeys(2))
-                .containsExactlyInAnyOrder("posts/orphan-old.jpg", "profiles/orphan-old.png");
+                .containsExactlyInAnyOrder("thumbnails/orphan-old.jpg", "profiles/orphan-old.png");
     }
 
     @Test
@@ -89,10 +89,10 @@ class ImageCleanupSchedulerTest {
     void keepsRecentUnreferenced() {
         Instant recent = Instant.now().minus(Duration.ofHours(1));
 
-        ListObjectsV2Iterable postsPage = paginatorOf(List.of(object("posts/just-uploaded.jpg", recent)));
+        ListObjectsV2Iterable postsPage = paginatorOf(List.of(object("thumbnails/just-uploaded.jpg", recent)));
         ListObjectsV2Iterable profilesPage = paginatorOf(List.of());
         ListObjectsV2Iterable contentsPage = paginatorOf(List.of());
-        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("posts/")))).willReturn(postsPage);
+        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("thumbnails/")))).willReturn(postsPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("profiles/")))).willReturn(profilesPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("contents/")))).willReturn(contentsPage);
 
@@ -115,7 +115,7 @@ class ImageCleanupSchedulerTest {
                 object("contents/used.jpg", old),
                 object("contents/orphan.jpg", old)
         ));
-        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("posts/")))).willReturn(postsPage);
+        given(s3Client.listObjectsV2Paginator(argThat(prefixIs("thumbnails/")))).willReturn(postsPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("profiles/")))).willReturn(profilesPage);
         given(s3Client.listObjectsV2Paginator(argThat(prefixIs("contents/")))).willReturn(contentsPage);
 

@@ -67,7 +67,7 @@ public class ImageCleanupScheduler {
 
             int deleted = 0;
 
-            for (String prefix : List.of("posts/", "profiles/", "contents/")) {
+            for (String prefix : List.of("thumbnails/", "profiles/", "contents/")) {
                 ListObjectsV2Request request = ListObjectsV2Request.builder()
                         .bucket(s3Properties.bucket())
                         .prefix(prefix)

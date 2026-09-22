@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,4 +129,17 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
 
     @Query("select p.content from Post p where p.content is not null")
     List<String> findAllContents();
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Post p set p.deletedAt = CURRENT_TIMESTAMP where p.memberId = :memberId and p.deletedAt is null")
+    void softDeleteByMemberId(Long memberId);
+
+    @Query("select p.postId from Post p where p.memberId = :memberId and p.deletedAt is null and p.status = com.leisure.post.domain.PostStatus.PUBLISHED")
+    List<Long> findPublishedPostIdsByMemberId(Long memberId);
+
+    @Query("select p.postId from Post p where p.memberId in :memberIds")
+    List<Long> findPostIdsByMemberIdIn(Collection<Long> memberIds);
+
+    @Query("delete from Post p where p.memberId in :memberIds")
+    void deleteByMemberIdIn(Collection<Long> memberIds);
 }

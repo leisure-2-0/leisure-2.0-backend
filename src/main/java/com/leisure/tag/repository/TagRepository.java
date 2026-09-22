@@ -25,4 +25,8 @@ public interface TagRepository extends JpaRepository<PostTag, Long> {
     @Modifying
     @Query("delete from PostTag pt where pt.postId = :postId")
     void deleteByPostId(Long postId);
+
+    @Modifying
+    @Query("delete from PostTag pt where pt.postId in :postIds")
+    void deleteByPostIdIn(Collection<Long> postIds);
 }
