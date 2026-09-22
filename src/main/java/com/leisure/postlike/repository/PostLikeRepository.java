@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+
 @Repository
 public interface PostLikeRepository extends JpaRepository<PostLike, Long>, PostLikeRepositoryCustom {
 
@@ -29,4 +31,12 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long>, PostL
          and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
     """)
     long countLikedPosts(Long memberId);
+
+    @Modifying
+    @Query("delete from PostLike pl where pl.postId in :postIds")
+    void deleteByPostIdIn(Collection<Long> postIds);
+
+    @Modifying
+    @Query("delete from PostLike pl where pl.memberId in :memberIds")
+    void deleteByMemberIdIn(Collection<Long> memberIds);
 }

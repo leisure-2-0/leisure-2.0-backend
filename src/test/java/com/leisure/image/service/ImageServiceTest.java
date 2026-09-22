@@ -54,11 +54,11 @@ class ImageServiceTest {
             when(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class))).thenReturn(presigned);
 
             PresignedUrlResponse response = imageService.createPresignedUrl(
-                    new PresignedUrlRequest("image/jpeg", ImagePurpose.POST));
+                    new PresignedUrlRequest("image/jpeg", ImagePurpose.THUMBNAIL));
 
             assertThat(response.presignedUrl()).isEqualTo("https://leisure-images.s3/put");
-            assertThat(response.objectKey()).startsWith("posts/").endsWith(".jpg");
-            assertThat(response.imageUrl()).startsWith(BASE_URL + "/posts/").endsWith(".jpg");
+            assertThat(response.objectKey()).startsWith("thumbnails/").endsWith(".jpg");
+            assertThat(response.imageUrl()).startsWith(BASE_URL + "/thumbnails/").endsWith(".jpg");
         }
 
         @Test
@@ -78,7 +78,7 @@ class ImageServiceTest {
         @DisplayName("지원하지 않는 content-type이면 IMAGE_CONTENT_TYPE_UNSUPPORTED")
         void unsupportedContentType() {
             assertThatThrownBy(() -> imageService.createPresignedUrl(
-                    new PresignedUrlRequest("application/pdf", ImagePurpose.POST)))
+                    new PresignedUrlRequest("application/pdf", ImagePurpose.THUMBNAIL)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.IMAGE_CONTENT_TYPE_UNSUPPORTED);
@@ -88,7 +88,7 @@ class ImageServiceTest {
         @DisplayName("content-type 형식이 아니면 IMAGE_CONTENT_TYPE_UNSUPPORTED")
         void invalidContentType() {
             assertThatThrownBy(() -> imageService.createPresignedUrl(
-                    new PresignedUrlRequest("jpeg", ImagePurpose.POST)))
+                    new PresignedUrlRequest("jpeg", ImagePurpose.THUMBNAIL)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.IMAGE_CONTENT_TYPE_UNSUPPORTED);

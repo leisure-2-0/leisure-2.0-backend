@@ -1,4 +1,4 @@
 package com.leisure.member.event;
 
-public record MemberWithdrawnEvent(String publicId) {
+public record MemberWithdrawnEvent(String publicId, Long memberId) {
 }

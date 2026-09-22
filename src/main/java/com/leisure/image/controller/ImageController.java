@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "이미지", description = "이미지 업로드(presigned URL)")
 @RestController
-@RequestMapping("/images")
 @RequiredArgsConstructor
 public class ImageController {
 
@@ -35,7 +34,7 @@ public class ImageController {
                     """
     )
     @SecurityRequirement(name = "BearerAuth")
-    @PostMapping
+    @PostMapping("/images")
     public ResponseEntity<ApiResponse<PresignedUrlResponse>> createPresignedUrl(
             @CurrentMember String publicId,
             @Valid @RequestBody PresignedUrlRequest request) {

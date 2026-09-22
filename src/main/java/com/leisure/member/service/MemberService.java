@@ -78,7 +78,9 @@ public class MemberService {
 //        }
 
         member.delete();
-        eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId));
+
+        Long memberId = member.getMemberId();
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(publicId, memberId));
     }
 
 

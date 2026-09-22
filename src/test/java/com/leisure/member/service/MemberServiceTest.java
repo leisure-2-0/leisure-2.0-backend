@@ -287,12 +287,13 @@ class MemberServiceTest {
         @DisplayName("회원을 소프트 삭제하고 MemberWithdrawnEvent를 발행한다")
         void success() {
             Member member = Member.create("user@leisure.com", "ENCODED", "nick");
+            ReflectionTestUtils.setField(member, "memberId", 1L);
             given(memberReader.getMemberByPublicId(PUBLIC_ID)).willReturn(member);
 
             memberService.withdraw(PUBLIC_ID);
 
             assertThat(member.getDeletedAt()).isNotNull();
-            verify(eventPublisher).publishEvent(new MemberWithdrawnEvent(PUBLIC_ID));
+            verify(eventPublisher).publishEvent(new MemberWithdrawnEvent(PUBLIC_ID, 1L));
         }
     }
 
