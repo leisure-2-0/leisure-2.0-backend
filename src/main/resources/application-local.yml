@@ -152,3 +152,7 @@ aws:
 image:
   cleanup:
     enabled: false
+
+member:
+  purge:
+    enabled: false

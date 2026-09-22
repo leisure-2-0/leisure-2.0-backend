@@ -24,8 +24,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Component
-@ConditionalOnProperty(name = "image.cleanup.enabled", havingValue = "true")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "image.cleanup.enabled", havingValue = "true")
 public class ImageCleanupScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ImageCleanupScheduler.class);
@@ -35,7 +35,7 @@ public class ImageCleanupScheduler {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 2 * * *", zone = "Asia/Seoul")
     public void cleanupOrphans() {
         log.info("[image-cleanup] 고아 이미지 청소 시작");
 
@@ -67,7 +67,7 @@ public class ImageCleanupScheduler {
 
             int deleted = 0;
 
-            for (String prefix : List.of("posts/", "profiles/", "contents/")) {
+            for (String prefix : List.of("thumbnails/", "profiles/", "contents/")) {
                 ListObjectsV2Request request = ListObjectsV2Request.builder()
                         .bucket(s3Properties.bucket())
                         .prefix(prefix)

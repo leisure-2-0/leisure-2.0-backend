@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+
 @Repository
 public interface BookmarkRepository extends JpaRepository<PostBookmark, Long>, BookmarkRepositoryCustom {
 
@@ -28,4 +30,12 @@ public interface BookmarkRepository extends JpaRepository<PostBookmark, Long>, B
          and p.status = com.leisure.post.domain.PostStatus.PUBLISHED
     """)
     long countBookmarkedPosts(Long memberId);
+
+    @Modifying
+    @Query("delete from PostBookmark pb where pb.postId in :postIds")
+    void deleteByPostIdIn(Collection<Long> postIds);
+
+    @Modifying
+    @Query("delete from PostBookmark pb where pb.memberId in :memberIds")
+    void deleteByMemberIdIn(Collection<Long> memberIds);
 }
