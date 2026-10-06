@@ -78,13 +78,13 @@
 
 ### 🏗 아키텍처
 
-![여정_아키텍처-최종--수정--진짜최종-.png](docs/%E1%84%8B%E1%85%A7%E1%84%8C%E1%85%A5%E1%86%BC_%E1%84%8B%E1%85%A1%E1%84%8F%E1%85%B5%E1%84%90%E1%85%A6%E1%86%A8%E1%84%8E%E1%85%A5-%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC--%E1%84%89%E1%85%AE%E1%84%8C%E1%85%A5%E1%86%BC--%E1%84%8C%E1%85%B5%E1%86%AB%E1%84%8D%E1%85%A1%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC-.png)
+![architecture](docs/leisure_architecture.png)
 
 ---
 
 ### 🗂 DB ERD
 
-![여정_erd.png](docs/%EC%97%AC%EC%A0%95_erd.png)
+![erd](docs/leisure_erd.png)
 
 ---
 
