@@ -156,3 +156,9 @@ image:
 member:
   purge:
     enabled: false
+
+ai:
+  server:
+    base-url: http://localhost:8081
+    connect-timeout-ms: 5000
+    read-timeout-seconds: 60

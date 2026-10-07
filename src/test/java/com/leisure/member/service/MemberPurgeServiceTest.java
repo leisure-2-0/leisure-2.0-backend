@@ -1,6 +1,8 @@
 package com.leisure.member.service;
 
 import com.leisure.bookmark.repository.BookmarkRepository;
+import com.leisure.chat.repository.ChatMessageRepository;
+import com.leisure.chat.repository.ChatRoomRepository;
 import com.leisure.member.repository.MemberRepository;
 import com.leisure.pointhistory.repository.PointHistoryRepository;
 import com.leisure.post.repository.PostRepository;
@@ -47,6 +49,12 @@ class MemberPurgeServiceTest {
     @Mock
     private PointHistoryRepository pointHistoryRepository;
 
+    @Mock
+    private ChatRoomRepository chatRoomRepository;
+
+    @Mock
+    private ChatMessageRepository chatMessageRepository;
+
     @InjectMocks
     private MemberPurgeService memberPurgeService;
 
@@ -59,23 +67,26 @@ class MemberPurgeServiceTest {
 
         assertThat(purged).isZero();
         verifyNoMoreInteractions(memberRepository);
-        verifyNoInteractions(postRepository, tagRepository, postLikeRepository, bookmarkRepository, pointHistoryRepository);
+        verifyNoInteractions(postRepository, tagRepository, postLikeRepository, bookmarkRepository,
+                pointHistoryRepository, chatRoomRepository, chatMessageRepository);
     }
 
     @Test
-    @DisplayName("대상 회원과 글이 있으면 자식→글→회원 순서로 삭제하고 회원 수를 반환한다")
+    @DisplayName("대상 회원이 있으면 자식→채팅→글→회원 순서로 삭제하고 회원 수를 반환한다")
     void purge_deletesInOrder() {
         List<Long> memberIds = List.of(1L, 2L);
         List<Long> postIds = List.of(10L, 11L);
+        List<Long> chatRoomIds = List.of(100L);
         given(memberRepository.findMemberIdsByDeletedAtBefore(any(LocalDateTime.class))).willReturn(memberIds);
         given(postRepository.findPostIdsByMemberIdIn(memberIds)).willReturn(postIds);
+        given(chatRoomRepository.findChatRoomIdsByMemberIdIn(memberIds)).willReturn(chatRoomIds);
 
         int purged = memberPurgeService.purgeWithdrawnMembers();
 
         assertThat(purged).isEqualTo(2);
 
         InOrder inOrder = inOrder(tagRepository, postLikeRepository, bookmarkRepository,
-                pointHistoryRepository, postRepository, memberRepository);
+                pointHistoryRepository, chatMessageRepository, chatRoomRepository, postRepository, memberRepository);
         // 글의 자식(태그·좋아요·북마크) 먼저
         inOrder.verify(tagRepository).deleteByPostIdIn(postIds);
         inOrder.verify(postLikeRepository).deleteByPostIdIn(postIds);
@@ -84,27 +95,33 @@ class MemberPurgeServiceTest {
         inOrder.verify(postLikeRepository).deleteByMemberIdIn(memberIds);
         inOrder.verify(bookmarkRepository).deleteByMemberIdIn(memberIds);
         inOrder.verify(pointHistoryRepository).deleteByMemberIdIn(memberIds);
+        // 채팅(메시지 → 방)
+        inOrder.verify(chatMessageRepository).deleteByChatRoomIdIn(chatRoomIds);
+        inOrder.verify(chatRoomRepository).deleteByMemberIdIn(memberIds);
         // 글 → 회원 (맨 마지막)
         inOrder.verify(postRepository).deleteByMemberIdIn(memberIds);
         inOrder.verify(memberRepository).deleteByMemberIdIn(memberIds);
     }
 
     @Test
-    @DisplayName("대상 회원은 있으나 글이 없으면 글 자식 삭제는 건너뛰고 나머지는 삭제한다")
-    void noPosts_skipsPostChildrenDeletes() {
+    @DisplayName("글·대화방이 없으면 자식 삭제는 건너뛰고 회원기준 삭제는 수행한다")
+    void noChildren_skipsChildDeletes() {
         List<Long> memberIds = List.of(1L);
         given(memberRepository.findMemberIdsByDeletedAtBefore(any(LocalDateTime.class))).willReturn(memberIds);
         given(postRepository.findPostIdsByMemberIdIn(memberIds)).willReturn(List.of());
+        given(chatRoomRepository.findChatRoomIdsByMemberIdIn(memberIds)).willReturn(List.of());
 
         memberPurgeService.purgeWithdrawnMembers();
 
         verify(tagRepository, never()).deleteByPostIdIn(any());
         verify(postLikeRepository, never()).deleteByPostIdIn(any());
         verify(bookmarkRepository, never()).deleteByPostIdIn(any());
+        verify(chatMessageRepository, never()).deleteByChatRoomIdIn(any());
 
         verify(postLikeRepository).deleteByMemberIdIn(memberIds);
         verify(bookmarkRepository).deleteByMemberIdIn(memberIds);
         verify(pointHistoryRepository).deleteByMemberIdIn(memberIds);
+        verify(chatRoomRepository).deleteByMemberIdIn(memberIds);
         verify(postRepository).deleteByMemberIdIn(memberIds);
         verify(memberRepository).deleteByMemberIdIn(memberIds);
     }

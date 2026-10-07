@@ -129,3 +129,9 @@ image:
 member:
   purge:
     enabled: true
+
+ai:
+  server:
+    base-url: https://ai.yeojung.life
+    connect-timeout-ms: 5000
+    read-timeout-seconds: 60

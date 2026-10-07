@@ -117,6 +117,9 @@ public enum ErrorCode {
     // ===== 이미지 =====
     IMAGE_CONTENT_TYPE_UNSUPPORTED(HttpStatus.UNPROCESSABLE_CONTENT, "지원하지 않는 이미지 형식입니다. (jpeg, png, webp, gif)"),
 
+    // ===== 채팅 =====
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "대화방을 찾을 수 없습니다."),
+
     ;
 
     private final HttpStatus status;

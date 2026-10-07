@@ -1,6 +1,8 @@
 package com.leisure.member.service;
 
 import com.leisure.bookmark.repository.BookmarkRepository;
+import com.leisure.chat.repository.ChatMessageRepository;
+import com.leisure.chat.repository.ChatRoomRepository;
 import com.leisure.member.repository.MemberRepository;
 import com.leisure.pointhistory.repository.PointHistoryRepository;
 import com.leisure.post.repository.PostRepository;
@@ -29,6 +31,10 @@ public class MemberPurgeService {
 
     private final PointHistoryRepository pointHistoryRepository;
 
+    private final ChatRoomRepository chatRoomRepository;
+
+    private final ChatMessageRepository chatMessageRepository;
+
 
     @Transactional
     public int purgeWithdrawnMembers() {
@@ -56,6 +62,14 @@ public class MemberPurgeService {
         bookmarkRepository.deleteByMemberIdIn(memberIds);
 
         pointHistoryRepository.deleteByMemberIdIn(memberIds);
+
+        List<Long> chatRoomIds = chatRoomRepository.findChatRoomIdsByMemberIdIn(memberIds);
+
+        if (!chatRoomIds.isEmpty()) {
+            chatMessageRepository.deleteByChatRoomIdIn(chatRoomIds);
+        }
+
+        chatRoomRepository.deleteByMemberIdIn(memberIds);
 
         postRepository.deleteByMemberIdIn(memberIds);
 
